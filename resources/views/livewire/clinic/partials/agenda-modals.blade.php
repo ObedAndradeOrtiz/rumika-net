@@ -302,10 +302,96 @@
                     <label class="rm-field"><span>Referencia</span><input wire:model="paymentReference" type="text" placeholder="Numero QR, recibo, anticipo"></label>
                     <label class="rm-field"><span>Notas</span><input wire:model="paymentNotes" type="text"></label>
                     <label class="rm-check-option"><input wire:model="invoiceRequested" type="checkbox"><span>Para facturar</span><small>Queda marcado para el modulo de facturacion</small></label>
+                    @if ($editingPaymentId && $paymentTickets->isNotEmpty())
+                        <div class="rm-payment-ticket-list">
+                            <strong>Tickets de este cobro</strong>
+                            @foreach ($paymentTickets as $ticket)
+                                <button class="rm-payment-ticket-row" type="button" wire:click="previewPaymentTicket({{ $ticket->id }})">
+                                    <span>{{ $ticket->ticket_number }}</span>
+                                    <small>{{ $ticket->created_at->format('d/m/Y H:i') }} - {{ $ticket->printed_at ? 'Impreso' : 'Sin imprimir' }}</small>
+                                </button>
+                            @endforeach
+                        </div>
+                    @endif
                     <div class="rm-form-actions"><button class="rm-button rm-button-primary" type="submit">{{ $editingPaymentId ? 'Actualizar cobro' : 'Guardar cobro' }}</button></div>
                 </aside>
             </div>
         </form>
+    </section>
+@endif
+
+@if ($showPaymentTicketPreview)
+    <div class="rm-modal-backdrop" wire:click="closePaymentTicketPreview"></div>
+    <section class="rm-modal-panel rm-modal-panel-wide rm-print-preview-modal" role="dialog" aria-modal="true">
+        <div class="rm-modal-title">
+            <div>
+                <span>Ticket del cliente</span>
+                <h2>{{ $paymentTicketPreview['title'] ?? 'Ticket de cobro' }}</h2>
+                <p class="rm-modal-subtitle">{{ $paymentTicketPreview['branch'] ?? '' }} - {{ $paymentTicketPreview['business_date'] ?? '' }}</p>
+            </div>
+            <button type="button" wire:click="closePaymentTicketPreview" aria-label="Cerrar">x</button>
+        </div>
+
+        <div class="rm-print-preview-paper">
+            <div class="rm-print-header">
+                <strong>Rumika - Ticket de cobro</strong>
+                <span>{{ $paymentTicketPreview['ticket_number'] ?? 'Ticket sin numero' }}</span>
+                <span>Cliente: {{ $paymentTicketPreview['client'] ?? 'Cliente' }}</span>
+                <span>Atendido por: {{ $paymentTicketPreview['performed_by'] ?? 'Sin profesional' }}</span>
+                <span>Cajero: {{ $paymentTicketPreview['received_by'] ?? 'Sin cajero' }}</span>
+            </div>
+
+            <div class="rm-print-section">
+                <h3>Detalle</h3>
+                <div class="rm-print-table">
+                    <div class="rm-print-row rm-print-row-head"><span>Item</span><span>Total</span><span>Efectivo</span><span>QR</span></div>
+                    @foreach (($paymentTicketPreview['rows'] ?? []) as $row)
+                        <div class="rm-print-row">
+                            <span>{{ $row['type'] }} - {{ $row['name'] }} @if($row['quantity'] > 1) x {{ number_format($row['quantity'], 2) }} @endif</span>
+                            <span>Bs {{ number_format($row['total'], 2) }}</span>
+                            <span>Bs {{ number_format($row['cash'], 2) }}</span>
+                            <span>Bs {{ number_format($row['qr'], 2) }}</span>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+
+            @if (! empty($paymentTicketPreview['outstanding_charges']))
+                <div class="rm-print-section">
+                    <h3>Saldos pendientes</h3>
+                    <div class="rm-print-table">
+                        <div class="rm-print-row rm-print-row-head"><span>Detalle</span><span>Total</span><span>Pagado</span><span>Saldo</span></div>
+                        @foreach ($paymentTicketPreview['outstanding_charges'] as $charge)
+                            <div class="rm-print-row">
+                                <span>{{ $charge['type'] }} - {{ $charge['name'] }}</span>
+                                <span>Bs {{ number_format($charge['total'], 2) }}</span>
+                                <span>Bs {{ number_format($charge['paid'], 2) }}</span>
+                                <span>Bs {{ number_format($charge['balance'], 2) }}</span>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
+            <div class="rm-print-totals">
+                <span>Efectivo Bs {{ number_format($paymentTicketPreview['totals']['cash'] ?? 0, 2) }}</span>
+                <span>QR Bs {{ number_format($paymentTicketPreview['totals']['qr'] ?? 0, 2) }}</span>
+                <strong>Total Bs {{ number_format($paymentTicketPreview['totals']['total'] ?? 0, 2) }}</strong>
+                @if (! empty($paymentTicketPreview['printer_enabled']))<span>Impresora {{ $paymentTicketPreview['printer_name'] ?: 'sin seleccionar' }}</span>@endif
+            </div>
+        </div>
+
+        <div class="rm-form-actions">
+            <button
+                class="rm-button rm-button-primary rm-auto-print-ticket"
+                type="button"
+                wire:click="markPaymentTicketPrinted"
+                data-use-qz="{{ ! empty($paymentTicketPreview['printer_enabled']) && ! empty($paymentTicketPreview['printer_name']) ? '1' : '0' }}"
+                data-printer-name="{{ $paymentTicketPreview['printer_name'] ?? '' }}"
+                onclick="event.preventDefault(); window.RumikaQz.printFromButton(this)"
+            >Imprimir ticket</button>
+            <button class="rm-button rm-button-outline" type="button" wire:click="closePaymentTicketPreview">Volver</button>
+        </div>
     </section>
 @endif
 

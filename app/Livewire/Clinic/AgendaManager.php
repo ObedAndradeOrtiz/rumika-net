@@ -5,6 +5,7 @@ namespace App\Livewire\Clinic;
 use App\Models\Appointment;
 use App\Models\AppointmentService;
 use App\Models\Branch;
+use App\Models\CashboxTicket;
 use App\Models\Client;
 use App\Models\ClientCharge;
 use App\Models\Company;
@@ -14,6 +15,7 @@ use App\Models\Service;
 use App\Models\TreatmentPayment;
 use App\Models\TreatmentPaymentItem;
 use App\Models\TreatmentPlan;
+use App\Support\PaymentTicketBuilder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -29,6 +31,8 @@ class AgendaManager extends Component
     public bool $showPaymentModal = false;
     public bool $showRescheduleModal = false;
     public bool $showAddServicesModal = false;
+    public bool $showPaymentTicketPreview = false;
+    public array $paymentTicketPreview = [];
     public ?int $selectedAppointmentId = null;
     public ?int $historyClientId = null;
     public ?int $paymentAppointmentId = null;
@@ -158,7 +162,7 @@ class AgendaManager extends Component
 
         $validated = $this->validate($rules);
 
-        DB::transaction(function () use ($company, $branch, $validated) {
+        $paymentId = DB::transaction(function () use ($company, $branch, $validated) {
             $client = $this->clientMode === 'existing'
                 ? $company->clients()->whereKey($validated['clientId'])->firstOrFail()
                 : $company->clients()->create([
@@ -209,12 +213,18 @@ class AgendaManager extends Component
             $initialPaymentAmount = $this->initialAppointmentPaymentAmount($validated);
 
             if ($initialPaymentAmount > 0) {
-                $this->storePayment($company, $branch, $client, $appointment, $plan, $initialPaymentAmount, $validated);
+                return $this->storePayment($company, $branch, $client, $appointment, $plan, $initialPaymentAmount, $validated);
             }
+
+            return null;
         });
 
         $this->showAppointmentModal = false;
         $this->resetAppointmentForm();
+
+        if ($paymentId) {
+            $this->openPaymentTicket((int) $paymentId, true);
+        }
     }
 
     public function markAttended(int $appointmentId): void
@@ -626,7 +636,7 @@ class AgendaManager extends Component
             ->map(fn ($lines) => (string) ($lines->first(fn (array $line) => trim((string) $line['stock_shortage_reason']) !== '')['stock_shortage_reason'] ?? ''))
             ->all();
 
-        DB::transaction(function () use ($appointment, $validated, $cash, $qr, $extraSplits, $amount, $selectedServiceIds, $serviceLineCharges, $productLines, $pendingPayments, $stockShortageReasons, $submittedProductChargeIds) {
+        $paymentId = DB::transaction(function () use ($appointment, $validated, $cash, $qr, $extraSplits, $amount, $selectedServiceIds, $serviceLineCharges, $productLines, $pendingPayments, $stockShortageReasons, $submittedProductChargeIds) {
             $payment = $this->editingPaymentId
                 ? $appointment->company->treatmentPayments()->with('items')->whereKey($this->editingPaymentId)->firstOrFail()
                 : new TreatmentPayment([
@@ -828,6 +838,8 @@ class AgendaManager extends Component
                 'attended_by_user_id' => $validated['paymentAttendedByUserId'],
             ]);
             $appointment->treatmentPlan?->increment('paid_amount', $amount);
+
+            return $payment->id;
         });
 
         if ($this->getErrorBag()->isNotEmpty()) {
@@ -835,6 +847,46 @@ class AgendaManager extends Component
         }
 
         $this->showPaymentModal = false;
+        $this->openPaymentTicket((int) $paymentId, true);
+    }
+
+    public function previewPaymentTicket(int $ticketId): void
+    {
+        $ticket = $this->company()
+            ->cashboxTickets()
+            ->where('branch_id', $this->activeBranch()->id)
+            ->where('type', 'payment')
+            ->whereKey($ticketId)
+            ->firstOrFail();
+
+        $ticket->increment('reprint_count');
+        $this->paymentTicketPreview = $ticket->refresh()->payload;
+        $this->showPaymentTicketPreview = true;
+    }
+
+    public function closePaymentTicketPreview(): void
+    {
+        $this->showPaymentTicketPreview = false;
+        $this->paymentTicketPreview = [];
+    }
+
+    public function markPaymentTicketPrinted(): void
+    {
+        $ticketId = $this->paymentTicketPreview['ticket_id'] ?? null;
+
+        if (! $ticketId) {
+            return;
+        }
+
+        $this->company()
+            ->cashboxTickets()
+            ->where('branch_id', $this->activeBranch()->id)
+            ->whereKey($ticketId)
+            ->update([
+                'printed_by_user_id' => Auth::id(),
+                'printed_at' => now(),
+                'status' => 'printed',
+            ]);
     }
 
     public function openReschedule(int $appointmentId): void
@@ -1054,6 +1106,14 @@ class AgendaManager extends Component
             'pendingCharges' => $this->paymentAppointmentId
                 ? $this->pendingCharges($company->appointments()->whereKey($this->paymentAppointmentId)->value('client_id') ?? 0, $this->editingPaymentId)
                 : collect(),
+            'paymentTickets' => $this->editingPaymentId
+                ? $company->cashboxTickets()
+                    ->where('branch_id', $branch->id)
+                    ->where('treatment_payment_id', $this->editingPaymentId)
+                    ->where('type', 'payment')
+                    ->latest()
+                    ->get()
+                : collect(),
             'historyClient' => $historyClient,
             'historyProductItems' => $historyProductItems,
             'historyPendingProductCharges' => $historyPendingCharges->where('type', 'product')->values(),
@@ -1062,7 +1122,7 @@ class AgendaManager extends Component
         ]);
     }
 
-    private function storePayment(Company $company, Branch $branch, Client $client, Appointment $appointment, ?TreatmentPlan $plan, float $amount, array $data): void
+    private function storePayment(Company $company, Branch $branch, Client $client, Appointment $appointment, ?TreatmentPlan $plan, float $amount, array $data): int
     {
         $method = $data['paymentMethod'];
         $cashAmount = (float) ($data['paymentCashAmount'] ?? 0);
@@ -1145,6 +1205,40 @@ class AgendaManager extends Component
 
         $appointment->update(['locked_by_payment' => true]);
         $plan?->increment('paid_amount', $amount);
+
+        return $payment->id;
+    }
+
+    private function openPaymentTicket(int $paymentId, bool $autoPrint = false): void
+    {
+        $company = $this->company();
+        $branch = $this->activeBranch();
+        $payment = $company->treatmentPayments()
+            ->with(['company', 'client', 'splits', 'items', 'chargePayments.charge', 'performedBy', 'receivedBy'])
+            ->where('branch_id', $branch->id)
+            ->whereKey($paymentId)
+            ->firstOrFail();
+        $payload = PaymentTicketBuilder::payload($payment, $branch);
+        $ticket = CashboxTicket::query()->create([
+            'company_id' => $company->id,
+            'branch_id' => $branch->id,
+            'treatment_payment_id' => $payment->id,
+            'type' => 'payment',
+            'ticket_number' => 'PAY-'.$company->id.'-'.$branch->id.'-'.now()->format('YmdHis').'-'.random_int(100, 999),
+            'title' => 'Ticket de cobro',
+            'payload' => $payload,
+            'status' => 'generated',
+        ]);
+        $payload['ticket_id'] = $ticket->id;
+        $payload['ticket_number'] = $ticket->ticket_number;
+        $ticket->update(['payload' => $payload]);
+
+        $this->paymentTicketPreview = $payload;
+        $this->showPaymentTicketPreview = true;
+
+        if ($autoPrint && $payload['printer_enabled'] && $payload['printer_name']) {
+            $this->dispatch('rumika-auto-print-ticket');
+        }
     }
 
     private function reversePaymentProductStock(TreatmentPayment $payment): void

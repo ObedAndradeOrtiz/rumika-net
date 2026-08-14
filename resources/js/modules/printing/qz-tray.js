@@ -83,3 +83,15 @@ window.RumikaQz = {
         }
     },
 };
+
+window.addEventListener('rumika-auto-print-ticket', () => {
+    window.setTimeout(() => {
+        const button = document.querySelector('.rm-auto-print-ticket');
+
+        if (! button) {
+            return;
+        }
+
+        button.click();
+    }, 350);
+});
