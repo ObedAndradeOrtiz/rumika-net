@@ -1,8 +1,10 @@
 ---
 deployment:
   tasks:
-    - /bin/echo "Deploying Rumika SaaS"
-    - /opt/cpanel/composer/bin/composer install --no-dev --optimize-autoloader --no-interaction
-    - /usr/local/bin/php artisan config:clear
-    - /usr/local/bin/php artisan route:clear
-    - /usr/local/bin/php artisan view:clear
+    - /bin/echo "Deploying Rumika SaaS in /home/guislain/rumika"
+    - /bin/bash -lc 'cd /home/guislain/rumika && if [ -x /opt/cpanel/composer/bin/composer ]; then /opt/cpanel/composer/bin/composer install --no-dev --optimize-autoloader --no-interaction; else composer install --no-dev --optimize-autoloader --no-interaction; fi'
+    - /bin/bash -lc 'cd /home/guislain/rumika && mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache'
+    - /bin/bash -lc 'cd /home/guislain/rumika && chmod -R ug+rw storage bootstrap/cache'
+    - /bin/bash -lc 'cd /home/guislain/rumika && if [ -f .env ]; then /usr/local/bin/php artisan config:clear; fi'
+    - /bin/bash -lc 'cd /home/guislain/rumika && if [ -f .env ]; then /usr/local/bin/php artisan route:clear; fi'
+    - /bin/bash -lc 'cd /home/guislain/rumika && if [ -f .env ]; then /usr/local/bin/php artisan view:clear; fi'
