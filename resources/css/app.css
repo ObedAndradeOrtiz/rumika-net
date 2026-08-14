@@ -1,0 +1,13 @@
+@import './core/tokens.css';
+@import './core/base.css';
+@import './components/auth-card.css';
+@import './components/buttons.css';
+@import './components/forms.css';
+@import './components/modals.css';
+@import './modules/auth/auth.css';
+@import './modules/app-shell/shell.css';
+@import './modules/settings/settings.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

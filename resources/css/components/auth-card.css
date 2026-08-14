@@ -1,0 +1,18 @@
+.rm-auth-card {
+    background: rgba(255, 255, 255, 0.94);
+    border: 1px solid rgba(216, 222, 233, 0.92);
+    border-radius: var(--rumika-radius);
+    box-shadow: 0 28px 80px rgba(16, 24, 40, 0.12);
+}
+
+.rm-brand-mark {
+    align-items: center;
+    background: linear-gradient(135deg, var(--rumika-teal), var(--rumika-emerald));
+    border-radius: 16px;
+    color: #ffffff;
+    display: inline-flex;
+    font-weight: 950;
+    height: 48px;
+    justify-content: center;
+    width: 48px;
+}

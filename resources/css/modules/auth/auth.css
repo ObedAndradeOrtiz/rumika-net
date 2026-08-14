@@ -1,0 +1,125 @@
+.rm-auth-shell {
+    background:
+        linear-gradient(135deg, rgba(0, 127, 120, 0.1), transparent 36%),
+        linear-gradient(315deg, rgba(239, 125, 103, 0.12), transparent 34%),
+        var(--rumika-soft);
+    min-height: 100vh;
+}
+
+.rm-auth-layout {
+    display: grid;
+    gap: 28px;
+    grid-template-columns: minmax(0, 0.92fr) minmax(390px, 0.58fr);
+    margin: 0 auto;
+    max-width: 1180px;
+    min-height: 100vh;
+    padding: 28px;
+}
+
+.rm-auth-preview {
+    align-content: center;
+    display: grid;
+    gap: 22px;
+}
+
+.rm-auth-preview h1 {
+    font-size: clamp(42px, 6vw, 76px);
+    font-weight: 950;
+    letter-spacing: 0;
+    line-height: 0.96;
+}
+
+.rm-auth-preview p {
+    color: var(--rumika-muted);
+    font-size: 18px;
+    line-height: 1.7;
+    max-width: 610px;
+}
+
+.rm-auth-form-panel {
+    align-self: center;
+    padding: clamp(22px, 4vw, 34px);
+}
+
+.rm-module-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.rm-module-chip {
+    background: #ffffff;
+    border: 1px solid var(--rumika-border);
+    border-radius: 999px;
+    color: var(--rumika-teal-dark);
+    font-size: 13px;
+    font-weight: 850;
+    padding: 9px 12px;
+}
+
+.rm-preview-grid {
+    display: grid;
+    gap: 14px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: 720px;
+}
+
+.rm-preview-card {
+    background: rgba(255, 255, 255, 0.82);
+    border: 1px solid var(--rumika-border);
+    border-radius: 16px;
+    padding: 18px;
+}
+
+.rm-preview-card strong {
+    display: block;
+    font-size: 20px;
+}
+
+.rm-preview-card span {
+    color: var(--rumika-muted);
+    display: block;
+    font-size: 13px;
+    margin-top: 4px;
+}
+
+.rm-auth-switch {
+    color: var(--rumika-muted);
+    font-size: 14px;
+    text-align: center;
+}
+
+.rm-auth-switch a {
+    color: var(--rumika-teal-dark);
+    font-weight: 900;
+}
+
+@media (max-width: 920px) {
+    .rm-auth-layout {
+        grid-template-columns: 1fr;
+        padding: 18px;
+    }
+
+    .rm-auth-preview {
+        align-content: start;
+    }
+
+    .rm-preview-grid {
+        display: none;
+    }
+}
+
+@media (max-width: 520px) {
+    .rm-auth-layout {
+        gap: 18px;
+        padding: 14px;
+    }
+
+    .rm-auth-preview h1 {
+        font-size: 40px;
+    }
+
+    .rm-auth-preview p {
+        font-size: 16px;
+    }
+}

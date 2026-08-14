@@ -1,0 +1,115 @@
+.rm-modal-backdrop {
+    background: rgba(15, 23, 42, 0.48);
+    inset: 0;
+    position: fixed;
+    z-index: 50;
+}
+
+.rm-modal-panel {
+    background: #ffffff;
+    border-radius: var(--rumika-radius);
+    box-shadow: 0 28px 80px rgba(15, 23, 42, 0.22);
+    left: 50%;
+    max-width: 520px;
+    max-height: calc(100vh - 48px);
+    overflow: auto;
+    padding: 24px;
+    position: fixed;
+    top: 24px;
+    transform: translateX(-50%);
+    width: calc(100% - 32px);
+    z-index: 51;
+}
+
+.rm-modal-panel-wide {
+    max-width: 720px;
+}
+
+.rm-modal-panel-xl {
+    max-width: 1040px;
+}
+
+.rm-modal-panel-small {
+    max-width: 420px;
+    text-align: center;
+}
+
+.rm-modal-title {
+    align-items: flex-start;
+    display: flex;
+    gap: 16px;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.rm-modal-title span {
+    color: var(--rumika-muted);
+    display: block;
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.rm-modal-title h2,
+.rm-modal-panel-small h2 {
+    font-size: 24px;
+    font-weight: 950;
+    line-height: 1.15;
+}
+
+.rm-modal-title button {
+    align-items: center;
+    background: #f0f3f6;
+    border-radius: 999px;
+    color: var(--rumika-muted);
+    display: inline-flex;
+    flex: 0 0 auto;
+    height: 38px;
+    justify-content: center;
+    width: 38px;
+}
+
+.rm-modal-title button:hover {
+    color: var(--rumika-teal-dark);
+}
+
+.rm-modal-subtitle {
+    color: var(--rumika-muted);
+    font-size: 13px;
+    font-weight: 800;
+    margin-top: 6px;
+}
+
+.rm-confirm-icon {
+    align-items: center;
+    background: #fff1d7;
+    border-radius: 999px;
+    color: #a15c00;
+    display: inline-flex;
+    font-size: 22px;
+    font-weight: 950;
+    height: 52px;
+    justify-content: center;
+    margin-bottom: 14px;
+    width: 52px;
+}
+
+.rm-modal-panel-small p {
+    color: var(--rumika-muted);
+    font-size: 14px;
+    font-weight: 750;
+    margin: 10px 0 20px;
+}
+
+.rm-modal-panel-small .rm-form-actions {
+    justify-content: center;
+}
+
+@media (max-width: 620px) {
+    .rm-modal-panel {
+        border-radius: 22px 22px 0 0;
+        bottom: 0;
+        max-height: calc(100dvh - 32px);
+        top: auto;
+        width: 100%;
+    }
+}

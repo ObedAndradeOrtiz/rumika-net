@@ -1,0 +1,19 @@
+body {
+    background: var(--rumika-soft);
+    color: var(--rumika-ink);
+}
+
+button,
+input,
+select {
+    font: inherit;
+}
+
+a {
+    color: inherit;
+}
+
+::selection {
+    background: var(--rumika-teal);
+    color: #ffffff;
+}

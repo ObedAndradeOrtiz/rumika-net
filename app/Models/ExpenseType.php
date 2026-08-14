@@ -1,0 +1,37 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+class ExpenseType extends Model
+{
+    protected $fillable = [
+        'company_id',
+        'name',
+        'slug',
+        'default_source',
+        'requires_staff',
+        'description',
+        'status',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'requires_staff' => 'boolean',
+        ];
+    }
+
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
+    }
+
+    public function expenses(): HasMany
+    {
+        return $this->hasMany(Expense::class);
+    }
+}
