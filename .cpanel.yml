@@ -1,0 +1,13 @@
+---
+deployment:
+  tasks:
+    - /bin/echo "Deploying Rumika SaaS"
+    - /opt/cpanel/composer/bin/composer install --no-dev --optimize-autoloader --no-interaction
+    - /usr/local/bin/php artisan migrate --force
+    - /usr/local/bin/php artisan storage:link
+    - /usr/local/bin/php artisan config:clear
+    - /usr/local/bin/php artisan route:clear
+    - /usr/local/bin/php artisan view:clear
+    - /usr/local/bin/php artisan config:cache
+    - /usr/local/bin/php artisan route:cache
+    - /usr/local/bin/php artisan view:cache
