@@ -239,6 +239,26 @@ const printWithBrowser = () => {
     window.print();
 };
 
+const decodeTicket = (base64 = '') => {
+    if (! base64) {
+        return '';
+    }
+
+    try {
+        const binary = atob(base64);
+        const bytes = Uint8Array.from(
+            binary,
+            char => char.charCodeAt(0)
+        );
+
+        return new TextDecoder('utf-8').decode(bytes);
+    } catch (error) {
+        console.error('No se pudo decodificar el ticket.', error);
+
+        return '';
+    }
+};
+
 window.RumikaQz = {
     async printFromButton(button) {
         const modal = button.closest('.rm-print-preview-modal');
@@ -261,19 +281,31 @@ window.RumikaQz = {
         try {
             const qz = await connectQz();
             const printer = await qz.printers.find(printerName);
+
             const config = qz.configs.create(printer, {
                 copies: 1,
                 margins: 0,
                 rasterize: false,
             });
 
+            const rawTicket = decodeTicket(
+                button.dataset.ticket || ''
+            );
+
+            const printData = rawTicket
+                ? rawTicket
+                : ticketTextFrom(paper);
+
             await qz.print(config, [{
                 type: 'raw',
                 format: 'plain',
-                data: ticketTextFrom(paper),
+                data: printData,
             }]);
         } catch (error) {
-            window.alert(`No se pudo imprimir con QZ Tray. Verifica que QZ Tray este abierto y que la impresora "${printerName}" exista.`);
+            window.alert(
+                `No se pudo imprimir con QZ Tray. Verifica que QZ Tray este abierto y que la impresora "${printerName}" exista.`
+            );
+
             console.error(error);
         }
     },
