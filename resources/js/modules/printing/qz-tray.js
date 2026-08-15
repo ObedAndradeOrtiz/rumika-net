@@ -22,7 +22,7 @@ const loadQz = () => {
     return qzLoading;
 };
 
-const paperWidth = 48;
+const paperWidth = 42;
 const esc = '\x1B';
 const gs = '\x1D';
 
@@ -142,8 +142,8 @@ const ticketTextFrom = (paper) => {
     const totals = totalsFrom(paper);
     const output = [
         `${esc}@`,
-        `${esc}M\x01`,
-        `${esc}3\x10`,
+        `${esc}M\x00`,
+        `${esc}3\x18`,
         `${esc}a\x01`,
         center(branchName),
         center(title.replace('Rumika - ', '')),
@@ -218,10 +218,7 @@ const ticketTextFrom = (paper) => {
         line(),
         `${esc}a\x01`,
         center('Sistema Rumika SaaS'),
-        `${esc}M\x00`,
-        '',
-        '',
-        '',
+        `${esc}d\x05`,
         `${gs}V\x00`
     );
 

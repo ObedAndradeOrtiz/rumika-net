@@ -1440,18 +1440,18 @@
     border-radius: 12px;
     color: var(--rumika-ink);
     display: grid;
-    gap: 10px;
-    padding: 12px;
+    gap: 12px;
+    padding: 13px;
 }
 
 .rm-print-header {
     display: grid;
-    gap: 2px;
+    gap: 3px;
     text-align: center;
 }
 
 .rm-print-header strong {
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 950;
 }
 
@@ -1463,7 +1463,7 @@
 }
 
 .rm-print-section h3 {
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 950;
     margin-bottom: 5px;
 }
@@ -1478,7 +1478,7 @@
     display: grid;
     gap: 6px;
     grid-template-columns: minmax(0, 1.7fr) repeat(3, minmax(72px, 0.6fr));
-    padding: 7px 9px;
+    padding: 8px 9px;
 }
 
 .rm-print-compact-section .rm-print-row {
@@ -1492,7 +1492,7 @@
 }
 
 .rm-print-row span {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 800;
 }
 
