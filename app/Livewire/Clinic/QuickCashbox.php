@@ -67,7 +67,7 @@ class QuickCashbox extends Component
         if ($openSession) {
             $this->cashboxMessage = $openSession->opened_by_user_id === Auth::id()
                 ? 'Ya tienes una caja abierta en esta sucursal.'
-                : 'Caja abierta por '.$openSession->openedBy?->name.'. Primero debe cerrarse esa caja.';
+                : 'Caja abierta por ' . $openSession->openedBy?->name . '. Primero debe cerrarse esa caja.';
 
             return;
         }
@@ -89,7 +89,7 @@ class QuickCashbox extends Component
         ]);
 
         $this->createSessionTicket($session, 'session_open', 'Apertura de caja');
-        $this->cashboxMessage = 'Caja abierta para el turno '.$shiftNumber.'.';
+        $this->cashboxMessage = 'Caja abierta para el turno ' . $shiftNumber . '.';
     }
 
     public function closeCashbox(): void
@@ -349,7 +349,7 @@ class QuickCashbox extends Component
         foreach ($payments as $payment) {
             $cashLeft = (float) $payment->splits->where('method', 'cash')->sum('amount');
             $qrLeft = (float) $payment->splits->where('method', 'qr')->sum('amount');
-            $items = $payment->items->sortBy(fn ($item) => $item->type === 'service' ? 0 : 1);
+            $items = $payment->items->sortBy(fn($item) => $item->type === 'service' ? 0 : 1);
 
             foreach ($items as $item) {
                 $total = (float) $item->total;
@@ -385,13 +385,13 @@ class QuickCashbox extends Component
 
         return [
             'services' => $printSummary['services']['rows']
-                ->filter(fn (array $row) => $method === '' || $row['method'] === $method)
+                ->filter(fn(array $row) => $method === '' || $row['method'] === $method)
                 ->values(),
             'products' => $printSummary['products']['rows']
-                ->filter(fn (array $row) => $method === '' || $row['method'] === $method)
+                ->filter(fn(array $row) => $method === '' || $row['method'] === $method)
                 ->values(),
             'expenses' => $expenses
-                ->filter(fn ($expense) => $source === '' || $expense->source === $source)
+                ->filter(fn($expense) => $source === '' || $expense->source === $source)
                 ->values(),
         ];
     }
@@ -404,11 +404,11 @@ class QuickCashbox extends Component
             ->where('status', 'open')
             ->first()
             ?? $company->cashboxSessions()
-                ->with(['openedBy', 'closedBy'])
-                ->where('branch_id', $branch->id)
-                ->whereDate('business_date', $day->toDateString())
-                ->latest('shift_number')
-                ->first();
+            ->with(['openedBy', 'closedBy'])
+            ->where('branch_id', $branch->id)
+            ->whereDate('business_date', $day->toDateString())
+            ->latest('shift_number')
+            ->first();
     }
 
     private function createDailyTicket(Company $company, Branch $branch): CashboxTicket
@@ -486,7 +486,7 @@ class QuickCashbox extends Component
             'branch_id' => $branch->id,
             'cashbox_session_id' => $session?->id,
             'type' => $type,
-            'ticket_number' => 'CB-'.$company->id.'-'.$branch->id.'-'.now()->format('YmdHis').'-'.random_int(100, 999),
+            'ticket_number' => 'CB-' . $company->id . '-' . $branch->id . '-' . now()->format('YmdHis') . '-' . random_int(100, 999),
             'title' => $title,
             'payload' => $payload,
             'status' => 'generated',
@@ -499,34 +499,115 @@ class QuickCashbox extends Component
         return $ticket->refresh();
     }
 
-    private function ticketPayload(string $title, Branch $branch, Carbon $businessDate, array $summary, array $totals, ?CashboxSession $session = null, $expenses = null): array
-    {
+    private function ticketPayload(
+        string $title,
+        Branch $branch,
+        Carbon $businessDate,
+        array $summary,
+        array $totals,
+        ?CashboxSession $session = null,
+        $expenses = null
+    ): array {
+        $rawTicket = $this->buildRawTicket(
+            title: $title,
+            branch: $branch,
+            businessDate: $businessDate,
+            summary: $summary,
+            totals: $totals,
+            session: $session,
+            expenses: $expenses
+        );
+
         return [
             'title' => $title,
+
             'branch' => $branch->name,
-            'business_type' => $branch->businessType?->name,
-            'business_date' => $businessDate->format('d/m/Y'),
-            'shift_number' => $session?->shift_number,
-            'status' => $session?->status,
-            'opened_by' => $session?->openedBy?->name,
-            'closed_by' => $session?->closedBy?->name,
-            'opened_at' => $session?->opened_at?->format('d/m/Y H:i'),
-            'closed_at' => $session?->closed_at?->format('d/m/Y H:i'),
-            'printer_enabled' => (bool) $branch->uses_ticket_printer,
-            'printer_name' => $branch->printer_name,
-            'printer_bridge_url' => $branch->printer_bridge_url,
-            'services' => $summary['services']['rows']->values()->all(),
-            'products' => $summary['products']['rows']->values()->all(),
-            'expenses' => $expenses
-                ? $expenses->map(fn ($expense) => [
-                    'name' => $expense->type?->name ?? 'Gasto',
-                    'amount' => (float) $expense->amount,
-                    'responsible' => $expense->createdBy?->name ?? 'Sin responsable',
-                    'reference' => $expense->reference,
-                ])->values()->all()
+
+            'business_type' =>
+            $branch->businessType?->name,
+
+            'business_date' =>
+            $businessDate->format('d/m/Y'),
+
+            'shift_number' =>
+            $session?->shift_number,
+
+            'status' =>
+            $session?->status,
+
+            'opened_by' =>
+            $session?->openedBy?->name,
+
+            'closed_by' =>
+            $session?->closedBy?->name,
+
+            'opened_at' =>
+            $session?->opened_at?->format(
+                'd/m/Y H:i'
+            ),
+
+            'closed_at' =>
+            $session?->closed_at?->format(
+                'd/m/Y H:i'
+            ),
+
+            'printer_enabled' =>
+            (bool) $branch->uses_ticket_printer,
+
+            'printer_name' =>
+            $branch->printer_name,
+
+            'printer_bridge_url' =>
+            $branch->printer_bridge_url,
+
+            'services' =>
+            $summary['services']['rows']
+                ->values()
+                ->all(),
+
+            'products' =>
+            $summary['products']['rows']
+                ->values()
+                ->all(),
+
+            'expenses' =>
+            $expenses
+                ? $expenses
+                ->map(
+                    fn($expense) => [
+                        'name' =>
+                        $expense->type?->name
+                            ?? 'Gasto',
+
+                        'amount' =>
+                        (float) $expense->amount,
+
+                        'responsible' =>
+                        $expense->createdBy?->name
+                            ?? 'Sin responsable',
+
+                        'reference' =>
+                        $expense->reference,
+                    ]
+                )
+                ->values()
+                ->all()
                 : [],
+
             'totals' => $totals,
-            'created_at' => now()->format('d/m/Y H:i'),
+
+            /*
+        |--------------------------------------------------------------------------
+        | TEXTO YA LISTO PARA QZ
+        |--------------------------------------------------------------------------
+        */
+
+            'raw_ticket' => $rawTicket,
+
+            'created_at' =>
+            now()->format(
+                'd/m/Y H:i'
+            ),
         ];
     }
 
@@ -682,5 +763,351 @@ class QuickCashbox extends Component
         return $branches->firstWhere('id', session('active_branch_id'))
             ?? $branches->first()
             ?? $company->branches()->firstOrFail();
+    }
+
+
+    private function buildRawTicket(
+        string $title,
+        Branch $branch,
+        Carbon $businessDate,
+        array $summary,
+        array $totals,
+        ?CashboxSession $session = null,
+        $expenses = null
+    ): string {
+        $width = 42;
+
+        $clean = function ($value): string {
+            $value = Str::ascii((string) $value);
+
+            $value = preg_replace('/\s+/', ' ', $value);
+
+            return trim($value);
+        };
+
+        $center = function ($value) use ($width, $clean): string {
+            $text = $clean($value);
+
+            if (strlen($text) >= $width) {
+                return substr($text, 0, $width);
+            }
+
+            $spaces = (int) floor(
+                ($width - strlen($text)) / 2
+            );
+
+            return str_repeat(' ', $spaces) . $text;
+        };
+
+        $firstTwoNames = function ($value) use ($clean): string {
+            $parts = array_values(
+                array_filter(
+                    explode(' ', $clean($value))
+                )
+            );
+
+            return implode(
+                ' ',
+                array_slice($parts, 0, 2)
+            );
+        };
+
+        $namePrice = function (
+            $name,
+            $amount
+        ) use ($width, $clean): string {
+
+            $name = $clean($name);
+
+            $price = 'Bs ' . number_format(
+                (float) $amount,
+                2,
+                '.',
+                ''
+            );
+
+            $maxNameLength =
+                $width
+                - strlen($price)
+                - 1;
+
+            if (strlen($name) > $maxNameLength) {
+                $name = substr(
+                    $name,
+                    0,
+                    $maxNameLength
+                );
+            }
+
+            $spaces = max(
+                1,
+                $width
+                    - strlen($name)
+                    - strlen($price)
+            );
+
+            return $name
+                . str_repeat(' ', $spaces)
+                . $price;
+        };
+
+        $lines = [];
+
+        // ============================================
+        // CABECERA
+        // ============================================
+
+        $lines[] = $center($branch->name);
+        $lines[] = $center($title);
+        $lines[] = $center(
+            $businessDate->format('d/m/Y')
+        );
+
+        if ($session?->opened_at) {
+            $lines[] =
+                'Desde: '
+                . $session->opened_at->format(
+                    'd/m/Y H:i'
+                );
+        }
+
+        if ($session?->closed_at) {
+            $lines[] =
+                'Hasta: '
+                . $session->closed_at->format(
+                    'd/m/Y H:i'
+                );
+        }
+
+        if ($session?->openedBy?->name) {
+            $lines[] =
+                'Apertura: '
+                . $clean(
+                    $session->openedBy->name
+                );
+        }
+
+        if ($session?->closedBy?->name) {
+            $lines[] =
+                'Cierre: '
+                . $clean(
+                    $session->closedBy->name
+                );
+        }
+
+        $lines[] = str_repeat('-', $width);
+
+
+        // ============================================
+        // SERVICIOS
+        // ============================================
+
+        $lines[] = '';
+        $lines[] = 'SERVICIOS';
+        $lines[] = str_repeat('-', $width);
+
+        $serviceTotal = 0;
+
+        foreach (
+            $summary['services']['rows']
+            as $row
+        ) {
+            /*
+         * Aquí usamos directamente TOTAL.
+         * No imprimimos efectivo ni QR.
+         */
+            $total = (float) (
+                $row['total']
+                ?? 0
+            );
+
+            $serviceTotal += $total;
+
+            $patient = $firstTwoNames(
+                $row['client']
+                    ?? 'Cliente'
+            );
+
+            $lines[] = $namePrice(
+                $patient,
+                $total
+            );
+        }
+
+        $lines[] = str_repeat('-', $width);
+
+        $lines[] = $namePrice(
+            'Total servicios',
+            $serviceTotal
+        );
+
+
+        // ============================================
+        // PRODUCTOS
+        // ============================================
+
+        if (
+            $summary['products']['rows']->isNotEmpty()
+        ) {
+            $lines[] = '';
+            $lines[] = 'PRODUCTOS';
+            $lines[] = str_repeat('-', $width);
+
+            $productTotal = 0;
+
+            foreach (
+                $summary['products']['rows']
+                as $row
+            ) {
+                $total = (float) (
+                    $row['total']
+                    ?? 0
+                );
+
+                $productTotal += $total;
+
+                $name = $clean(
+                    $row['name']
+                        ?? 'Producto'
+                );
+
+                if (
+                    isset($row['quantity'])
+                    && (float) $row['quantity'] > 1
+                ) {
+                    $name .= ' x '
+                        . number_format(
+                            (float) $row['quantity'],
+                            2,
+                            '.',
+                            ''
+                        );
+                }
+
+                $lines[] = $namePrice(
+                    $name,
+                    $total
+                );
+            }
+
+            $lines[] = str_repeat('-', $width);
+
+            $lines[] = $namePrice(
+                'Total productos',
+                $productTotal
+            );
+        }
+
+
+        // ============================================
+        // GASTOS
+        // ============================================
+
+        if (
+            $expenses
+            && $expenses->isNotEmpty()
+        ) {
+            $lines[] = '';
+            $lines[] = 'GASTOS';
+            $lines[] = str_repeat('-', $width);
+
+            foreach ($expenses as $expense) {
+                $lines[] = $namePrice(
+                    $expense->type?->name
+                        ?? 'Gasto',
+                    $expense->amount
+                        ?? 0
+                );
+            }
+        }
+
+
+        // ============================================
+        // TOTALES
+        // ============================================
+
+        $lines[] = '';
+        $lines[] = 'TOTALES';
+        $lines[] = str_repeat('-', $width);
+
+        if (
+            isset($totals['opening_amount'])
+        ) {
+            $lines[] = $namePrice(
+                'Monto inicial',
+                $totals['opening_amount']
+            );
+        }
+
+        $lines[] = $namePrice(
+            'Efectivo',
+            $totals['cash'] ?? 0
+        );
+
+        $lines[] = $namePrice(
+            'QR',
+            $totals['qr'] ?? 0
+        );
+
+        $lines[] = $namePrice(
+            'Gastos caja',
+            $totals['expenses'] ?? 0
+        );
+
+        $lines[] = $namePrice(
+            'Caja neta',
+            $totals['net_cash'] ?? 0
+        );
+
+        if (
+            isset(
+                $totals['expected_cash_amount']
+            )
+        ) {
+            $lines[] = $namePrice(
+                'Esperado en caja',
+                $totals['expected_cash_amount']
+            );
+        }
+
+        if (
+            isset(
+                $totals['counted_cash_amount']
+            )
+        ) {
+            $lines[] = $namePrice(
+                'Contado',
+                $totals['counted_cash_amount']
+            );
+        }
+
+        if (
+            isset(
+                $totals['cash_difference']
+            )
+        ) {
+            $lines[] = $namePrice(
+                'Diferencia',
+                $totals['cash_difference']
+            );
+        }
+
+
+        // ============================================
+        // PIE
+        // ============================================
+
+        $lines[] = str_repeat('-', $width);
+
+        $lines[] = $center(
+            'Sistema Rumika SaaS'
+        );
+
+        $lines[] = '';
+        $lines[] = '';
+        $lines[] = '';
+        $lines[] = '';
+
+        return implode("\n", $lines);
     }
 }

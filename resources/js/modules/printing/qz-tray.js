@@ -1,136 +1,93 @@
-const qzCdn =
-    'https://cdn.jsdelivr.net/npm/qz-tray@2.2.4/qz-tray.js';
+const qzCdn = 'https://cdn.jsdelivr.net/npm/qz-tray@2.2.4/qz-tray.js';
 
 let qzLoading = null;
 
 
 // ==========================================================
-// CARGAR QZ
+// CARGAR QZ TRAY
 // ==========================================================
 
 const loadQz = () => {
-
     if (window.qz) {
-        return Promise.resolve(
-            window.qz
-        );
+        return Promise.resolve(window.qz);
     }
-
 
     if (qzLoading) {
         return qzLoading;
     }
 
+    qzLoading = new Promise((resolve, reject) => {
+        const script = document.createElement('script');
 
-    qzLoading = new Promise(
-        (resolve, reject) => {
+        script.src = qzCdn;
+        script.async = true;
 
-            const script =
-                document.createElement(
-                    'script'
-                );
-
-
-            script.src = qzCdn;
-
-            script.async = true;
-
-
-            script.onload = () => {
-
-                if (window.qz) {
-
-                    resolve(
-                        window.qz
-                    );
-
-                } else {
-
-                    reject(
-                        new Error(
-                            'QZ Tray no cargo correctamente.'
-                        )
-                    );
-                }
-            };
-
-
-            script.onerror = () => {
-
+        script.onload = () => {
+            if (window.qz) {
+                resolve(window.qz);
+            } else {
                 reject(
                     new Error(
-                        'No se pudo cargar QZ Tray.'
+                        'QZ Tray no cargo correctamente.'
                     )
                 );
-            };
+            }
+        };
 
-
-            document.head.appendChild(
-                script
+        script.onerror = () => {
+            reject(
+                new Error(
+                    'No se pudo cargar QZ Tray.'
+                )
             );
-        }
-    );
+        };
 
+        document.head.appendChild(script);
+    });
 
     return qzLoading;
 };
 
 
 // ==========================================================
-// CONECTAR QZ
+// CONECTAR CON QZ TRAY
 // ==========================================================
 
 const connectQz = async () => {
+    const qz = await loadQz();
 
-    const qz =
-        await loadQz();
-
-
-    if (
-        !qz.websocket.isActive()
-    ) {
-
+    if (!qz.websocket.isActive()) {
         await qz.websocket.connect();
     }
-
 
     return qz;
 };
 
 
 // ==========================================================
-// DECODIFICAR BASE64
+// DECODIFICAR EL TICKET QUE VIENE DESDE PHP
 // ==========================================================
 
-const decodeTicket = (
-    base64
-) => {
+const decodeTicket = (base64 = '') => {
+    if (!base64) {
+        return '';
+    }
 
     try {
+        const binary = atob(base64);
 
-        const binary =
-            atob(base64);
+        const bytes = Uint8Array.from(
+            binary,
+            (character) => character.charCodeAt(0)
+        );
 
-
-        const bytes =
-            Uint8Array.from(
-                binary,
-                character =>
-                    character.charCodeAt(0)
-            );
-
-
-        return new TextDecoder(
-            'utf-8'
-        ).decode(bytes);
+        return new TextDecoder('utf-8').decode(bytes);
 
     } catch (error) {
-
         console.error(
             'No se pudo decodificar el ticket:',
             error
         );
-
 
         return '';
     }
@@ -138,30 +95,43 @@ const decodeTicket = (
 
 
 // ==========================================================
-// IMPRESION
+// IMPRESION CON NAVEGADOR COMO RESPALDO
+// ==========================================================
+
+const printWithBrowser = () => {
+    window.print();
+};
+
+
+// ==========================================================
+// RUMIKA QZ
 // ==========================================================
 
 window.RumikaQz = {
 
-    async printFromButton(
-        button
-    ) {
+    async printFromButton(button) {
+
+        // --------------------------------------------------
+        // CONFIGURACION RECIBIDA DESDE BLADE
+        // --------------------------------------------------
 
         const printerName =
-            button.dataset.printerName
-            || '';
-
+            button.dataset.printerName || '';
 
         const useQz =
-            button.dataset.useQz
-                === '1'
-            &&
-            printerName !== '';
-
+            button.dataset.useQz === '1'
+            && printerName !== '';
 
         const ticketBase64 =
-            button.dataset.ticket
-            || '';
+            button.dataset.ticket || '';
+
+
+        // --------------------------------------------------
+        // DECODIFICAR TICKET GENERADO POR PHP
+        // --------------------------------------------------
+
+        const ticket =
+            decodeTicket(ticketBase64);
 
 
         console.log(
@@ -169,7 +139,7 @@ window.RumikaQz = {
         );
 
         console.log(
-            'RUMIKA QZ'
+            'RUMIKA - QZ TRAY'
         );
 
         console.log(
@@ -182,21 +152,8 @@ window.RumikaQz = {
             useQz
         );
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | TICKET YA GENERADO POR PHP
-        |--------------------------------------------------------------------------
-        */
-
-        const ticket =
-            decodeTicket(
-                ticketBase64
-            );
-
-
         console.log(
-            'TICKET GENERADO POR PHP:'
+            'Ticket recibido desde PHP:'
         );
 
         console.log(ticket);
@@ -206,9 +163,16 @@ window.RumikaQz = {
         );
 
 
-        if (!ticket) {
+        // --------------------------------------------------
+        // VALIDAR TICKET
+        // --------------------------------------------------
 
-            alert(
+        if (!ticket) {
+            console.error(
+                'No existe contenido para imprimir.'
+            );
+
+            window.alert(
                 'No existe contenido para imprimir.'
             );
 
@@ -216,19 +180,17 @@ window.RumikaQz = {
         }
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | SI NO ESTA CONFIGURADO QZ
-        |--------------------------------------------------------------------------
-        */
+        // --------------------------------------------------
+        // SI NO ESTA HABILITADO QZ
+        // --------------------------------------------------
 
         if (!useQz) {
-
             console.warn(
-                'QZ no esta habilitado.'
+                'QZ Tray no esta habilitado. ' +
+                'Se utilizara la impresion del navegador.'
             );
 
-            window.print();
+            printWithBrowser();
 
             return;
         }
@@ -236,21 +198,17 @@ window.RumikaQz = {
 
         try {
 
-            /*
-            |--------------------------------------------------------------------------
-            | CONECTAR
-            |--------------------------------------------------------------------------
-            */
+            // --------------------------------------------------
+            // CONECTAR
+            // --------------------------------------------------
 
             const qz =
                 await connectQz();
 
 
-            /*
-            |--------------------------------------------------------------------------
-            | BUSCAR IMPRESORA
-            |--------------------------------------------------------------------------
-            */
+            // --------------------------------------------------
+            // BUSCAR IMPRESORA
+            // --------------------------------------------------
 
             const printer =
                 await qz.printers.find(
@@ -264,11 +222,9 @@ window.RumikaQz = {
             );
 
 
-            /*
-            |--------------------------------------------------------------------------
-            | CONFIGURACION
-            |--------------------------------------------------------------------------
-            */
+            // --------------------------------------------------
+            // CONFIGURACION DE IMPRESION
+            // --------------------------------------------------
 
             const config =
                 qz.configs.create(
@@ -281,11 +237,9 @@ window.RumikaQz = {
                 );
 
 
-            /*
-            |--------------------------------------------------------------------------
-            | MANDAR DIRECTAMENTE EL TEXTO GENERADO EN PHP
-            |--------------------------------------------------------------------------
-            */
+            // --------------------------------------------------
+            // ENVIAR TEXTO DIRECTAMENTE A LA IMPRESORA
+            // --------------------------------------------------
 
             await qz.print(
                 config,
@@ -300,29 +254,29 @@ window.RumikaQz = {
 
 
             console.log(
-                'Ticket enviado correctamente.'
+                'Ticket enviado correctamente a QZ Tray.'
             );
 
         } catch (error) {
 
             console.error(
-                'ERROR QZ:',
+                'ERROR QZ TRAY:',
                 error
             );
 
 
-            alert(
-                `No se pudo imprimir con QZ Tray.\n\n`
-                +
+            window.alert(
+                `No se pudo imprimir con QZ Tray.\n\n` +
+                `Verifica que QZ Tray este abierto.\n` +
                 `Impresora: ${printerName}`
             );
         }
-    }
+    },
 };
 
 
 // ==========================================================
-// AUTO PRINT
+// IMPRESION AUTOMATICA
 // ==========================================================
 
 window.addEventListener(
@@ -339,6 +293,11 @@ window.addEventListener(
 
 
                 if (!button) {
+                    console.warn(
+                        'No se encontro el boton ' +
+                        '.rm-auto-print-ticket'
+                    );
+
                     return;
                 }
 

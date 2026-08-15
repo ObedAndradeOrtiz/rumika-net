@@ -692,7 +692,7 @@
                     <button class="rm-button rm-button-primary" type="button" wire:click="markTicketPrinted"
                         data-use-qz="{{ !empty($ticketPreview['printer_enabled']) && !empty($ticketPreview['printer_name']) ? '1' : '0' }}"
                         data-printer-name="{{ $ticketPreview['printer_name'] ?? '' }}"
-                        data-ticket="{{ $qzTicketBase64 }}"
+                        data-ticket="{{ base64_encode($ticketPreview['raw_ticket'] ?? '') }}"
                         onclick="event.preventDefault(); window.RumikaQz.printFromButton(this)">
                         Imprimir ahora
                     </button>
