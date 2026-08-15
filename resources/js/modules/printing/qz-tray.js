@@ -326,3 +326,121 @@ window.addEventListener('rumika-auto-print-ticket', () => {
         button.click();
     }, 350);
 });
+
+
+document.addEventListener('livewire:init', () => {
+    Livewire.on('imprimir-ticket-caja', async (data) => {
+        const payload = Array.isArray(data) ? data[0] : data;
+
+        await imprimirTicketCajaQz(
+            payload.texto,
+            payload.impresora
+        );
+    });
+});
+
+async function imprimirTicketCajaQz(texto, impresora) {
+    try {
+        const qz = await connectQz();
+
+        if (! impresora) {
+            alert('No hay una impresora configurada.');
+
+            return;
+        }
+
+        const impresoras = await qz.printers.find();
+
+        const impresoraEncontrada = impresoras.find(
+            nombre =>
+                nombre.trim().toLowerCase() ===
+                impresora.trim().toLowerCase()
+        );
+
+        if (! impresoraEncontrada) {
+            alert(
+                'La impresora configurada no existe en Windows/QZ.\n\n' +
+                'Configurada: ' + impresora +
+                '\n\nDetectadas:\n' +
+                impresoras.join('\n')
+            );
+
+            return;
+        }
+
+        const textoLimpio = String(texto ?? '')
+            .replace(/\r\n?/g, '\n');
+
+        const config = qz.configs.create(
+            impresoraEncontrada,
+            {
+                copies: 1,
+                margins: 0,
+                rasterize: false,
+            }
+        );
+
+        const dataPrint = [
+            {
+                type: 'raw',
+                format: 'command',
+                data: '\x1B\x40'
+            },
+            {
+                type: 'raw',
+                format: 'command',
+                data: '\x1B\x4D\x00'
+            },
+            {
+                type: 'raw',
+                format: 'command',
+                data: '\x1D\x21\x00'
+            },
+            {
+                type: 'raw',
+                format: 'command',
+                data: '\x1B\x21\x00'
+            },
+            {
+                type: 'raw',
+                format: 'command',
+                data: '\x1B\x61\x00'
+            },
+            {
+                type: 'raw',
+                format: 'command',
+                data: '\x1B\x33\x18'
+            },
+            {
+                type: 'raw',
+                format: 'plain',
+                data: textoLimpio
+            },
+            {
+                type: 'raw',
+                format: 'command',
+                data: '\x1B\x64\x03'
+            },
+            {
+                type: 'raw',
+                format: 'command',
+                data: '\x1D\x56\x01'
+            }
+        ];
+
+        await qz.print(
+            config,
+            dataPrint
+        );
+    } catch (error) {
+        console.error(
+            'ERROR QZ CAJA:',
+            error
+        );
+
+        alert(
+            'No se pudo imprimir.\n\n' +
+            'Verifica que QZ Tray esté abierto y la impresora esté instalada.'
+        );
+    }
+}

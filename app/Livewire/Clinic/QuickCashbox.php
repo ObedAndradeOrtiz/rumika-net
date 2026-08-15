@@ -1055,4 +1055,40 @@ class QuickCashbox extends Component
 
         return implode("\n", $lines);
     }
+    public function imprimirResultado(): void
+    {
+        $branch = $this->activeBranch();
+
+        $texto = (string) ($this->ticketPreview['raw_ticket'] ?? '');
+
+        if ($texto === '') {
+            $this->cashboxMessage = 'No existe un ticket preparado para imprimir.';
+
+            return;
+        }
+
+        if (! $branch->printer_name) {
+            $this->cashboxMessage = 'No hay una impresora configurada para esta sucursal.';
+
+            return;
+        }
+
+        if (! empty($this->ticketPreview['ticket_id'])) {
+            $this->company()
+                ->cashboxTickets()
+                ->where('branch_id', $branch->id)
+                ->whereKey((int) $this->ticketPreview['ticket_id'])
+                ->update([
+                    'printed_by_user_id' => Auth::id(),
+                    'printed_at' => now(),
+                    'status' => 'printed',
+                ]);
+        }
+
+        $this->dispatch(
+            'imprimir-ticket-caja',
+            texto: $texto,
+            impresora: $branch->printer_name
+        );
+    }
 }
