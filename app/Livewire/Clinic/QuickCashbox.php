@@ -147,11 +147,30 @@ class QuickCashbox extends Component
     public function previewPrint(): void
     {
         $company = $this->company();
-        $branch = $this->activeBranch();
-        $session = $this->visibleCashboxSession($company, $branch, Carbon::parse($this->selectedDate));
-        $ticket = $session ? $this->ticketForSessionPreview($session) : $this->createDailyTicket($company, $branch);
 
-        $this->ticketPreview = $ticket->payload;
+        $branch = $this->activeBranch();
+
+        $session =
+            $this->visibleCashboxSession(
+                $company,
+                $branch,
+                Carbon::parse(
+                    $this->selectedDate
+                )
+            );
+
+        $ticket = $session
+            ? $this->ticketForSessionPreview(
+                $session
+            )
+            : $this->createDailyTicket(
+                $company,
+                $branch
+            );
+
+        $this->ticketPreview =
+            $ticket->payload;
+
         $this->showPrintPreview = true;
     }
 
@@ -170,7 +189,43 @@ class QuickCashbox extends Component
             ->firstOrFail();
 
         $ticket->increment('reprint_count');
-        $this->ticketPreview = $ticket->payload;
+
+        $payload = $ticket->payload ?? [];
+
+        /*
+    |--------------------------------------------------------------------------
+    | Compatibilidad con tickets anteriores
+    |--------------------------------------------------------------------------
+    |
+    | Si el ticket fue creado antes de implementar raw_ticket,
+    | lo generamos nuevamente desde el payload guardado.
+    |
+    */
+
+        if (empty($payload['raw_ticket'])) {
+            $branch = $this->activeBranch();
+
+            $businessDate = ! empty($payload['business_date'])
+                ? Carbon::createFromFormat('d/m/Y', $payload['business_date'])
+                : Carbon::parse($ticket->created_at);
+
+            $payload['raw_ticket'] = $this->buildRawTicket(
+                title: $payload['title'] ?? $ticket->title ?? 'Detalle de caja',
+                branch: $branch,
+                businessDate: $businessDate,
+                services: $payload['services'] ?? [],
+                products: $payload['products'] ?? [],
+                totals: $payload['totals'] ?? [],
+                expenses: $payload['expenses'] ?? [],
+                session: $ticket->session
+            );
+
+            $ticket->update([
+                'payload' => $payload,
+            ]);
+        }
+
+        $this->ticketPreview = $payload;
         $this->showPrintPreview = true;
     }
 
@@ -508,14 +563,47 @@ class QuickCashbox extends Component
         ?CashboxSession $session = null,
         $expenses = null
     ): array {
+        /*
+    |--------------------------------------------------------------------------
+    | Convertir todo a arrays simples
+    |--------------------------------------------------------------------------
+    */
+
+        $services = $summary['services']['rows']
+            ->values()
+            ->all();
+
+        $products = $summary['products']['rows']
+            ->values()
+            ->all();
+
+        $expenseRows = $expenses
+            ? $expenses
+            ->map(fn($expense) => [
+                'name' => $expense->type?->name ?? 'Gasto',
+                'amount' => (float) $expense->amount,
+                'responsible' => $expense->createdBy?->name ?? 'Sin responsable',
+                'reference' => $expense->reference,
+            ])
+            ->values()
+            ->all()
+            : [];
+
+        /*
+    |--------------------------------------------------------------------------
+    | Crear texto listo para impresora
+    |--------------------------------------------------------------------------
+    */
+
         $rawTicket = $this->buildRawTicket(
             title: $title,
             branch: $branch,
             businessDate: $businessDate,
-            summary: $summary,
+            services: $services,
+            products: $products,
             totals: $totals,
-            session: $session,
-            expenses: $expenses
+            expenses: $expenseRows,
+            session: $session
         );
 
         return [
@@ -523,91 +611,45 @@ class QuickCashbox extends Component
 
             'branch' => $branch->name,
 
-            'business_type' =>
-            $branch->businessType?->name,
+            'business_type' => $branch->businessType?->name,
 
-            'business_date' =>
-            $businessDate->format('d/m/Y'),
+            'business_date' => $businessDate->format('d/m/Y'),
 
-            'shift_number' =>
-            $session?->shift_number,
+            'shift_number' => $session?->shift_number,
 
-            'status' =>
-            $session?->status,
+            'status' => $session?->status,
 
-            'opened_by' =>
-            $session?->openedBy?->name,
+            'opened_by' => $session?->openedBy?->name,
 
-            'closed_by' =>
-            $session?->closedBy?->name,
+            'closed_by' => $session?->closedBy?->name,
 
-            'opened_at' =>
-            $session?->opened_at?->format(
-                'd/m/Y H:i'
-            ),
+            'opened_at' => $session?->opened_at?->format('d/m/Y H:i'),
 
-            'closed_at' =>
-            $session?->closed_at?->format(
-                'd/m/Y H:i'
-            ),
+            'closed_at' => $session?->closed_at?->format('d/m/Y H:i'),
 
-            'printer_enabled' =>
-            (bool) $branch->uses_ticket_printer,
+            'printer_enabled' => (bool) $branch->uses_ticket_printer,
 
-            'printer_name' =>
-            $branch->printer_name,
+            'printer_name' => $branch->printer_name,
 
-            'printer_bridge_url' =>
-            $branch->printer_bridge_url,
+            'printer_bridge_url' => $branch->printer_bridge_url,
 
-            'services' =>
-            $summary['services']['rows']
-                ->values()
-                ->all(),
+            'services' => $services,
 
-            'products' =>
-            $summary['products']['rows']
-                ->values()
-                ->all(),
+            'products' => $products,
 
-            'expenses' =>
-            $expenses
-                ? $expenses
-                ->map(
-                    fn($expense) => [
-                        'name' =>
-                        $expense->type?->name
-                            ?? 'Gasto',
-
-                        'amount' =>
-                        (float) $expense->amount,
-
-                        'responsible' =>
-                        $expense->createdBy?->name
-                            ?? 'Sin responsable',
-
-                        'reference' =>
-                        $expense->reference,
-                    ]
-                )
-                ->values()
-                ->all()
-                : [],
+            'expenses' => $expenseRows,
 
             'totals' => $totals,
 
             /*
         |--------------------------------------------------------------------------
-        | TEXTO YA LISTO PARA QZ
+        | Texto final para QZ
         |--------------------------------------------------------------------------
         */
 
             'raw_ticket' => $rawTicket,
 
-            'created_at' =>
-            now()->format(
-                'd/m/Y H:i'
-            ),
+            'created_at' => now()->format('d/m/Y H:i'),
         ];
     }
 
@@ -770,39 +812,77 @@ class QuickCashbox extends Component
         string $title,
         Branch $branch,
         Carbon $businessDate,
-        array $summary,
-        array $totals,
-        ?CashboxSession $session = null,
-        $expenses = null
+        array $services = [],
+        array $products = [],
+        array $totals = [],
+        array $expenses = [],
+        ?CashboxSession $session = null
     ): string {
+        /*
+    |--------------------------------------------------------------------------
+    | CONFIGURACIÓN
+    |--------------------------------------------------------------------------
+    */
+
         $width = 42;
+
+        /*
+    |--------------------------------------------------------------------------
+    | LIMPIAR TEXTO
+    |--------------------------------------------------------------------------
+    */
 
         $clean = function ($value): string {
             $value = Str::ascii((string) $value);
 
-            $value = preg_replace('/\s+/', ' ', $value);
+            $value = preg_replace(
+                '/\s+/',
+                ' ',
+                $value
+            );
 
             return trim($value);
         };
 
+        /*
+    |--------------------------------------------------------------------------
+    | CENTRAR
+    |--------------------------------------------------------------------------
+    */
+
         $center = function ($value) use ($width, $clean): string {
             $text = $clean($value);
 
-            if (strlen($text) >= $width) {
-                return substr($text, 0, $width);
+            if (strlen($text) > $width) {
+                $text = substr(
+                    $text,
+                    0,
+                    $width
+                );
             }
 
-            $spaces = (int) floor(
-                ($width - strlen($text)) / 2
+            $spaces = max(
+                0,
+                (int) floor(
+                    ($width - strlen($text)) / 2
+                )
             );
 
             return str_repeat(' ', $spaces) . $text;
         };
 
+        /*
+    |--------------------------------------------------------------------------
+    | DOS PRIMEROS NOMBRES
+    |--------------------------------------------------------------------------
+    */
+
         $firstTwoNames = function ($value) use ($clean): string {
+            $text = $clean($value);
+
             $parts = array_values(
                 array_filter(
-                    explode(' ', $clean($value))
+                    explode(' ', $text)
                 )
             );
 
@@ -812,11 +892,21 @@ class QuickCashbox extends Component
             );
         };
 
+        /*
+    |--------------------------------------------------------------------------
+    | FORMATEAR NOMBRE + PRECIO
+    |--------------------------------------------------------------------------
+    |
+    | Ejemplo:
+    |
+    | MARIA FERNANDA                    Bs 150.00
+    |
+    */
+
         $namePrice = function (
             $name,
             $amount
         ) use ($width, $clean): string {
-
             $name = $clean($name);
 
             $price = 'Bs ' . number_format(
@@ -826,10 +916,15 @@ class QuickCashbox extends Component
                 ''
             );
 
-            $maxNameLength =
-                $width
-                - strlen($price)
-                - 1;
+            /*
+         * Dejamos al menos un espacio entre nombre
+         * y precio.
+         */
+
+            $maxNameLength = max(
+                1,
+                $width - strlen($price) - 1
+            );
 
             if (strlen($name) > $maxNameLength) {
                 $name = substr(
@@ -851,32 +946,50 @@ class QuickCashbox extends Component
                 . $price;
         };
 
+        /*
+    |--------------------------------------------------------------------------
+    | INICIO
+    |--------------------------------------------------------------------------
+    */
+
         $lines = [];
 
-        // ============================================
-        // CABECERA
-        // ============================================
+        /*
+    |--------------------------------------------------------------------------
+    | CABECERA
+    |--------------------------------------------------------------------------
+    */
 
-        $lines[] = $center($branch->name);
-        $lines[] = $center($title);
+        $lines[] = $center(
+            $branch->name
+        );
+
+        $lines[] = $center(
+            $title
+        );
+
         $lines[] = $center(
             $businessDate->format('d/m/Y')
         );
 
+        if ($session?->shift_number) {
+            $lines[] = $center(
+                'Turno ' . $session->shift_number
+            );
+        }
+
         if ($session?->opened_at) {
             $lines[] =
                 'Desde: '
-                . $session->opened_at->format(
-                    'd/m/Y H:i'
-                );
+                . $session->opened_at
+                ->format('d/m/Y H:i');
         }
 
         if ($session?->closed_at) {
             $lines[] =
                 'Hasta: '
-                . $session->closed_at->format(
-                    'd/m/Y H:i'
-                );
+                . $session->closed_at
+                ->format('d/m/Y H:i');
         }
 
         if ($session?->openedBy?->name) {
@@ -895,37 +1008,42 @@ class QuickCashbox extends Component
                 );
         }
 
-        $lines[] = str_repeat('-', $width);
+        $lines[] = str_repeat(
+            '-',
+            $width
+        );
 
-
-        // ============================================
-        // SERVICIOS
-        // ============================================
+        /*
+    |--------------------------------------------------------------------------
+    | SERVICIOS
+    |--------------------------------------------------------------------------
+    */
 
         $lines[] = '';
         $lines[] = 'SERVICIOS';
         $lines[] = str_repeat('-', $width);
 
-        $serviceTotal = 0;
+        $servicesTotal = 0;
 
-        foreach (
-            $summary['services']['rows']
-            as $row
-        ) {
+        foreach ($services as $row) {
             /*
-         * Aquí usamos directamente TOTAL.
-         * No imprimimos efectivo ni QR.
+         * Aquí NO utilizamos cash ni qr.
+         *
+         * El item ya tiene su total real.
          */
+
             $total = (float) (
-                $row['total']
-                ?? 0
+                $row['total'] ?? 0
             );
 
-            $serviceTotal += $total;
+            $servicesTotal += $total;
+
+            /*
+         * Solo primeros dos nombres.
+         */
 
             $patient = $firstTwoNames(
-                $row['client']
-                    ?? 'Cliente'
+                $row['client'] ?? 'Cliente'
             );
 
             $lines[] = $namePrice(
@@ -934,39 +1052,44 @@ class QuickCashbox extends Component
             );
         }
 
-        $lines[] = str_repeat('-', $width);
+        if (empty($services)) {
+            $lines[] = 'Sin servicios';
+        }
+
+        $lines[] = str_repeat(
+            '-',
+            $width
+        );
 
         $lines[] = $namePrice(
             'Total servicios',
-            $serviceTotal
+            $servicesTotal
         );
 
+        /*
+    |--------------------------------------------------------------------------
+    | PRODUCTOS
+    |--------------------------------------------------------------------------
+    */
 
-        // ============================================
-        // PRODUCTOS
-        // ============================================
-
-        if (
-            $summary['products']['rows']->isNotEmpty()
-        ) {
+        if (! empty($products)) {
             $lines[] = '';
             $lines[] = 'PRODUCTOS';
-            $lines[] = str_repeat('-', $width);
+            $lines[] = str_repeat(
+                '-',
+                $width
+            );
 
-            $productTotal = 0;
+            $productsTotal = 0;
 
-            foreach (
-                $summary['products']['rows']
-                as $row
-            ) {
+            foreach ($products as $row) {
                 $total = (float) (
-                    $row['total']
-                    ?? 0
+                    $row['total'] ?? 0
                 );
 
-                $productTotal += $total;
+                $productsTotal += $total;
 
-                $name = $clean(
+                $productName = $clean(
                     $row['name']
                         ?? 'Producto'
                 );
@@ -975,63 +1098,98 @@ class QuickCashbox extends Component
                     isset($row['quantity'])
                     && (float) $row['quantity'] > 1
                 ) {
-                    $name .= ' x '
-                        . number_format(
-                            (float) $row['quantity'],
-                            2,
-                            '.',
-                            ''
+                    $quantity = (float) $row['quantity'];
+
+                    $productName .= ' x '
+                        . (
+                            floor($quantity) == $quantity
+                            ? (int) $quantity
+                            : number_format(
+                                $quantity,
+                                2,
+                                '.',
+                                ''
+                            )
                         );
                 }
 
                 $lines[] = $namePrice(
-                    $name,
+                    $productName,
                     $total
                 );
             }
 
-            $lines[] = str_repeat('-', $width);
+            $lines[] = str_repeat(
+                '-',
+                $width
+            );
 
             $lines[] = $namePrice(
                 'Total productos',
-                $productTotal
+                $productsTotal
             );
         }
 
+        /*
+    |--------------------------------------------------------------------------
+    | GASTOS
+    |--------------------------------------------------------------------------
+    */
 
-        // ============================================
-        // GASTOS
-        // ============================================
-
-        if (
-            $expenses
-            && $expenses->isNotEmpty()
-        ) {
+        if (! empty($expenses)) {
             $lines[] = '';
             $lines[] = 'GASTOS';
-            $lines[] = str_repeat('-', $width);
+            $lines[] = str_repeat(
+                '-',
+                $width
+            );
+
+            $expensesTotal = 0;
 
             foreach ($expenses as $expense) {
+                $amount = (float) (
+                    $expense['amount']
+                    ?? 0
+                );
+
+                $expensesTotal += $amount;
+
                 $lines[] = $namePrice(
-                    $expense->type?->name
+                    $expense['name']
                         ?? 'Gasto',
-                    $expense->amount
-                        ?? 0
+                    $amount
                 );
             }
+
+            $lines[] = str_repeat(
+                '-',
+                $width
+            );
+
+            $lines[] = $namePrice(
+                'Total gastos',
+                $expensesTotal
+            );
         }
 
-
-        // ============================================
-        // TOTALES
-        // ============================================
+        /*
+    |--------------------------------------------------------------------------
+    | TOTALES DE CAJA
+    |--------------------------------------------------------------------------
+    */
 
         $lines[] = '';
         $lines[] = 'TOTALES';
-        $lines[] = str_repeat('-', $width);
+        $lines[] = str_repeat(
+            '-',
+            $width
+        );
 
         if (
-            isset($totals['opening_amount'])
+            array_key_exists(
+                'opening_amount',
+                $totals
+            )
         ) {
             $lines[] = $namePrice(
                 'Monto inicial',
@@ -1060,8 +1218,9 @@ class QuickCashbox extends Component
         );
 
         if (
-            isset(
-                $totals['expected_cash_amount']
+            array_key_exists(
+                'expected_cash_amount',
+                $totals
             )
         ) {
             $lines[] = $namePrice(
@@ -1071,8 +1230,9 @@ class QuickCashbox extends Component
         }
 
         if (
-            isset(
-                $totals['counted_cash_amount']
+            array_key_exists(
+                'counted_cash_amount',
+                $totals
             )
         ) {
             $lines[] = $namePrice(
@@ -1082,8 +1242,9 @@ class QuickCashbox extends Component
         }
 
         if (
-            isset(
-                $totals['cash_difference']
+            array_key_exists(
+                'cash_difference',
+                $totals
             )
         ) {
             $lines[] = $namePrice(
@@ -1092,22 +1253,34 @@ class QuickCashbox extends Component
             );
         }
 
+        /*
+    |--------------------------------------------------------------------------
+    | PIE
+    |--------------------------------------------------------------------------
+    */
 
-        // ============================================
-        // PIE
-        // ============================================
-
-        $lines[] = str_repeat('-', $width);
+        $lines[] = str_repeat(
+            '-',
+            $width
+        );
 
         $lines[] = $center(
             'Sistema Rumika SaaS'
         );
 
+        /*
+     * Espacio para que la impresora
+     * termine de sacar el papel.
+     */
+
         $lines[] = '';
         $lines[] = '';
         $lines[] = '';
         $lines[] = '';
 
-        return implode("\n", $lines);
+        return implode(
+            "\n",
+            $lines
+        );
     }
 }
