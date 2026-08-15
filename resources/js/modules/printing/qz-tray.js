@@ -90,7 +90,7 @@ const spanTexts = (element) => Array
 
 const ticketRowsFrom = (paper, selector) => Array
     .from(paper.querySelectorAll(selector))
-    .filter((row) => ! row.classList.contains('rm-print-row-head'))
+    .filter((row) => !row.classList.contains('rm-print-row-head'))
     .map(spanTexts)
     .filter((texts) => texts.length > 0);
 
@@ -129,14 +129,14 @@ const ticketTextFrom = (paper) => {
         .map((section) => ({
             title: normalizeTicketText(section.querySelector('h3')?.innerText || 'Detalle').toUpperCase(),
             rows: Array.from(section.querySelectorAll('.rm-print-row'))
-                .filter((row) => ! row.classList.contains('rm-print-row-head'))
+                .filter((row) => !row.classList.contains('rm-print-row-head'))
                 .map(spanTexts)
                 .filter((texts) => texts.length > 0),
         }))
         .filter((section) => section.rows.length > 0);
     const pendingRows = pendingSection
         ? Array.from(pendingSection.querySelectorAll('.rm-print-row'))
-            .filter((row) => ! row.classList.contains('rm-print-row-head'))
+            .filter((row) => !row.classList.contains('rm-print-row-head'))
             .map(spanTexts)
         : [];
     const totals = totalsFrom(paper);
@@ -174,15 +174,15 @@ const ticketTextFrom = (paper) => {
 
             wrap(item).forEach((row) => output.push(row));
 
-            if (total && ! item.toLowerCase().startsWith('total ')) {
+            if (total && !item.toLowerCase().startsWith('total ')) {
                 output.push(right('Total', total));
             }
 
-            if (cash && ! cash.endsWith('0.00')) {
+            if (cash && !cash.endsWith('0.00')) {
                 output.push(right('Efectivo', cash));
             }
 
-            if (qr && ! qr.endsWith('0.00')) {
+            if (qr && !qr.endsWith('0.00')) {
                 output.push(right('QR', qr));
             }
 
@@ -203,7 +203,7 @@ const ticketTextFrom = (paper) => {
 
     output.push('', 'TOTALES', line());
     totals
-        .filter((item) => ! item.toLowerCase().startsWith('impresora'))
+        .filter((item) => !item.toLowerCase().startsWith('impresora'))
         .forEach((item) => {
             const parts = item.match(/^(.*?)(Bs\s.*)$/i);
 
@@ -228,7 +228,7 @@ const ticketTextFrom = (paper) => {
 const connectQz = async () => {
     const qz = await loadQz();
 
-    if (! qz.websocket.isActive()) {
+    if (!qz.websocket.isActive()) {
         await qz.websocket.connect();
     }
 
@@ -240,7 +240,7 @@ const printWithBrowser = () => {
 };
 
 const decodeTicket = (base64 = '') => {
-    if (! base64) {
+    if (!base64) {
         return '';
     }
 
@@ -266,13 +266,13 @@ window.RumikaQz = {
         const printerName = button.dataset.printerName || '';
         const useQz = button.dataset.useQz === '1' && printerName !== '';
 
-        if (! paper) {
+        if (!paper) {
             printWithBrowser();
 
             return;
         }
 
-        if (! useQz) {
+        if (!useQz) {
             printWithBrowser();
 
             return;
@@ -296,10 +296,14 @@ window.RumikaQz = {
                 ? rawTicket
                 : ticketTextFrom(paper);
 
+            const rawTicket = button.dataset.ticket
+                ? atob(button.dataset.ticket)
+                : '';
+
             await qz.print(config, [{
                 type: 'raw',
                 format: 'plain',
-                data: printData,
+                data: rawTicket || ticketTextFrom(paper),
             }]);
         } catch (error) {
             window.alert(
@@ -315,7 +319,7 @@ window.addEventListener('rumika-auto-print-ticket', () => {
     window.setTimeout(() => {
         const button = document.querySelector('.rm-auto-print-ticket');
 
-        if (! button) {
+        if (!button) {
             return;
         }
 
