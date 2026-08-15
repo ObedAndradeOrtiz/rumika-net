@@ -252,7 +252,7 @@
                                 <div class="rm-print-row">
                                     <span>
                                         @if ($key === 'services')
-                                            {{ $row['client'] }}
+                                            {{-- {{ $row['client'] }} --}}
                                         @else
                                             {{ \Illuminate\Support\Str::limit($row['name'], 30, '') }}@if($row['quantity'] > 1) x {{ number_format($row['quantity'], 2) }}@endif
                                         @endif
