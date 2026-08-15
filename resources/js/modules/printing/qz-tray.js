@@ -118,113 +118,6 @@ const branchNameFrom = (paper) => {
     return normalizeTicketText(branch || 'Rumika');
 };
 
-const ticketTextFrom = (paper) => {
-    const { title, headerRows } = headerLinesFrom(paper);
-    const branchName = branchNameFrom(paper);
-    const sections = Array.from(paper.querySelectorAll('.rm-print-section'));
-    const pendingSection = sections
-        .find((section) => normalizeTicketText(section.querySelector('h3')?.innerText).toLowerCase().includes('saldos'));
-    const detailSections = sections
-        .filter((section) => section !== pendingSection)
-        .map((section) => ({
-            title: normalizeTicketText(section.querySelector('h3')?.innerText || 'Detalle').toUpperCase(),
-            rows: Array.from(section.querySelectorAll('.rm-print-row'))
-                .filter((row) => ! row.classList.contains('rm-print-row-head'))
-                .map(spanTexts)
-                .filter((texts) => texts.length > 0),
-        }))
-        .filter((section) => section.rows.length > 0);
-    const pendingRows = pendingSection
-        ? Array.from(pendingSection.querySelectorAll('.rm-print-row'))
-            .filter((row) => ! row.classList.contains('rm-print-row-head'))
-            .map(spanTexts)
-        : [];
-    const totals = totalsFrom(paper);
-    const output = [
-        `${esc}@`,
-        `${esc}M\x00`,
-        `${esc}3\x18`,
-        `${esc}a\x01`,
-        center(branchName),
-        center(title.replace('Rumika - ', '')),
-        line(),
-        ...headerRows.map(center),
-        line(),
-        `${esc}a\x00`,
-    ];
-
-    if (detailSections.length === 0) {
-        output.push('DETALLE', line());
-        output.push(center('Sin items'));
-    }
-
-    detailSections.forEach((section, sectionIndex) => {
-        if (sectionIndex > 0) {
-            output.push('');
-        }
-
-        output.push(section.title, line());
-
-        section.rows.forEach((texts) => {
-            const isCompact = texts.length === 3;
-            const [item, totalOrCash, cashOrQr, qrValue] = texts;
-            const total = isCompact ? '' : totalOrCash;
-            const cash = isCompact ? totalOrCash : cashOrQr;
-            const qr = isCompact ? cashOrQr : qrValue;
-
-            wrap(item).forEach((row) => output.push(row));
-
-            if (total && ! item.toLowerCase().startsWith('total ')) {
-                output.push(right('Total', total));
-            }
-
-            if (cash && ! cash.endsWith('0.00')) {
-                output.push(right('Efectivo', cash));
-            }
-
-            if (qr && ! qr.endsWith('0.00')) {
-                output.push(right('QR', qr));
-            }
-
-            output.push(line('-'));
-        });
-    });
-
-    if (pendingRows.length > 0) {
-        output.push('', 'SALDOS PENDIENTES', line());
-        pendingRows.forEach(([item, total, paid, balance]) => {
-            wrap(item).forEach((row) => output.push(row));
-            output.push(right('Total', total));
-            output.push(right('Pagado', paid));
-            output.push(right('Saldo', balance));
-            output.push(line('-'));
-        });
-    }
-
-    output.push('', 'TOTALES', line());
-    totals
-        .filter((item) => ! item.toLowerCase().startsWith('impresora'))
-        .forEach((item) => {
-            const parts = item.match(/^(.*?)(Bs\s.*)$/i);
-
-            if (parts) {
-                output.push(right(parts[1].trim(), parts[2].trim()));
-            } else {
-                output.push(center(item));
-            }
-        });
-
-    output.push(
-        line(),
-        `${esc}a\x01`,
-        center('Sistema Rumika SaaS'),
-        `${esc}d\x0c`,
-        `${gs}V\x00`
-    );
-
-    return output.join('\n');
-};
-
 const connectQz = async () => {
     const qz = await loadQz();
 
@@ -243,41 +136,196 @@ window.RumikaQz = {
     async printFromButton(button) {
         const modal = button.closest('.rm-print-preview-modal');
         const paper = modal?.querySelector('.rm-print-preview-paper');
+
         const printerName = button.dataset.printerName || '';
         const useQz = button.dataset.useQz === '1' && printerName !== '';
 
-        if (! paper) {
+        if (!paper || !useQz) {
             printWithBrowser();
-
-            return;
-        }
-
-        if (! useQz) {
-            printWithBrowser();
-
             return;
         }
 
         try {
+
             const qz = await connectQz();
+
             const printer = await qz.printers.find(printerName);
+
             const config = qz.configs.create(printer, {
                 copies: 1,
                 margins: 0,
                 rasterize: false,
             });
 
+            const ticket = ticketTextFrom(paper);
+
+            console.log('TICKET A IMPRIMIR:');
+            console.log(ticket);
+
             await qz.print(config, [{
                 type: 'raw',
                 format: 'plain',
-                data: ticketTextFrom(paper),
+                data: ticket,
             }]);
+
         } catch (error) {
-            window.alert(`No se pudo imprimir con QZ Tray. Verifica que QZ Tray este abierto y que la impresora "${printerName}" exista.`);
+
+            window.alert(
+                `No se pudo imprimir con QZ Tray. ` +
+                `Verifica que QZ Tray esté abierto y que la impresora "${printerName}" exista.`
+            );
+
             console.error(error);
         }
     },
 };
+
+
+function ticketTextFrom(paper) {
+    const LINE_WIDTH = 48;
+
+    const center = (text) => {
+        text = String(text || '');
+        if (text.length >= LINE_WIDTH) return text.substring(0, LINE_WIDTH);
+
+        const spaces = Math.floor((LINE_WIDTH - text.length) / 2);
+
+        return ' '.repeat(spaces) + text;
+    };
+
+    const line = (char = '-') => char.repeat(LINE_WIDTH);
+
+    const clean = (text) => {
+        return String(text || '')
+            .replace(/\s+/g, ' ')
+            .trim();
+    };
+
+    const firstTwoNames = (text) => {
+    return clean(text)
+        .split(' ')
+        .slice(0, 2)
+        .join(' ');
+};
+
+    const column3 = (detail, cash, qr) => {
+        detail = firstTwoNames(detail);
+
+        // 24 + 12 + 12 = 48 caracteres
+        return detail.substring(0, 24).padEnd(24)
+            + clean(cash).substring(0, 12).padStart(12)
+            + clean(qr).substring(0, 12).padStart(12);
+    };
+
+    let output = '';
+
+    // ============================
+    // CABECERA
+    // ============================
+
+    const header = paper.querySelector('.rm-print-header');
+
+    if (header) {
+        const strong = header.querySelector('strong');
+
+        if (strong) {
+            output += center(clean(strong.textContent)) + '\n';
+        }
+
+        header.querySelectorAll('span').forEach(span => {
+            output += center(clean(span.textContent)) + '\n';
+        });
+    }
+
+    output += line('=') + '\n';
+
+    // ============================
+    // SERVICIOS Y PRODUCTOS
+    // ============================
+
+    paper.querySelectorAll('.rm-print-section').forEach(section => {
+
+        const title = section.querySelector('h3');
+
+        if (title) {
+            output += '\n';
+            output += clean(title.textContent).toUpperCase() + '\n';
+            output += line('-') + '\n';
+        }
+
+        const rows = section.querySelectorAll('.rm-print-row');
+
+        rows.forEach(row => {
+            const spans = Array.from(row.querySelectorAll(':scope > span'));
+
+            if (!spans.length) {
+                return;
+            }
+
+            if (row.classList.contains('rm-print-row-head')) {
+                if (spans.length === 3) {
+                    output += column3(
+                        spans[0].textContent,
+                        spans[1].textContent,
+                        spans[2].textContent
+                    ) + '\n';
+
+                    output += line('-') + '\n';
+                }
+
+                return;
+            }
+
+            if (spans.length === 3) {
+                output += column3(
+                    spans[0].textContent,
+                    spans[1].textContent,
+                    spans[2].textContent
+                ) + '\n';
+            }
+
+            // Gastos tiene 4 columnas
+            if (spans.length === 4) {
+                const name = clean(spans[0].textContent);
+                const amount = clean(spans[1].textContent);
+                const responsible = firstTwoNames(spans[2].textContent);
+                const reference = clean(spans[3].textContent);
+
+                output += name + '\n';
+                output += 'Monto: '.padEnd(15) + amount + '\n';
+                output += 'Responsable: '.padEnd(15) + responsible + '\n';
+                output += 'Ref.: '.padEnd(15) + reference + '\n';
+                output += line('-') + '\n';
+            }
+        });
+    });
+
+    // ============================
+    // TOTALES
+    // ============================
+
+    const totals = paper.querySelector('.rm-print-totals');
+
+    if (totals) {
+        output += '\n';
+        output += line('=') + '\n';
+        output += 'RESUMEN\n';
+        output += line('-') + '\n';
+
+        totals.querySelectorAll('span, strong').forEach(item => {
+            output += clean(item.textContent) + '\n';
+        });
+    }
+
+    output += line('=') + '\n';
+    output += center('RUMIKA') + '\n';
+    output += center('Gracias') + '\n';
+
+    // Espacio para cortar papel
+    output += '\n\n\n\n';
+
+    return output;
+}
 
 window.addEventListener('rumika-auto-print-ticket', () => {
     window.setTimeout(() => {
