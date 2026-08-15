@@ -1,6 +1,10 @@
 <div>
-    <button class="rm-top-wallet-button" type="button" wire:click="open" aria-label="Ver caja actual" title="Ver caja actual">
-        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M19 7V5a2 2 0 0 0-2-2H5a3 3 0 0 0 0 6h14a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H5a3 3 0 0 1-3-3V6"/><path d="M16 14h.01"/></svg>
+    <button class="rm-top-wallet-button" type="button" wire:click="open" aria-label="Ver caja actual"
+        title="Ver caja actual">
+        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+            <path d="M19 7V5a2 2 0 0 0-2-2H5a3 3 0 0 0 0 6h14a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H5a3 3 0 0 1-3-3V6" />
+            <path d="M16 14h.01" />
+        </svg>
         <span>Caja / turnos</span>
     </button>
 
@@ -36,23 +40,32 @@
                     @if ($cashboxSession?->status === 'open')
                         <label class="rm-field">
                             <span>Conteo al cierre</span>
-                            <input wire:model="countedCashAmount" type="number" step="0.01" min="0" placeholder="Opcional">
-                            @error('countedCashAmount') <small>{{ $message }}</small> @enderror
+                            <input wire:model="countedCashAmount" type="number" step="0.01" min="0"
+                                placeholder="Opcional">
+                            @error('countedCashAmount')
+                                <small>{{ $message }}</small>
+                            @enderror
                         </label>
                     @else
                         <label class="rm-field">
                             <span>Monto inicial</span>
-                            <input wire:model="openingAmount" type="number" step="0.01" min="0" placeholder="0.00">
-                            @error('openingAmount') <small>{{ $message }}</small> @enderror
+                            <input wire:model="openingAmount" type="number" step="0.01" min="0"
+                                placeholder="0.00">
+                            @error('openingAmount')
+                                <small>{{ $message }}</small>
+                            @enderror
                         </label>
                     @endif
                     <div class="rm-quick-cashbox-actions">
                         @if ($cashboxSession?->status === 'open')
-                            <button class="rm-button rm-button-outline" type="button" wire:click="closeCashbox">Cerrar caja</button>
+                            <button class="rm-button rm-button-outline" type="button" wire:click="closeCashbox">Cerrar
+                                caja</button>
                         @else
-                            <button class="rm-button rm-button-outline" type="button" wire:click="openCashbox">Abrir caja</button>
+                            <button class="rm-button rm-button-outline" type="button" wire:click="openCashbox">Abrir
+                                caja</button>
                         @endif
-                        <button class="rm-button rm-button-primary" type="button" wire:click="previewPrint">Imprimir</button>
+                        <button class="rm-button rm-button-primary" type="button"
+                            wire:click="previewPrint">Imprimir</button>
                     </div>
                 </div>
 
@@ -60,12 +73,16 @@
                     <label class="rm-field">
                         <span>Nota de apertura</span>
                         <input wire:model="openingNotes" type="text" placeholder="Opcional">
-                        @error('openingNotes') <small>{{ $message }}</small> @enderror
+                        @error('openingNotes')
+                            <small>{{ $message }}</small>
+                        @enderror
                     </label>
                     <label class="rm-field">
                         <span>Nota de cierre</span>
                         <input wire:model="closingNotes" type="text" placeholder="Opcional">
-                        @error('closingNotes') <small>{{ $message }}</small> @enderror
+                        @error('closingNotes')
+                            <small>{{ $message }}</small>
+                        @enderror
                     </label>
                 </div>
 
@@ -74,18 +91,29 @@
                 @endif
 
                 <div class="rm-kpi-strip rm-inventory-kpis rm-quick-cash-kpis">
-                    <div class="rm-kpi"><strong>Bs {{ number_format($cashTotal, 2) }}</strong><span>Efectivo bruto</span></div>
+                    <div class="rm-kpi"><strong>Bs {{ number_format($cashTotal, 2) }}</strong><span>Efectivo
+                            bruto</span></div>
                     <div class="rm-kpi"><strong>Bs {{ number_format($qrTotal, 2) }}</strong><span>QR</span></div>
-                    <div class="rm-kpi"><strong>Bs {{ number_format($cashboxExpenseTotal, 2) }}</strong><span>Gastos caja</span></div>
-                    <div class="rm-kpi"><strong>Bs {{ number_format($netCashTotal, 2) }}</strong><span>Caja neta</span></div>
-                    <div class="rm-kpi"><strong>Bs {{ number_format($netTotal, 2) }}</strong><span>Total neto</span></div>
-                    <div class="rm-kpi"><strong>Bs {{ number_format($invoiceTotal, 2) }}</strong><span>Facturar</span></div>
+                    <div class="rm-kpi"><strong>Bs {{ number_format($cashboxExpenseTotal, 2) }}</strong><span>Gastos
+                            caja</span></div>
+                    <div class="rm-kpi"><strong>Bs {{ number_format($netCashTotal, 2) }}</strong><span>Caja neta</span>
+                    </div>
+                    <div class="rm-kpi"><strong>Bs {{ number_format($netTotal, 2) }}</strong><span>Total neto</span>
+                    </div>
+                    <div class="rm-kpi"><strong>Bs {{ number_format($invoiceTotal, 2) }}</strong><span>Facturar</span>
+                    </div>
                 </div>
 
                 <div class="rm-tab-switcher rm-cashbox-history-tabs" role="tablist" aria-label="Historial de caja">
-                    <button class="{{ $historyTab === 'services' ? 'is-active' : '' }}" type="button" wire:click="setHistoryTab('services')">Servicios <span>{{ $historyRows['services']->count() }}</span></button>
-                    <button class="{{ $historyTab === 'products' ? 'is-active' : '' }}" type="button" wire:click="setHistoryTab('products')">Productos <span>{{ $historyRows['products']->count() }}</span></button>
-                    <button class="{{ $historyTab === 'expenses' ? 'is-active' : '' }}" type="button" wire:click="setHistoryTab('expenses')">Gastos <span>{{ $historyRows['expenses']->count() }}</span></button>
+                    <button class="{{ $historyTab === 'services' ? 'is-active' : '' }}" type="button"
+                        wire:click="setHistoryTab('services')">Servicios
+                        <span>{{ $historyRows['services']->count() }}</span></button>
+                    <button class="{{ $historyTab === 'products' ? 'is-active' : '' }}" type="button"
+                        wire:click="setHistoryTab('products')">Productos
+                        <span>{{ $historyRows['products']->count() }}</span></button>
+                    <button class="{{ $historyTab === 'expenses' ? 'is-active' : '' }}" type="button"
+                        wire:click="setHistoryTab('expenses')">Gastos
+                        <span>{{ $historyRows['expenses']->count() }}</span></button>
                 </div>
 
                 <div class="rm-cashbox-history-filters">
@@ -117,7 +145,10 @@
                             <article class="rm-quick-payment-row">
                                 <div>
                                     <strong>{{ $row['client'] }}</strong>
-                                    <span>{{ $row['time'] }} - {{ $row['name'] }} @if($row['quantity'] > 1) x {{ number_format($row['quantity'], 2) }} @endif</span>
+                                    <span>{{ $row['time'] }} - {{ $row['name'] }} @if ($row['quantity'] > 1)
+                                            x {{ number_format($row['quantity'], 2) }}
+                                        @endif
+                                    </span>
                                 </div>
                                 <div class="rm-commerce-meta">
                                     <span>{{ $this->paymentMethodLabel($row['method']) }}</span>
@@ -127,7 +158,8 @@
                                 </div>
                             </article>
                         @empty
-                            <div class="rm-empty-state"><strong>Sin ingresos de servicios</strong><span>No hay servicios para este filtro.</span></div>
+                            <div class="rm-empty-state"><strong>Sin ingresos de servicios</strong><span>No hay servicios
+                                    para este filtro.</span></div>
                         @endforelse
                     @endif
 
@@ -136,7 +168,10 @@
                             <article class="rm-quick-payment-row">
                                 <div>
                                     <strong>{{ $row['client'] }}</strong>
-                                    <span>{{ $row['time'] }} - {{ $row['name'] }} @if($row['quantity'] > 1) x {{ number_format($row['quantity'], 2) }} @endif</span>
+                                    <span>{{ $row['time'] }} - {{ $row['name'] }} @if ($row['quantity'] > 1)
+                                            x {{ number_format($row['quantity'], 2) }}
+                                        @endif
+                                    </span>
                                 </div>
                                 <div class="rm-commerce-meta">
                                     <span>{{ $this->paymentMethodLabel($row['method']) }}</span>
@@ -146,7 +181,8 @@
                                 </div>
                             </article>
                         @empty
-                            <div class="rm-empty-state"><strong>Sin ingresos de productos</strong><span>No hay productos para este filtro.</span></div>
+                            <div class="rm-empty-state"><strong>Sin ingresos de productos</strong><span>No hay productos
+                                    para este filtro.</span></div>
                         @endforelse
                     @endif
 
@@ -155,18 +191,26 @@
                             <article class="rm-quick-payment-row">
                                 <div>
                                     <strong>{{ $expense->type?->name ?? 'Gasto' }}</strong>
-                                    <span>{{ $expense->spent_at?->format('d/m/Y') }} - Bs {{ number_format((float) $expense->amount, 2) }}</span>
+                                    <span>{{ $expense->spent_at?->format('d/m/Y') }} - Bs
+                                        {{ number_format((float) $expense->amount, 2) }}</span>
                                 </div>
                                 <div class="rm-commerce-meta">
                                     <span>{{ $this->expenseSourceLabel($expense->source) }}</span>
                                     <span>Responsable {{ $expense->createdBy?->name ?? 'Sin responsable' }}</span>
-                                    @if ($expense->staffUser)<span>Personal {{ $expense->staffUser->name }}</span>@endif
-                                    @if ($expense->reference)<span>{{ $expense->reference }}</span>@endif
-                                    @if ($expense->description)<span>{{ $expense->description }}</span>@endif
+                                    @if ($expense->staffUser)
+                                        <span>Personal {{ $expense->staffUser->name }}</span>
+                                    @endif
+                                    @if ($expense->reference)
+                                        <span>{{ $expense->reference }}</span>
+                                    @endif
+                                    @if ($expense->description)
+                                        <span>{{ $expense->description }}</span>
+                                    @endif
                                 </div>
                             </article>
                         @empty
-                            <div class="rm-empty-state"><strong>Sin gastos</strong><span>No hay gastos para este filtro.</span></div>
+                            <div class="rm-empty-state"><strong>Sin gastos</strong><span>No hay gastos para este
+                                    filtro.</span></div>
                         @endforelse
                     @endif
                 </div>
@@ -174,30 +218,43 @@
                 <section class="rm-ticket-history">
                     <div class="rm-panel-title rm-panel-title-compact">
                         <div>
-                            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 4h16v16l-4-2-4 2-4-2-4 2V4Z"/><path d="M8 8h8M8 12h8"/></svg>
+                            <svg width="21" height="21" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2.2">
+                                <path d="M4 4h16v16l-4-2-4 2-4-2-4 2V4Z" />
+                                <path d="M8 8h8M8 12h8" />
+                            </svg>
                             <h3>Tickets guardados</h3>
                         </div>
-                        <span>{{ $branch->uses_ticket_printer ? 'Impresora: '.($branch->printer_name ?: 'sin seleccionar') : 'Impresora desactivada' }}</span>
+                        <span>{{ $branch->uses_ticket_printer ? 'Impresora: ' . ($branch->printer_name ?: 'sin seleccionar') : 'Impresora desactivada' }}</span>
                     </div>
                     <div class="rm-commerce-list">
                         @forelse ($ticketRows as $ticket)
                             <article class="rm-quick-payment-row">
                                 <div>
                                     <strong>{{ $ticket->title }} - {{ $ticket->ticket_number }}</strong>
-                                    <span>{{ $ticket->created_at->format('d/m/Y H:i') }} @if($ticket->session) - turno {{ $ticket->session->shift_number }} @endif</span>
+                                    <span>{{ $ticket->created_at->format('d/m/Y H:i') }} @if ($ticket->session)
+                                            - turno {{ $ticket->session->shift_number }}
+                                        @endif
+                                    </span>
                                 </div>
                                 <div class="rm-commerce-meta">
                                     <span>{{ $ticket->status === 'printed' ? 'Impreso' : 'Generado' }}</span>
                                     <span>Reimpresiones {{ $ticket->reprint_count }}</span>
-                                    @if ($ticket->printedBy)<span>{{ $ticket->printedBy->name }}</span>@endif
-                                    <button type="button" wire:click="previewTicket({{ $ticket->id }})">Reimprimir</button>
+                                    @if ($ticket->printedBy)
+                                        <span>{{ $ticket->printedBy->name }}</span>
+                                    @endif
+                                    <button type="button"
+                                        wire:click="previewTicket({{ $ticket->id }})">Reimprimir</button>
                                     @if ($ticket->type === 'session_close' && $ticket->session?->status === 'closed' && $this->canManageCashboxClosures())
-                                        <button type="button" wire:click="confirmDeleteClosedCashbox({{ $ticket->session->id }})">Eliminar cierre</button>
+                                        <button type="button"
+                                            wire:click="confirmDeleteClosedCashbox({{ $ticket->session->id }})">Eliminar
+                                            cierre</button>
                                     @endif
                                 </div>
                             </article>
                         @empty
-                            <div class="rm-empty-state"><strong>Sin tickets</strong><span>Al abrir, cerrar o imprimir caja se guardara el ticket aqui.</span></div>
+                            <div class="rm-empty-state"><strong>Sin tickets</strong><span>Al abrir, cerrar o imprimir
+                                    caja se guardara el ticket aqui.</span></div>
                         @endforelse
                     </div>
                 </section>
@@ -208,7 +265,9 @@
     @if ($showPrintPreview)
         @php
             $previewServices = collect($ticketPreview['services'] ?? $printSummary['services']['rows']);
+
             $previewProducts = collect($ticketPreview['products'] ?? $printSummary['products']['rows']);
+
             $previewTotals = $ticketPreview['totals'] ?? [
                 'cash' => $cashTotal,
                 'qr' => $qrTotal,
@@ -216,6 +275,302 @@
                 'net_cash' => $netCashTotal,
                 'net_total' => $netTotal,
             ];
+
+            /*
+    |--------------------------------------------------------------------------
+    | TICKET QZ
+    |--------------------------------------------------------------------------
+    |
+    | Este texto se genera completamente en PHP.
+    | JavaScript NO necesita leer el HTML.
+    |
+    */
+
+            $ticketWidth = 42;
+
+            /*
+    |--------------------------------------------------------------------------
+    | LIMPIAR TEXTO
+    |--------------------------------------------------------------------------
+    */
+
+            $ticketClean = function ($value) {
+                $value = \Illuminate\Support\Str::ascii((string) $value);
+
+                $value = preg_replace('/\s+/', ' ', $value);
+
+                return trim($value);
+            };
+
+            /*
+    |--------------------------------------------------------------------------
+    | CENTRAR
+    |--------------------------------------------------------------------------
+    */
+
+            $ticketCenter = function ($value) use ($ticketWidth, $ticketClean) {
+                $value = $ticketClean($value);
+
+                if (strlen($value) >= $ticketWidth) {
+                    return substr($value, 0, $ticketWidth);
+                }
+
+                $spaces = (int) floor(($ticketWidth - strlen($value)) / 2);
+
+                return str_repeat(' ', $spaces) . $value;
+            };
+
+            /*
+    |--------------------------------------------------------------------------
+    | DOS PRIMEROS NOMBRES
+    |--------------------------------------------------------------------------
+    */
+
+            $twoNames = function ($value) use ($ticketClean) {
+                $value = $ticketClean($value);
+
+                $parts = array_values(array_filter(explode(' ', $value)));
+
+                return implode(' ', array_slice($parts, 0, 2));
+            };
+
+            /*
+    |--------------------------------------------------------------------------
+    | NOMBRE + PRECIO
+    |--------------------------------------------------------------------------
+    |
+    | Ejemplo:
+    |
+    | MARIA FERNANDA                    Bs 150.00
+    |
+    */
+
+            $namePrice = function ($name, $amount) use ($ticketWidth, $ticketClean) {
+                $name = $ticketClean($name);
+
+                $price = 'Bs ' . number_format((float) $amount, 2, '.', '');
+
+                $maxNameLength = $ticketWidth - strlen($price) - 1;
+
+                if (strlen($name) > $maxNameLength) {
+                    $name = substr($name, 0, $maxNameLength);
+                }
+
+                $spaces = max(1, $ticketWidth - strlen($name) - strlen($price));
+
+                return $name . str_repeat(' ', $spaces) . $price;
+            };
+
+            /*
+    |--------------------------------------------------------------------------
+    | GENERAR TICKET
+    |--------------------------------------------------------------------------
+    */
+
+            $ticketLines = [];
+
+            /*
+    |--------------------------------------------------------------------------
+    | CABECERA
+    |--------------------------------------------------------------------------
+    */
+
+            $ticketLines[] = $ticketCenter($ticketPreview['branch'] ?? $branch->name);
+
+            $ticketLines[] = $ticketCenter($ticketPreview['title'] ?? 'Detalle de caja');
+
+            if (!empty($ticketPreview['ticket_number'])) {
+                $ticketLines[] = $ticketCenter($ticketPreview['ticket_number']);
+            }
+
+            $ticketLines[] = $ticketCenter(
+                $ticketPreview['business_date'] ?? \Illuminate\Support\Carbon::parse($selectedDate)->format('d/m/Y'),
+            );
+
+            if (!empty($ticketPreview['opened_at'])) {
+                $ticketLines[] = 'Desde: ' . $ticketClean($ticketPreview['opened_at']);
+            }
+
+            if (!empty($ticketPreview['closed_at'])) {
+                $ticketLines[] = 'Hasta: ' . $ticketClean($ticketPreview['closed_at']);
+            }
+
+            if (!empty($ticketPreview['opened_by'])) {
+                $ticketLines[] = 'Apertura: ' . $ticketClean($ticketPreview['opened_by']);
+            }
+
+            if (!empty($ticketPreview['closed_by'])) {
+                $ticketLines[] = 'Cierre: ' . $ticketClean($ticketPreview['closed_by']);
+            }
+
+            $ticketLines[] = str_repeat('-', $ticketWidth);
+
+            /*
+    |--------------------------------------------------------------------------
+    | SERVICIOS
+    |--------------------------------------------------------------------------
+    */
+
+            $ticketLines[] = '';
+
+            $ticketLines[] = 'SERVICIOS';
+
+            $ticketLines[] = str_repeat('-', $ticketWidth);
+
+            $servicesTotal = 0;
+
+            foreach ($previewServices as $row) {
+                /*
+                 * AQUÍ PHP SUMA:
+                 *
+                 * EFECTIVO + QR
+                 *
+                 * No enviamos separado a la impresora.
+                 */
+
+                $cash = (float) ($row['cash'] ?? 0);
+
+                $qr = (float) ($row['qr'] ?? 0);
+
+                $total = $cash + $qr;
+
+                $servicesTotal += $total;
+
+                /*
+                 * Solo primeros dos nombres
+                 */
+
+                $patient = $twoNames($row['client'] ?? 'Paciente');
+
+                $ticketLines[] = $namePrice($patient, $total);
+            }
+
+            $ticketLines[] = str_repeat('-', $ticketWidth);
+
+            $ticketLines[] = $namePrice('Total servicios', $servicesTotal);
+
+            /*
+    |--------------------------------------------------------------------------
+    | PRODUCTOS
+    |--------------------------------------------------------------------------
+    */
+
+            if ($previewProducts->isNotEmpty()) {
+                $ticketLines[] = '';
+
+                $ticketLines[] = 'PRODUCTOS';
+
+                $ticketLines[] = str_repeat('-', $ticketWidth);
+
+                $productsTotal = 0;
+
+                foreach ($previewProducts as $row) {
+                    $cash = (float) ($row['cash'] ?? 0);
+
+                    $qr = (float) ($row['qr'] ?? 0);
+
+                    $total = $cash + $qr;
+
+                    $productsTotal += $total;
+
+                    $product = $ticketClean($row['name'] ?? 'Producto');
+
+                    if (!empty($row['quantity']) && (float) $row['quantity'] > 1) {
+                        $product .= ' x ' . number_format((float) $row['quantity'], 2, '.', '');
+                    }
+
+                    $ticketLines[] = $namePrice($product, $total);
+                }
+
+                $ticketLines[] = str_repeat('-', $ticketWidth);
+
+                $ticketLines[] = $namePrice('Total productos', $productsTotal);
+            }
+
+            /*
+    |--------------------------------------------------------------------------
+    | GASTOS
+    |--------------------------------------------------------------------------
+    */
+
+            if (!empty($ticketPreview['expenses'])) {
+                $ticketLines[] = '';
+
+                $ticketLines[] = 'GASTOS';
+
+                $ticketLines[] = str_repeat('-', $ticketWidth);
+
+                foreach ($ticketPreview['expenses'] as $expense) {
+                    $ticketLines[] = $namePrice($expense['name'] ?? 'Gasto', $expense['amount'] ?? 0);
+                }
+            }
+
+            /*
+    |--------------------------------------------------------------------------
+    | TOTALES GENERALES
+    |--------------------------------------------------------------------------
+    */
+
+            $ticketLines[] = '';
+
+            $ticketLines[] = 'TOTALES';
+
+            $ticketLines[] = str_repeat('-', $ticketWidth);
+
+            if (isset($previewTotals['opening_amount'])) {
+                $ticketLines[] = $namePrice('Monto inicial', $previewTotals['opening_amount']);
+            }
+
+            $ticketLines[] = $namePrice('Efectivo', $previewTotals['cash'] ?? 0);
+
+            $ticketLines[] = $namePrice('QR', $previewTotals['qr'] ?? 0);
+
+            $ticketLines[] = $namePrice('Gastos caja', $previewTotals['expenses'] ?? 0);
+
+            $ticketLines[] = $namePrice('Caja neta', $previewTotals['net_cash'] ?? 0);
+
+            if (isset($previewTotals['expected_cash_amount'])) {
+                $ticketLines[] = $namePrice('Esperado en caja', $previewTotals['expected_cash_amount']);
+            }
+
+            if (isset($previewTotals['counted_cash_amount'])) {
+                $ticketLines[] = $namePrice('Contado', $previewTotals['counted_cash_amount']);
+            }
+
+            if (isset($previewTotals['cash_difference'])) {
+                $ticketLines[] = $namePrice('Diferencia', $previewTotals['cash_difference']);
+            }
+
+            /*
+    |--------------------------------------------------------------------------
+    | PIE
+    |--------------------------------------------------------------------------
+    */
+
+            $ticketLines[] = str_repeat('-', $ticketWidth);
+
+            $ticketLines[] = $ticketCenter('Sistema Rumika SaaS');
+
+            $ticketLines[] = '';
+            $ticketLines[] = '';
+            $ticketLines[] = '';
+            $ticketLines[] = '';
+
+            /*
+    |--------------------------------------------------------------------------
+    | TEXTO FINAL
+    |--------------------------------------------------------------------------
+    */
+
+            $qzTicketText = implode("\n", $ticketLines);
+
+            /*
+    |--------------------------------------------------------------------------
+    | BASE64 PARA PASARLO SEGURO A JAVASCRIPT
+    |--------------------------------------------------------------------------
+    */
+
+            $qzTicketBase64 = base64_encode($qzTicketText);
         @endphp
         <div class="rm-modal-backdrop" wire:click="closePrintPreview"></div>
         <section class="rm-modal-panel rm-modal-panel-wide rm-print-preview-modal" role="dialog" aria-modal="true">
@@ -224,8 +579,11 @@
                     <span>Previsualizacion</span>
                     <h2>{{ $ticketPreview['title'] ?? 'Impresion de caja' }}</h2>
                     <p class="rm-modal-subtitle">
-                        {{ $ticketPreview['branch'] ?? $branch->name }} - {{ $ticketPreview['business_date'] ?? \Illuminate\Support\Carbon::parse($selectedDate)->format('d/m/Y') }}
-                        @if (! empty($ticketPreview['shift_number'])) - turno {{ $ticketPreview['shift_number'] }} @endif
+                        {{ $ticketPreview['branch'] ?? $branch->name }} -
+                        {{ $ticketPreview['business_date'] ?? \Illuminate\Support\Carbon::parse($selectedDate)->format('d/m/Y') }}
+                        @if (!empty($ticketPreview['shift_number']))
+                            - turno {{ $ticketPreview['shift_number'] }}
+                        @endif
                     </p>
                 </div>
                 <button type="button" wire:click="closePrintPreview" aria-label="Cerrar">x</button>
@@ -235,97 +593,128 @@
                 <div class="rm-print-header">
                     <strong>Rumika - {{ $ticketPreview['title'] ?? 'Detalle de caja' }}</strong>
                     <span>{{ $ticketPreview['ticket_number'] ?? 'Ticket sin numero' }}</span>
-                    <span>{{ $ticketPreview['branch'] ?? $branch->name }} - {{ $ticketPreview['business_date'] ?? \Illuminate\Support\Carbon::parse($selectedDate)->format('d/m/Y') }}</span>
-                    @if (! empty($ticketPreview['opened_at']))<span>Desde: {{ $ticketPreview['opened_at'] }}</span>@endif
-                    @if (! empty($ticketPreview['closed_at']))<span>Hasta: {{ $ticketPreview['closed_at'] }}</span>@endif
-                    <span>Estado: {{ ($ticketPreview['status'] ?? $cashboxSession?->status) === 'closed' ? 'Cerrada' : (($ticketPreview['status'] ?? $cashboxSession?->status) ? 'Abierta' : 'Sin abrir') }}</span>
-                    @if (! empty($ticketPreview['opened_by']))<span>Apertura: {{ $ticketPreview['opened_by'] }}</span>@endif
-                    @if (! empty($ticketPreview['closed_by']))<span>Cierre: {{ $ticketPreview['closed_by'] }}</span>@endif
+                    <span>{{ $ticketPreview['branch'] ?? $branch->name }} -
+                        {{ $ticketPreview['business_date'] ?? \Illuminate\Support\Carbon::parse($selectedDate)->format('d/m/Y') }}</span>
+                    @if (!empty($ticketPreview['opened_at']))
+                        <span>Desde: {{ $ticketPreview['opened_at'] }}</span>
+                    @endif
+                    @if (!empty($ticketPreview['closed_at']))
+                        <span>Hasta: {{ $ticketPreview['closed_at'] }}</span>
+                    @endif
+                    <span>Estado:
+                        {{ ($ticketPreview['status'] ?? $cashboxSession?->status) === 'closed' ? 'Cerrada' : ($ticketPreview['status'] ?? $cashboxSession?->status ? 'Abierta' : 'Sin abrir') }}</span>
+                    @if (!empty($ticketPreview['opened_by']))
+                        <span>Apertura: {{ $ticketPreview['opened_by'] }}</span>
+                    @endif
+                    @if (!empty($ticketPreview['closed_by']))
+                        <span>Cierre: {{ $ticketPreview['closed_by'] }}</span>
+                    @endif
                 </div>
 
                 @foreach (['services' => 'Servicios', 'products' => 'Productos'] as $key => $title)
                     <div class="rm-print-section rm-print-compact-section">
                         <h3>{{ $title }}</h3>
                         <div class="rm-print-table">
-                            <div class="rm-print-row rm-print-row-head"><span>Detalle</span><span>Efectivo</span><span>QR</span></div>
+                            <div class="rm-print-row rm-print-row-head">
+                                <span>Detalle</span><span>Efectivo</span><span>QR</span>
+                            </div>
                             @forelse (($key === 'services' ? $previewServices : $previewProducts) as $row)
                                 <div class="rm-print-row">
                                     <span>
                                         @if ($key === 'services')
                                             {{ $row['client'] }}
                                         @else
-                                            {{ \Illuminate\Support\Str::limit($row['name'], 30, '') }}@if($row['quantity'] > 1) x {{ number_format($row['quantity'], 2) }}@endif
+                                            {{ \Illuminate\Support\Str::limit($row['name'], 30, '') }}@if ($row['quantity'] > 1)
+                                                x {{ number_format($row['quantity'], 2) }}
+                                            @endif
                                         @endif
                                     </span>
                                     <span>Bs {{ number_format($row['cash'], 2) }}</span>
                                     <span>Bs {{ number_format($row['qr'], 2) }}</span>
                                 </div>
-                            @empty
-                                <div class="rm-print-empty">Sin {{ strtolower($title) }}.</div>
-                            @endforelse
-                            <div class="rm-print-row rm-print-row-total">
-                                <span>Total {{ strtolower($title) }}</span>
-                                <span>Bs {{ number_format(($key === 'services' ? $previewServices : $previewProducts)->sum('cash'), 2) }}</span>
-                                <span>Bs {{ number_format(($key === 'services' ? $previewServices : $previewProducts)->sum('qr'), 2) }}</span>
+                                @empty
+                                    <div class="rm-print-empty">Sin {{ strtolower($title) }}.</div>
+                                @endforelse
+                                <div class="rm-print-row rm-print-row-total">
+                                    <span>Total {{ strtolower($title) }}</span>
+                                    <span>Bs
+                                        {{ number_format(($key === 'services' ? $previewServices : $previewProducts)->sum('cash'), 2) }}</span>
+                                    <span>Bs
+                                        {{ number_format(($key === 'services' ? $previewServices : $previewProducts)->sum('qr'), 2) }}</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                @endforeach
+                    @endforeach
 
-                @if (! empty($ticketPreview['expenses']))
-                    <div class="rm-print-section">
-                        <h3>Gastos de caja</h3>
-                        <div class="rm-print-table">
-                            <div class="rm-print-row rm-print-row-head"><span>Detalle</span><span>Monto</span><span>Responsable</span><span>Ref.</span></div>
-                            @foreach ($ticketPreview['expenses'] as $expense)
-                                <div class="rm-print-row">
-                                    <span>{{ $expense['name'] }}</span>
-                                    <span>Bs {{ number_format($expense['amount'], 2) }}</span>
-                                    <span>{{ $expense['responsible'] }}</span>
-                                    <span>{{ $expense['reference'] ?: '-' }}</span>
+                    @if (!empty($ticketPreview['expenses']))
+                        <div class="rm-print-section">
+                            <h3>Gastos de caja</h3>
+                            <div class="rm-print-table">
+                                <div class="rm-print-row rm-print-row-head">
+                                    <span>Detalle</span><span>Monto</span><span>Responsable</span><span>Ref.</span>
                                 </div>
-                            @endforeach
+                                @foreach ($ticketPreview['expenses'] as $expense)
+                                    <div class="rm-print-row">
+                                        <span>{{ $expense['name'] }}</span>
+                                        <span>Bs {{ number_format($expense['amount'], 2) }}</span>
+                                        <span>{{ $expense['responsible'] }}</span>
+                                        <span>{{ $expense['reference'] ?: '-' }}</span>
+                                    </div>
+                                @endforeach
+                            </div>
                         </div>
+                    @endif
+
+                    <div class="rm-print-totals">
+                        @if (isset($previewTotals['opening_amount']))
+                            <span>Monto inicial Bs {{ number_format($previewTotals['opening_amount'], 2) }}</span>
+                        @endif
+                        <span>Efectivo Bs {{ number_format($previewTotals['cash'] ?? 0, 2) }}</span>
+                        <span>QR Bs {{ number_format($previewTotals['qr'] ?? 0, 2) }}</span>
+                        <span>Gastos caja Bs {{ number_format($previewTotals['expenses'] ?? 0, 2) }}</span>
+                        <strong>Caja neta Bs {{ number_format($previewTotals['net_cash'] ?? 0, 2) }}</strong>
+                        @if (isset($previewTotals['expected_cash_amount']))
+                            <span>Esperado en caja Bs {{ number_format($previewTotals['expected_cash_amount'], 2) }}</span>
+                        @endif
+                        @if (isset($previewTotals['counted_cash_amount']))
+                            <span>Contado Bs {{ number_format($previewTotals['counted_cash_amount'], 2) }}</span>
+                        @endif
+                        @if (isset($previewTotals['cash_difference']))
+                            <span>Diferencia Bs {{ number_format($previewTotals['cash_difference'], 2) }}</span>
+                        @endif
+                        @if (!empty($ticketPreview['printer_enabled']))
+                            <span>Impresora {{ $ticketPreview['printer_name'] ?: 'sin seleccionar' }}</span>
+                        @endif
                     </div>
-                @endif
-
-                <div class="rm-print-totals">
-                    @if (isset($previewTotals['opening_amount']))<span>Monto inicial Bs {{ number_format($previewTotals['opening_amount'], 2) }}</span>@endif
-                    <span>Efectivo Bs {{ number_format($previewTotals['cash'] ?? 0, 2) }}</span>
-                    <span>QR Bs {{ number_format($previewTotals['qr'] ?? 0, 2) }}</span>
-                    <span>Gastos caja Bs {{ number_format($previewTotals['expenses'] ?? 0, 2) }}</span>
-                    <strong>Caja neta Bs {{ number_format($previewTotals['net_cash'] ?? 0, 2) }}</strong>
-                    @if (isset($previewTotals['expected_cash_amount']))<span>Esperado en caja Bs {{ number_format($previewTotals['expected_cash_amount'], 2) }}</span>@endif
-                    @if (isset($previewTotals['counted_cash_amount']))<span>Contado Bs {{ number_format($previewTotals['counted_cash_amount'], 2) }}</span>@endif
-                    @if (isset($previewTotals['cash_difference']))<span>Diferencia Bs {{ number_format($previewTotals['cash_difference'], 2) }}</span>@endif
-                    @if (! empty($ticketPreview['printer_enabled']))<span>Impresora {{ $ticketPreview['printer_name'] ?: 'sin seleccionar' }}</span>@endif
                 </div>
-            </div>
 
-            <div class="rm-form-actions">
-                <button
-                    class="rm-button rm-button-primary"
-                    type="button"
-                    wire:click="markTicketPrinted"
-                    data-use-qz="{{ ! empty($ticketPreview['printer_enabled']) && ! empty($ticketPreview['printer_name']) ? '1' : '0' }}"
-                    data-printer-name="{{ $ticketPreview['printer_name'] ?? '' }}"
-                    onclick="event.preventDefault(); window.RumikaQz.printFromButton(this)"
-                >Imprimir ahora</button>
-                <button class="rm-button rm-button-outline" type="button" wire:click="closePrintPreview">Volver</button>
-            </div>
-        </section>
-    @endif
+                <div class="rm-form-actions">
+                    <button class="rm-button rm-button-primary" type="button" wire:click="markTicketPrinted"
+                        data-use-qz="{{ !empty($ticketPreview['printer_enabled']) && !empty($ticketPreview['printer_name']) ? '1' : '0' }}"
+                        data-printer-name="{{ $ticketPreview['printer_name'] ?? '' }}"
+                        data-ticket="{{ $qzTicketBase64 }}"
+                        onclick="event.preventDefault(); window.RumikaQz.printFromButton(this)">
+                        Imprimir ahora
+                    </button>
+                    <button class="rm-button rm-button-outline" type="button"
+                        wire:click="closePrintPreview">Volver</button>
+                </div>
+            </section>
+        @endif
 
-    @if ($confirmingCashboxSessionDeleteId)
-        <div class="rm-modal-backdrop" wire:click="cancelDeleteClosedCashbox"></div>
-        <section class="rm-modal-panel rm-modal-panel-small" role="dialog" aria-modal="true">
-            <div class="rm-confirm-icon">!</div>
-            <h2>Eliminar caja</h2>
-            <p>Se eliminara esta caja y sus tickets guardados. Los cobros, productos vendidos y movimientos no se borran. Si era la unica caja del dia, podras abrir nuevamente desde 0.</p>
-            <div class="rm-form-actions">
-                <button class="rm-button rm-button-danger" type="button" wire:click="deleteClosedCashbox">Eliminar caja</button>
-                <button class="rm-button rm-button-outline" type="button" wire:click="cancelDeleteClosedCashbox">Cancelar</button>
-            </div>
-        </section>
-    @endif
-</div>
+        @if ($confirmingCashboxSessionDeleteId)
+            <div class="rm-modal-backdrop" wire:click="cancelDeleteClosedCashbox"></div>
+            <section class="rm-modal-panel rm-modal-panel-small" role="dialog" aria-modal="true">
+                <div class="rm-confirm-icon">!</div>
+                <h2>Eliminar caja</h2>
+                <p>Se eliminara esta caja y sus tickets guardados. Los cobros, productos vendidos y movimientos no se
+                    borran. Si era la unica caja del dia, podras abrir nuevamente desde 0.</p>
+                <div class="rm-form-actions">
+                    <button class="rm-button rm-button-danger" type="button" wire:click="deleteClosedCashbox">Eliminar
+                        caja</button>
+                    <button class="rm-button rm-button-outline" type="button"
+                        wire:click="cancelDeleteClosedCashbox">Cancelar</button>
+                </div>
+            </section>
+        @endif
+    </div>
