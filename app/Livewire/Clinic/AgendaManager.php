@@ -1419,8 +1419,10 @@ class AgendaManager extends Component
             ->map(fn ($id) => (int) $id)
             ->all();
 
+        $this->ensureCatalogBatchesForBranch($company, $branch);
+
         return $company->inventoryBatches()
-            ->with('product')
+            ->with(['product.brand', 'product.useArea'])
             ->where('branch_id', $branch->id)
             ->where(function ($query) use ($selectedBatchIds) {
                 $query->where('status', 'available')
@@ -1428,14 +1430,51 @@ class AgendaManager extends Component
             })
             ->when($selectedBatchIds, fn ($query) => $query->orderByRaw('CASE WHEN id IN ('.implode(',', array_fill(0, count($selectedBatchIds), '?')).') THEN 0 ELSE 1 END', $selectedBatchIds))
             ->when($search !== '', fn ($query) => $query->where(function ($nested) use ($search, $selectedBatchIds) {
-                $nested->whereHas('product', fn ($productQuery) => $productQuery
-                    ->where('name', 'like', "%{$search}%")
-                    ->orWhere('code', 'like', "%{$search}%"))
+                $nested->where('lot_code', 'like', "%{$search}%")
+                    ->orWhereHas('product', fn ($productQuery) => $productQuery
+                        ->where('name', 'like', "%{$search}%")
+                        ->orWhere('code', 'like', "%{$search}%")
+                        ->orWhereHas('brand', fn ($brandQuery) => $brandQuery->where('name', 'like', "%{$search}%"))
+                        ->orWhereHas('useArea', fn ($areaQuery) => $areaQuery->where('name', 'like', "%{$search}%")))
                     ->when($selectedBatchIds, fn ($selectedQuery) => $selectedQuery->orWhereIn('id', $selectedBatchIds));
             }))
+            ->orderByDesc('current_quantity')
             ->orderByRaw('expires_at IS NULL, expires_at ASC')
             ->limit($search === '' ? 12 : 25)
             ->get();
+    }
+
+    private function ensureCatalogBatchesForBranch(Company $company, Branch $branch): void
+    {
+        $existingProductIds = InventoryProductBatch::query()
+            ->where('company_id', $company->id)
+            ->where('branch_id', $branch->id)
+            ->pluck('inventory_product_id')
+            ->all();
+
+        $company->inventoryProducts()
+            ->where('status', 'active')
+            ->when($existingProductIds, fn ($query) => $query->whereNotIn('id', $existingProductIds))
+            ->select(['id', 'company_id', 'purchase_cost'])
+            ->chunkById(100, function ($products) use ($company, $branch) {
+                foreach ($products as $product) {
+                    InventoryProductBatch::query()->firstOrCreate(
+                        [
+                            'branch_id' => $branch->id,
+                            'inventory_product_id' => $product->id,
+                            'lot_code' => 'CATALOGO-'.$branch->id.'-'.$product->id,
+                        ],
+                        [
+                            'company_id' => $company->id,
+                            'received_at' => now()->toDateString(),
+                            'initial_quantity' => 0,
+                            'current_quantity' => 0,
+                            'unit_cost' => (float) $product->purchase_cost,
+                            'status' => 'available',
+                        ],
+                    );
+                }
+            });
     }
 
     private function paymentChargeSummary(Company $company, Branch $branch): array

@@ -3,6 +3,7 @@
 namespace Tests\Feature\Clinic;
 
 use App\Livewire\Clinic\AgendaManager;
+use App\Livewire\Inventory\InventoryManager;
 use App\Models\Appointment;
 use App\Models\AppointmentService;
 use App\Models\Branch;
@@ -402,6 +403,85 @@ class AgendaManagerTest extends TestCase
             ->set('paymentProductLines.0.batch_id', (string) $batch->id)
             ->assertSet('paymentProductLines.0.unit_price', '35')
             ->assertSet('paymentProductLines.0.paid_amount', '70');
+    }
+
+    public function test_new_inventory_product_without_entry_appears_for_sale_as_catalog_batch(): void
+    {
+        [$admin, $company, $branch] = $this->companyContext('rumika-catalogo-venta');
+        $service = Service::create([
+            'company_id' => $company->id,
+            'branch_id' => $branch->id,
+            'name' => 'Control',
+            'price' => 0,
+            'duration_minutes' => 30,
+        ]);
+        $client = Client::create([
+            'company_id' => $company->id,
+            'branch_id' => $branch->id,
+            'full_name' => 'Cliente Catalogo',
+        ]);
+        $appointment = Appointment::create([
+            'company_id' => $company->id,
+            'branch_id' => $branch->id,
+            'client_id' => $client->id,
+            'scheduled_at' => '2026-08-14 09:00:00',
+            'duration_minutes' => 30,
+            'status' => 'scheduled',
+        ]);
+        AppointmentService::create([
+            'appointment_id' => $appointment->id,
+            'service_id' => $service->id,
+            'name' => $service->name,
+            'price' => $service->price,
+            'duration_minutes' => $service->duration_minutes,
+            'status' => 'pending',
+        ]);
+
+        $this->actingAs($admin);
+        session(['active_branch_id' => $branch->id]);
+
+        Livewire::test(InventoryManager::class)
+            ->call('createProduct')
+            ->set('productName', 'Crema catalogo nueva')
+            ->set('productDescription', 'Producto vendido aunque el stock aun no este cargado')
+            ->set('unitName', 'unidad')
+            ->set('purchaseCost', '45')
+            ->set('minimumStock', '1')
+            ->call('saveProduct')
+            ->assertHasNoErrors();
+
+        $product = InventoryProduct::where('name', 'Crema catalogo nueva')->firstOrFail();
+        $batch = InventoryProductBatch::where('branch_id', $branch->id)
+            ->where('inventory_product_id', $product->id)
+            ->firstOrFail();
+
+        $this->assertSame('0.00', $batch->current_quantity);
+
+        Livewire::test(AgendaManager::class)
+            ->call('openPayment', $appointment->id)
+            ->set('productSearch', 'Crema catalogo')
+            ->call('addPaymentProductLine')
+            ->assertSee('Crema catalogo nueva')
+            ->set('paymentProductLines.0.batch_id', (string) $batch->id)
+            ->set('paymentProductLines.0.quantity', '1')
+            ->set('paymentProductLines.0.unit_price', '60')
+            ->set('paymentProductLines.0.paid_amount', '60')
+            ->set('paymentProductLines.0.stock_shortage_reason', 'Producto nuevo vendido desde catalogo')
+            ->set('paymentCashAmount', '60')
+            ->set('paymentServiceLineIds', [])
+            ->call('savePayment')
+            ->assertHasNoErrors();
+
+        $payment = TreatmentPayment::firstOrFail();
+
+        $this->assertSame('-1.00', $batch->refresh()->current_quantity);
+        $this->assertDatabaseHas('inventory_movements', [
+            'reference' => 'PAY-'.$payment->id,
+            'inventory_product_batch_id' => $batch->id,
+            'type' => 'stock_shortage',
+            'quantity' => '1.00',
+            'reason' => 'Producto nuevo vendido desde catalogo',
+        ]);
     }
 
     public function test_administrator_role_with_agenda_delete_permission_can_delete_appointments(): void

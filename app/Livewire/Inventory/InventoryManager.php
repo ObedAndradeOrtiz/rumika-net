@@ -373,6 +373,10 @@ class InventoryManager extends Component
         ]);
         $product->save();
 
+        if (! $this->editingProductId) {
+            $this->createCatalogBatchesForProduct($company, $product);
+        }
+
         $this->showProductModal = false;
         $this->resetProductForm();
     }
@@ -1196,6 +1200,27 @@ class InventoryManager extends Component
             ->where('branch_id', $branch->id)
             ->where('inventory_product_id', $productId)
             ->sum('current_quantity'), 2);
+    }
+
+    private function createCatalogBatchesForProduct(Company $company, InventoryProduct $product): void
+    {
+        foreach ($this->availableBranches() as $branch) {
+            InventoryProductBatch::query()->firstOrCreate(
+                [
+                    'branch_id' => $branch->id,
+                    'inventory_product_id' => $product->id,
+                    'lot_code' => 'CATALOGO-'.$branch->id.'-'.$product->id,
+                ],
+                [
+                    'company_id' => $company->id,
+                    'received_at' => now()->toDateString(),
+                    'initial_quantity' => 0,
+                    'current_quantity' => 0,
+                    'unit_cost' => (float) $product->purchase_cost,
+                    'status' => 'available',
+                ],
+            );
+        }
     }
 
     private function productUnitCost(Branch $branch, int $productId, float $fallback = 0): float
