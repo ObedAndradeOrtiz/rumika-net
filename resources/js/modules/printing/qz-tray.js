@@ -133,77 +133,53 @@ const printWithBrowser = () => {
 };
 
 function ticketTextFrom(paper) {
-    const WIDTH = 48;
+    const WIDTH = 42;
 
-    const clean = (value = '') => {
-        return String(value)
+    const clean = (text = '') => {
+        return String(text)
             .replace(/\s+/g, ' ')
             .trim();
     };
 
-    const money = (value = '') => {
-        return clean(value)
-            .replace(/^Bs\s*/i, '')
-            .trim();
-    };
-
-    const firstTwoNames = (value = '') => {
-        const text = clean(value);
-
-        return text
+    const firstTwoNames = (text = '') => {
+        return clean(text)
             .split(' ')
             .filter(Boolean)
             .slice(0, 2)
             .join(' ');
     };
 
+    const parseMoney = (text = '') => {
+        const value = clean(text)
+            .replace(/Bs/gi, '')
+            .replace(/\./g, '')
+            .replace(',', '.')
+            .trim();
+
+        const number = parseFloat(value);
+
+        return isNaN(number) ? 0 : number;
+    };
+
     const separator = () => '-'.repeat(WIDTH);
 
-    const center = (text) => {
+    const center = (text = '') => {
         text = clean(text);
 
         if (text.length >= WIDTH) {
             return text.substring(0, WIDTH);
         }
 
-        const left = Math.floor((WIDTH - text.length) / 2);
+        const spaces = Math.floor((WIDTH - text.length) / 2);
 
-        return ' '.repeat(left) + text;
-    };
-
-    const normalRow = (detail, cash, qr) => {
-        /*
-        48 caracteres aproximadamente:
-
-        26 detalle
-        11 efectivo
-        11 QR
-        */
-
-        detail = clean(detail).substring(0, 26);
-        cash = money(cash).substring(0, 11);
-        qr = money(qr).substring(0, 11);
-
-        return detail.padEnd(26)
-            + cash.padStart(11)
-            + qr.padStart(11);
-    };
-
-    const totalRow = (detail, cash, qr) => {
-        detail = clean(detail).substring(0, 26);
-        cash = money(cash).substring(0, 11);
-        qr = money(qr).substring(0, 11);
-
-        return detail.padEnd(26)
-            + cash.padStart(11)
-            + qr.padStart(11);
+        return ' '.repeat(spaces) + text;
     };
 
     let output = '';
 
-    // ==================================================
+    // ===============================
     // CABECERA
-    // ==================================================
+    // ===============================
 
     const header = paper.querySelector('.rm-print-header');
 
@@ -221,9 +197,9 @@ function ticketTextFrom(paper) {
 
     output += separator() + '\n';
 
-    // ==================================================
-    // SERVICIOS Y PRODUCTOS
-    // ==================================================
+    // ===============================
+    // SERVICIOS
+    // ===============================
 
     const sections = paper.querySelectorAll('.rm-print-section');
 
@@ -234,118 +210,70 @@ function ticketTextFrom(paper) {
             return;
         }
 
-        const title = clean(titleElement.textContent);
+        const sectionTitle = clean(titleElement.textContent);
 
         output += '\n';
-        output += title.toUpperCase() + '\n';
+        output += sectionTitle.toUpperCase() + '\n';
         output += separator() + '\n';
 
         const rows = section.querySelectorAll('.rm-print-row');
 
         rows.forEach(row => {
+            // Ignorar cabecera
+            if (row.classList.contains('rm-print-row-head')) {
+                return;
+            }
+
             const spans = Array.from(
                 row.querySelectorAll(':scope > span')
             );
 
-            if (!spans.length) {
+            if (spans.length !== 3) {
                 return;
             }
 
-            /*
-             * CABECERA:
-             * Detalle / Efectivo / QR
-             */
-            if (row.classList.contains('rm-print-row-head')) {
-
-                if (spans.length === 3) {
-                    output += normalRow(
-                        'Detalle',
-                        'Efec.',
-                        'QR'
-                    ) + '\n';
-
-                    output += separator() + '\n';
-                }
-
-                return;
-            }
-
-            /*
-             * TOTAL
-             */
+            // TOTAL
             if (row.classList.contains('rm-print-row-total')) {
+                const cash = parseMoney(spans[1].textContent);
+                const qr = parseMoney(spans[2].textContent);
 
-                if (spans.length === 3) {
-                    output += separator() + '\n';
-
-                    output += totalRow(
-                        spans[0].textContent,
-                        spans[1].textContent,
-                        spans[2].textContent
-                    ) + '\n';
-                }
-
-                return;
-            }
-
-            /*
-             * FILA NORMAL DE SERVICIO / PRODUCTO
-             */
-            if (spans.length === 3) {
-
-                let detail = spans[0].textContent;
-
-                /*
-                 * Si es SERVICIOS, mostramos máximo
-                 * los 2 primeros nombres.
-                 */
-                if (
-                    title.toLowerCase().includes('servicio')
-                ) {
-                    detail = firstTwoNames(detail);
-                }
-
-                output += normalRow(
-                    detail,
-                    spans[1].textContent,
-                    spans[2].textContent
-                ) + '\n';
-            }
-
-            /*
-             * GASTOS
-             */
-            if (spans.length === 4) {
-                const detail = clean(spans[0].textContent);
-                const amount = clean(spans[1].textContent);
-                const responsible = firstTwoNames(
-                    spans[2].textContent
-                );
-
-                output += detail + '\n';
-                output += 'Monto: ' + amount + '\n';
-                output += 'Resp.: ' + responsible + '\n';
-
-                if (clean(spans[3].textContent) !== '-') {
-                    output += 'Ref.: ' +
-                        clean(spans[3].textContent) +
-                        '\n';
-                }
+                const total = cash + qr;
 
                 output += separator() + '\n';
+                output += clean(spans[0].textContent) + '\n';
+                output += 'Bs ' + total.toFixed(2) + '\n';
+
+                return;
             }
+
+            // ===========================
+            // REGISTRO NORMAL
+            // ===========================
+
+            let name = clean(spans[0].textContent);
+
+            if (
+                sectionTitle
+                    .toLowerCase()
+                    .includes('servicio')
+            ) {
+                name = firstTwoNames(name);
+            }
+
+            const cash = parseMoney(spans[1].textContent);
+            const qr = parseMoney(spans[2].textContent);
+
+            const total = cash + qr;
+
+            output += name + '\n';
+            output += 'Bs ' + total.toFixed(2) + '\n';
+            output += '\n';
         });
-
-        const empty = section.querySelector('.rm-print-empty');
-
-        if (empty) {
-            output += clean(empty.textContent) + '\n';
-        }
     });
 
-    // ==================================================
-    // TOTALES
-    // ==================================================
+    // ===============================
+    // TOTALES GENERALES
+    // ===============================
 
     const totals = paper.querySelector('.rm-print-totals');
 
@@ -355,30 +283,7 @@ function ticketTextFrom(paper) {
         output += separator() + '\n';
 
         totals.querySelectorAll('span, strong').forEach(item => {
-            let text = clean(item.textContent);
-
-            /*
-             * Separamos:
-             *
-             * Efectivo Bs 2500.00
-             *
-             * en:
-             *
-             * Efectivo                  Bs 2500.00
-             */
-
-            const match = text.match(/^(.*?)\s+(Bs\s*-?[\d.,]+)$/i);
-
-            if (match) {
-                const label = clean(match[1]);
-                const value = clean(match[2]);
-
-                output += label.substring(0, 27).padEnd(27)
-                    + value.substring(0, 21).padStart(21)
-                    + '\n';
-            } else {
-                output += text + '\n';
-            }
+            output += clean(item.textContent) + '\n';
         });
     }
 
