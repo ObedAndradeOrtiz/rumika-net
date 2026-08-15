@@ -1,51 +1,4 @@
 <div>
-    <style>
-        .rm-print-simple-head,
-        .rm-print-simple-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-            width: 100%;
-        }
-
-        .rm-print-simple-head {
-            font-weight: 700;
-            margin-bottom: 2px;
-        }
-
-        .rm-print-simple-row {
-            padding: 1px 0;
-        }
-
-        .rm-print-simple-head> :first-child,
-        .rm-print-simple-row> :first-child {
-            flex: 1;
-            min-width: 0;
-            text-align: left;
-        }
-
-        .rm-print-simple-head> :last-child,
-        .rm-print-simple-row> :last-child {
-            flex-shrink: 0;
-            text-align: right;
-            white-space: nowrap;
-        }
-
-        .rm-print-simple-line {
-            width: 100%;
-            border-top: 1px dashed #444;
-            margin: 2px 0;
-        }
-
-        .rm-print-simple-total {
-            font-weight: 700;
-        }
-
-        .rm-print-compact-section {
-            margin-bottom: 7px;
-        }
-    </style>
     <button class="rm-top-wallet-button" type="button" wire:click="open" aria-label="Ver caja actual"
         title="Ver caja actual">
         <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
@@ -312,6 +265,17 @@
     @if ($showPrintPreview)
         @php
             $previewServices = collect($ticketPreview['services'] ?? $printSummary['services']['rows']);
+            $previewProducts = collect($ticketPreview['products'] ?? $printSummary['products']['rows']);
+            $previewTotals = $ticketPreview['totals'] ?? [
+                'cash' => $cashTotal,
+                'qr' => $qrTotal,
+                'expenses' => $cashboxExpenseTotal,
+                'net_cash' => $netCashTotal,
+                'net_total' => $netTotal,
+            ];
+        @endphp
+        @php
+            $previewServices = collect($ticketPreview['services'] ?? $printSummary['services']['rows']);
 
             $previewProducts = collect($ticketPreview['products'] ?? $printSummary['products']['rows']);
 
@@ -327,413 +291,148 @@
         @endphp
 
         <div class="rm-modal-backdrop" wire:click="closePrintPreview"></div>
-
         <section class="rm-modal-panel rm-modal-panel-wide rm-print-preview-modal" role="dialog" aria-modal="true">
-
             <div class="rm-modal-title">
                 <div>
-                    <span>Previsualización</span>
-
-                    <h2>
-                        {{ $ticketPreview['title'] ?? 'Impresión de caja' }}
-                    </h2>
-
+                    <span>Previsualizacion</span>
+                    <h2>{{ $ticketPreview['title'] ?? 'Impresion de caja' }}</h2>
                     <p class="rm-modal-subtitle">
-                        {{ $ticketPreview['branch'] ?? $branch->name }}
-                        -
+                        {{ $ticketPreview['branch'] ?? $branch->name }} -
                         {{ $ticketPreview['business_date'] ?? \Illuminate\Support\Carbon::parse($selectedDate)->format('d/m/Y') }}
-
                         @if (!empty($ticketPreview['shift_number']))
                             - turno {{ $ticketPreview['shift_number'] }}
                         @endif
                     </p>
                 </div>
-
-                <button type="button" wire:click="closePrintPreview" aria-label="Cerrar">
-                    x
-                </button>
+                <button type="button" wire:click="closePrintPreview" aria-label="Cerrar">x</button>
             </div>
-
 
             <div class="rm-print-preview-paper">
-
                 <div class="rm-print-header">
-
-                    <strong>
-                        Rumika - {{ $ticketPreview['title'] ?? 'Detalle de caja' }}
-                    </strong>
-
-                    @if (!empty($ticketPreview['ticket_number']))
-                        <span>
-                            {{ $ticketPreview['ticket_number'] }}
-                        </span>
-                    @endif
-
-                    <span>
-                        {{ $ticketPreview['branch'] ?? $branch->name }}
-                        -
-                        {{ $ticketPreview['business_date'] ?? \Illuminate\Support\Carbon::parse($selectedDate)->format('d/m/Y') }}
-                    </span>
-
+                    <strong>Rumika - {{ $ticketPreview['title'] ?? 'Detalle de caja' }}</strong>
+                    <span>{{ $ticketPreview['ticket_number'] ?? 'Ticket sin numero' }}</span>
+                    <span>{{ $ticketPreview['branch'] ?? $branch->name }} -
+                        {{ $ticketPreview['business_date'] ?? \Illuminate\Support\Carbon::parse($selectedDate)->format('d/m/Y') }}</span>
                     @if (!empty($ticketPreview['opened_at']))
-                        <span>
-                            Desde: {{ $ticketPreview['opened_at'] }}
-                        </span>
+                        <span>Desde: {{ $ticketPreview['opened_at'] }}</span>
                     @endif
-
                     @if (!empty($ticketPreview['closed_at']))
-                        <span>
-                            Hasta: {{ $ticketPreview['closed_at'] }}
-                        </span>
+                        <span>Hasta: {{ $ticketPreview['closed_at'] }}</span>
                     @endif
-
+                    <span>Estado:
+                        {{ ($ticketPreview['status'] ?? $cashboxSession?->status) === 'closed' ? 'Cerrada' : ($ticketPreview['status'] ?? $cashboxSession?->status ? 'Abierta' : 'Sin abrir') }}</span>
                     @if (!empty($ticketPreview['opened_by']))
-                        <span>
-                            Caja: {{ $ticketPreview['opened_by'] }}
-                        </span>
+                        <span>Apertura: {{ $ticketPreview['opened_by'] }}</span>
                     @endif
-
+                    @if (!empty($ticketPreview['closed_by']))
+                        <span>Cierre: {{ $ticketPreview['closed_by'] }}</span>
+                    @endif
                 </div>
 
-
-                {{-- SERVICIOS --}}
-
-                <div class="rm-print-section rm-print-compact-section">
-
-                    <div class="rm-print-simple-head">
-                        <strong>Servicios</strong>
-                        <strong>Monto en Bs.</strong>
-                    </div>
-
-                    <div class="rm-print-simple-line"></div>
-
-                    @forelse ($previewServices as $row)
-                        @php
-                            $patientName = collect(preg_split('/\s+/', trim($row['client'] ?? 'Paciente')))
-                                ->filter()
-                                ->take(2)
-                                ->implode(' ');
-
-                            $cash = (float) ($row['cash'] ?? 0);
-                            $qr = (float) ($row['qr'] ?? 0);
-                            $total = (float) ($row['total'] ?? $cash + $qr);
-                        @endphp
-
-                        <div class="rm-print-simple-row">
-
-                            <span>
-                                {{ $patientName }}
-                            </span>
-
-                            <span>
-                                @if ($cash > 0 && $qr > 0)
-                                    EF {{ number_format($cash, 2) }}
-                                    QR {{ number_format($qr, 2) }}
-                                @elseif ($qr > 0)
-                                    QR {{ number_format($qr, 2) }}
-                                @elseif ($cash > 0)
-                                    EF {{ number_format($cash, 2) }}
-                                @else
-                                    {{ number_format($total, 2) }}
-                                @endif
-                            </span>
-
-                        </div>
-
-                    @empty
-
-                        <div class="rm-print-empty">
-                            Sin servicios.
-                        </div>
-                    @endforelse
-
-                    <div class="rm-print-simple-line"></div>
-
-                    <div class="rm-print-simple-row rm-print-simple-total">
-
-                        <strong>
-                            TOTAL SERVICIOS
-                        </strong>
-
-                        <strong>
-                            {{ number_format((float) $previewServices->sum('total'), 2) }}
-                        </strong>
-
-                    </div>
-
-                </div>
-
-
-                {{-- PRODUCTOS --}}
-
-                <div class="rm-print-section rm-print-compact-section">
-
-                    <div class="rm-print-simple-head">
-                        <strong>Productos</strong>
-                        <strong>Monto en Bs.</strong>
-                    </div>
-
-                    <div class="rm-print-simple-line"></div>
-
-                    @forelse ($previewProducts as $row)
-                        @php
-                            $cash = (float) ($row['cash'] ?? 0);
-                            $qr = (float) ($row['qr'] ?? 0);
-                            $total = (float) ($row['total'] ?? $cash + $qr);
-
-                            $productName = \Illuminate\Support\Str::limit($row['name'] ?? 'Producto', 24, '');
-                        @endphp
-
-                        <div class="rm-print-simple-row">
-
-                            <span>
-                                {{ $productName }}
-
-                                @if (isset($row['quantity']) && (float) $row['quantity'] > 1)
-                                    x{{ number_format((float) $row['quantity'], 0) }}
-                                @endif
-                            </span>
-
-                            <span>
-                                @if ($cash > 0 && $qr > 0)
-                                    EF {{ number_format($cash, 2) }}
-                                    QR {{ number_format($qr, 2) }}
-                                @elseif ($qr > 0)
-                                    QR {{ number_format($qr, 2) }}
-                                @elseif ($cash > 0)
-                                    EF {{ number_format($cash, 2) }}
-                                @else
-                                    {{ number_format($total, 2) }}
-                                @endif
-                            </span>
-
-                        </div>
-
-                    @empty
-
-                        <div class="rm-print-empty">
-                            Sin productos.
-                        </div>
-                    @endforelse
-
-                    <div class="rm-print-simple-line"></div>
-
-                    <div class="rm-print-simple-row rm-print-simple-total">
-
-                        <strong>
-                            TOTAL PRODUCTOS
-                        </strong>
-
-                        <strong>
-                            {{ number_format((float) $previewProducts->sum('total'), 2) }}
-                        </strong>
-
-                    </div>
-
-                </div>
-
-
-                {{-- GASTOS --}}
-
-                @if ($previewExpenses->isNotEmpty())
-
+                @foreach (['services' => 'Servicios', 'products' => 'Productos'] as $key => $title)
                     <div class="rm-print-section rm-print-compact-section">
-
-                        <div class="rm-print-simple-head">
-                            <strong>Gastos</strong>
-                            <strong>Monto en Bs.</strong>
-                        </div>
-
-                        <div class="rm-print-simple-line"></div>
-
-                        @foreach ($previewExpenses as $expense)
-                            <div class="rm-print-simple-row">
-
-                                <span>
-                                    {{ \Illuminate\Support\Str::limit($expense['name'] ?? 'Gasto', 25, '') }}
-                                </span>
-
-                                <span>
-                                    {{ number_format((float) ($expense['amount'] ?? 0), 2) }}
-                                </span>
-
+                        <h3>{{ $title }}</h3>
+                        <div class="rm-print-table">
+                            <div class="rm-print-row rm-print-row-head">
+                                <span>Detalle</span><span>Efectivo</span><span>QR</span>
                             </div>
-                        @endforeach
-
-                        <div class="rm-print-simple-line"></div>
-
-                        <div class="rm-print-simple-row rm-print-simple-total">
-
-                            <strong>
-                                TOTAL GASTOS
-                            </strong>
-
-                            <strong>
-                                {{ number_format((float) $previewExpenses->sum('amount'), 2) }}
-                            </strong>
-
+                            @forelse (($key === 'services' ? $previewServices : $previewProducts) as $row)
+                                <div class="rm-print-row">
+                                    <span>
+                                        @if ($key === 'services')
+                                            {{ $row['client'] }}
+                                        @else
+                                            {{ \Illuminate\Support\Str::limit($row['name'], 30, '') }}@if ($row['quantity'] > 1)
+                                                x {{ number_format($row['quantity'], 2) }}
+                                            @endif
+                                        @endif
+                                    </span>
+                                    <span>Bs {{ number_format($row['cash'], 2) }}</span>
+                                    <span>Bs {{ number_format($row['qr'], 2) }}</span>
+                                </div>
+                                @empty
+                                    <div class="rm-print-empty">Sin {{ strtolower($title) }}.</div>
+                                @endforelse
+                                <div class="rm-print-row rm-print-row-total">
+                                    <span>Total {{ strtolower($title) }}</span>
+                                    <span>Bs
+                                        {{ number_format(($key === 'services' ? $previewServices : $previewProducts)->sum('cash'), 2) }}</span>
+                                    <span>Bs
+                                        {{ number_format(($key === 'services' ? $previewServices : $previewProducts)->sum('qr'), 2) }}</span>
+                                </div>
+                            </div>
                         </div>
+                    @endforeach
 
-                    </div>
-
-                @endif
-
-
-                {{-- RESUMEN DE CAJA --}}
-
-                <div class="rm-print-section rm-print-compact-section">
-
-                    <div class="rm-print-simple-head">
-                        <strong>Total caja</strong>
-                        <strong>Monto en Bs.</strong>
-                    </div>
-
-                    <div class="rm-print-simple-line"></div>
-
-                    @if (isset($previewTotals['opening_amount']))
-                        <div class="rm-print-simple-row">
-                            <span>Inicial</span>
-
-                            <span>
-                                {{ number_format((float) $previewTotals['opening_amount'], 2) }}
-                            </span>
-                        </div>
-                    @endif
-
-                    <div class="rm-print-simple-row">
-
-                        <span>
-                            Efectivo
-                        </span>
-
-                        <span>
-                            {{ number_format((float) ($previewTotals['cash'] ?? 0), 2) }}
-                        </span>
-
-                    </div>
-
-                    <div class="rm-print-simple-row">
-
-                        <span>
-                            QR
-                        </span>
-
-                        <span>
-                            {{ number_format((float) ($previewTotals['qr'] ?? 0), 2) }}
-                        </span>
-
-                    </div>
-
-                    @if ((float) ($previewTotals['expenses'] ?? 0) > 0)
-                        <div class="rm-print-simple-row">
-
-                            <span>
-                                Gastos
-                            </span>
-
-                            <span>
-                                {{ number_format((float) $previewTotals['expenses'], 2) }}
-                            </span>
-
+                    @if (!empty($ticketPreview['expenses']))
+                        <div class="rm-print-section">
+                            <h3>Gastos de caja</h3>
+                            <div class="rm-print-table">
+                                <div class="rm-print-row rm-print-row-head">
+                                    <span>Detalle</span><span>Monto</span><span>Responsable</span><span>Ref.</span>
+                                </div>
+                                @foreach ($ticketPreview['expenses'] as $expense)
+                                    <div class="rm-print-row">
+                                        <span>{{ $expense['name'] }}</span>
+                                        <span>Bs {{ number_format($expense['amount'], 2) }}</span>
+                                        <span>{{ $expense['responsible'] }}</span>
+                                        <span>{{ $expense['reference'] ?: '-' }}</span>
+                                    </div>
+                                @endforeach
+                            </div>
                         </div>
                     @endif
 
-
-                    <div class="rm-print-simple-line"></div>
-
-
-                    <div class="rm-print-simple-row rm-print-simple-total">
-
-                        <strong>
-                            TOTAL
-                        </strong>
-
-                        <strong>
-                            {{ number_format((float) ($previewTotals['cash'] ?? 0) + (float) ($previewTotals['qr'] ?? 0), 2) }}
-                        </strong>
-
+                    <div class="rm-print-totals">
+                        @if (isset($previewTotals['opening_amount']))
+                            <span>Monto inicial Bs {{ number_format($previewTotals['opening_amount'], 2) }}</span>
+                        @endif
+                        <span>Efectivo Bs {{ number_format($previewTotals['cash'] ?? 0, 2) }}</span>
+                        <span>QR Bs {{ number_format($previewTotals['qr'] ?? 0, 2) }}</span>
+                        <span>Gastos caja Bs {{ number_format($previewTotals['expenses'] ?? 0, 2) }}</span>
+                        <strong>Caja neta Bs {{ number_format($previewTotals['net_cash'] ?? 0, 2) }}</strong>
+                        @if (isset($previewTotals['expected_cash_amount']))
+                            <span>Esperado en caja Bs {{ number_format($previewTotals['expected_cash_amount'], 2) }}</span>
+                        @endif
+                        @if (isset($previewTotals['counted_cash_amount']))
+                            <span>Contado Bs {{ number_format($previewTotals['counted_cash_amount'], 2) }}</span>
+                        @endif
+                        @if (isset($previewTotals['cash_difference']))
+                            <span>Diferencia Bs {{ number_format($previewTotals['cash_difference'], 2) }}</span>
+                        @endif
+                        @if (!empty($ticketPreview['printer_enabled']))
+                            <span>Impresora {{ $ticketPreview['printer_name'] ?: 'sin seleccionar' }}</span>
+                        @endif
                     </div>
-
-
-                    <div class="rm-print-simple-row">
-
-                        <span>
-                            Caja neta
-                        </span>
-
-                        <span>
-                            {{ number_format((float) ($previewTotals['net_cash'] ?? 0), 2) }}
-                        </span>
-
-                    </div>
-
-
-                    @if (isset($previewTotals['counted_cash_amount']))
-                        <div class="rm-print-simple-row">
-
-                            <span>
-                                Contado
-                            </span>
-
-                            <span>
-                                {{ number_format((float) $previewTotals['counted_cash_amount'], 2) }}
-                            </span>
-
-                        </div>
-                    @endif
-
-
-                    @if (isset($previewTotals['cash_difference']) && abs((float) $previewTotals['cash_difference']) > 0.001)
-                        <div class="rm-print-simple-row">
-
-                            <span>
-                                Diferencia
-                            </span>
-
-                            <span>
-                                {{ number_format((float) $previewTotals['cash_difference'], 2) }}
-                            </span>
-
-                        </div>
-                    @endif
-
                 </div>
 
-            </div>
+                <div class="rm-form-actions">
+                    <button class="rm-button rm-button-primary" type="button" wire:click="markTicketPrinted"
+                        data-use-qz="{{ !empty($ticketPreview['printer_enabled']) && !empty($ticketPreview['printer_name']) ? '1' : '0' }}"
+                        data-printer-name="{{ $ticketPreview['printer_name'] ?? '' }}"
+                        data-ticket="{{ base64_encode($ticketPreview['raw_ticket'] ?? '') }}"
+                        onclick="event.preventDefault(); window.RumikaQz.printFromButton(this)">
+                        Imprimir ahora
+                    </button>
+                    <button class="rm-button rm-button-outline" type="button"
+                        wire:click="closePrintPreview">Volver</button>
+                </div>
+            </section>
+        @endif
 
-
-            <div class="rm-form-actions">
-
-                <button class="rm-button rm-button-primary" type="button" wire:click="markTicketPrinted"
-                    data-use-qz="{{ !empty($ticketPreview['printer_enabled']) && !empty($ticketPreview['printer_name']) ? '1' : '0' }}"
-                    data-printer-name="{{ $ticketPreview['printer_name'] ?? '' }}"
-                    data-ticket="{{ base64_encode($ticketPreview['raw_ticket'] ?? '') }}"
-                    onclick="event.preventDefault(); window.RumikaQz.printFromButton(this)">
-                    Imprimir ahora
-                </button>
-
-                <button class="rm-button rm-button-outline" type="button" wire:click="closePrintPreview">
-                    Volver
-                </button>
-
-            </div>
-
-        </section>
-    @endif
-
-    @if ($confirmingCashboxSessionDeleteId)
-        <div class="rm-modal-backdrop" wire:click="cancelDeleteClosedCashbox"></div>
-        <section class="rm-modal-panel rm-modal-panel-small" role="dialog" aria-modal="true">
-            <div class="rm-confirm-icon">!</div>
-            <h2>Eliminar caja</h2>
-            <p>Se eliminara esta caja y sus tickets guardados. Los cobros, productos vendidos y movimientos no se
-                borran. Si era la unica caja del dia, podras abrir nuevamente desde 0.</p>
-            <div class="rm-form-actions">
-                <button class="rm-button rm-button-danger" type="button" wire:click="deleteClosedCashbox">Eliminar
-                    caja</button>
-                <button class="rm-button rm-button-outline" type="button"
-                    wire:click="cancelDeleteClosedCashbox">Cancelar</button>
-            </div>
-        </section>
-    @endif
-</div>
+        @if ($confirmingCashboxSessionDeleteId)
+            <div class="rm-modal-backdrop" wire:click="cancelDeleteClosedCashbox"></div>
+            <section class="rm-modal-panel rm-modal-panel-small" role="dialog" aria-modal="true">
+                <div class="rm-confirm-icon">!</div>
+                <h2>Eliminar caja</h2>
+                <p>Se eliminara esta caja y sus tickets guardados. Los cobros, productos vendidos y movimientos no se
+                    borran. Si era la unica caja del dia, podras abrir nuevamente desde 0.</p>
+                <div class="rm-form-actions">
+                    <button class="rm-button rm-button-danger" type="button" wire:click="deleteClosedCashbox">Eliminar
+                        caja</button>
+                    <button class="rm-button rm-button-outline" type="button"
+                        wire:click="cancelDeleteClosedCashbox">Cancelar</button>
+                </div>
+            </section>
+        @endif
+    </div>
