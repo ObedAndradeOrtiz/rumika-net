@@ -108,8 +108,19 @@ const totalsFrom = (paper) => {
     return totals ? spanTexts(totals) : [];
 };
 
+const branchNameFrom = (paper) => {
+    const subtitle = paper
+        .closest('.rm-print-preview-modal')
+        ?.querySelector('.rm-modal-subtitle')
+        ?.innerText || '';
+    const [branch] = subtitle.split(' - ');
+
+    return normalizeTicketText(branch || 'Rumika');
+};
+
 const ticketTextFrom = (paper) => {
     const { title, headerRows } = headerLinesFrom(paper);
+    const branchName = branchNameFrom(paper);
     const sections = Array.from(paper.querySelectorAll('.rm-print-section'));
     const detailRows = sections[0]
         ? Array.from(sections[0].querySelectorAll('.rm-print-row'))
@@ -129,7 +140,7 @@ const ticketTextFrom = (paper) => {
         `${esc}@`,
         `${esc}a\x01`,
         `${esc}!\x10`,
-        center('Rumika SaaS'),
+        center(branchName),
         `${esc}!\x00`,
         center(title.replace('Rumika - ', '')),
         line(),
@@ -187,6 +198,7 @@ const ticketTextFrom = (paper) => {
         line(),
         `${esc}a\x01`,
         center('Gracias por su visita'),
+        center('Servicio impreso por'),
         center('Rumika SaaS'),
         '',
         '',
