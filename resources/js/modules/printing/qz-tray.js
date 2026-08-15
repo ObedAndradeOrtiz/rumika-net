@@ -40,7 +40,7 @@ const center = (value = '') => {
     const text = normalizeTicketText(value).slice(0, paperWidth);
     const left = Math.max(0, Math.floor((paperWidth - text.length) / 2));
 
-    return `${' '.repeat(left)}${text}`;
+    return `${' '.repeat(left)}${text}`.padEnd(paperWidth, ' ');
 };
 
 const right = (label, value) => {
@@ -197,9 +197,7 @@ const ticketTextFrom = (paper) => {
     output.push(
         line(),
         `${esc}a\x01`,
-        center('Gracias por su visita'),
-        center('Servicio impreso por'),
-        center('Rumika SaaS'),
+        center('Sistema Rumika SaaS'),
         '',
         '',
         '',
