@@ -807,7 +807,6 @@ class QuickCashbox extends Component
             ?? $company->branches()->firstOrFail();
     }
 
-
     private function buildRawTicket(
         string $title,
         Branch $branch,
@@ -820,11 +819,15 @@ class QuickCashbox extends Component
     ): string {
         /*
     |--------------------------------------------------------------------------
-    | CONFIGURACIÓN
+    | ANCHO
     |--------------------------------------------------------------------------
+    |
+    | 42 caracteres funciona bien normalmente para Epson 80mm
+    |
     */
 
         $width = 42;
+
 
         /*
     |--------------------------------------------------------------------------
@@ -844,13 +847,33 @@ class QuickCashbox extends Component
             return trim($value);
         };
 
+
+        /*
+    |--------------------------------------------------------------------------
+    | DINERO
+    |--------------------------------------------------------------------------
+    */
+
+        $money = function ($value): string {
+            return number_format(
+                (float) $value,
+                2,
+                '.',
+                ''
+            );
+        };
+
+
         /*
     |--------------------------------------------------------------------------
     | CENTRAR
     |--------------------------------------------------------------------------
     */
 
-        $center = function ($value) use ($width, $clean): string {
+        $center = function ($value) use (
+            $width,
+            $clean
+        ): string {
             $text = $clean($value);
 
             if (strlen($text) > $width) {
@@ -868,91 +891,200 @@ class QuickCashbox extends Component
                 )
             );
 
-            return str_repeat(' ', $spaces) . $text;
+            return str_repeat(
+                ' ',
+                $spaces
+            ) . $text;
         };
+
 
         /*
     |--------------------------------------------------------------------------
-    | DOS PRIMEROS NOMBRES
+    | PRIMEROS DOS NOMBRES
     |--------------------------------------------------------------------------
     */
 
-        $firstTwoNames = function ($value) use ($clean): string {
-            $text = $clean($value);
-
+        $firstTwoNames = function ($value) use (
+            $clean
+        ): string {
             $parts = array_values(
                 array_filter(
-                    explode(' ', $text)
+                    explode(
+                        ' ',
+                        $clean($value)
+                    )
                 )
             );
 
             return implode(
                 ' ',
-                array_slice($parts, 0, 2)
+                array_slice(
+                    $parts,
+                    0,
+                    2
+                )
             );
         };
 
+
         /*
     |--------------------------------------------------------------------------
-    | FORMATEAR NOMBRE + PRECIO
+    | FILA DE PAGO COMPACTA
     |--------------------------------------------------------------------------
     |
-    | Ejemplo:
+    | Ejemplos:
     |
-    | MARIA FERNANDA                    Bs 150.00
+    | MARIA FERNANDA               E 150.00
+    | JUAN CARLOS                  Q 200.00
+    | ANA PAOLA              E 50.00 Q 100.00
     |
     */
 
-        $namePrice = function (
+        $paymentRow = function (
             $name,
-            $amount
-        ) use ($width, $clean): string {
+            $cash,
+            $qr
+        ) use (
+            $width,
+            $clean,
+            $money
+        ): string {
+
             $name = $clean($name);
 
-            $price = 'Bs ' . number_format(
-                (float) $amount,
-                2,
-                '.',
-                ''
-            );
+            $cash = (float) $cash;
+            $qr = (float) $qr;
+
 
             /*
-         * Dejamos al menos un espacio entre nombre
-         * y precio.
+         * Solo efectivo
          */
 
-            $maxNameLength = max(
+            if ($cash > 0 && $qr <= 0) {
+                $payment = 'E ' . $money($cash);
+            }
+
+            /*
+         * Solo QR
+         */ elseif ($qr > 0 && $cash <= 0) {
+                $payment = 'Q ' . $money($qr);
+            }
+
+            /*
+         * Mixto
+         */ elseif ($cash > 0 && $qr > 0) {
+                $payment =
+                    'E' . $money($cash)
+                    . ' Q' . $money($qr);
+            } else {
+                $payment = '0.00';
+            }
+
+
+            /*
+         * Espacio disponible para nombre
+         */
+
+            $maxName = max(
                 1,
-                $width - strlen($price) - 1
+                $width
+                    - strlen($payment)
+                    - 1
             );
 
-            if (strlen($name) > $maxNameLength) {
+
+            if (strlen($name) > $maxName) {
                 $name = substr(
                     $name,
                     0,
-                    $maxNameLength
+                    $maxName
                 );
             }
+
 
             $spaces = max(
                 1,
                 $width
                     - strlen($name)
-                    - strlen($price)
+                    - strlen($payment)
             );
 
+
             return $name
-                . str_repeat(' ', $spaces)
-                . $price;
+                . str_repeat(
+                    ' ',
+                    $spaces
+                )
+                . $payment;
         };
+
 
         /*
     |--------------------------------------------------------------------------
-    | INICIO
+    | FILA TOTAL
+    |--------------------------------------------------------------------------
+    */
+
+        $totalRow = function (
+            $label,
+            $amount
+        ) use (
+            $width,
+            $clean,
+            $money
+        ): string {
+
+            $label = $clean($label);
+
+            $amount = $money($amount);
+
+
+            $spaces = max(
+                1,
+                $width
+                    - strlen($label)
+                    - strlen($amount)
+            );
+
+
+            return $label
+                . str_repeat(
+                    ' ',
+                    $spaces
+                )
+                . $amount;
+        };
+
+
+        /*
+    |--------------------------------------------------------------------------
+    | RESUMEN DE SECCION
+    |--------------------------------------------------------------------------
+    |
+    | Ef 100.00 QR 200.00 TOT 300.00
+    |
+    */
+
+        $sectionSummary = function (
+            $cash,
+            $qr,
+            $total
+        ) use ($money): string {
+
+            return 'Ef ' . $money($cash)
+                . ' QR ' . $money($qr)
+                . ' T ' . $money($total);
+        };
+
+
+        /*
+    |--------------------------------------------------------------------------
+    | COMENZAR TICKET
     |--------------------------------------------------------------------------
     */
 
         $lines = [];
+
 
         /*
     |--------------------------------------------------------------------------
@@ -968,50 +1100,75 @@ class QuickCashbox extends Component
             $title
         );
 
-        $lines[] = $center(
-            $businessDate->format('d/m/Y')
-        );
+
+        /*
+     * Fecha y turno en la misma zona para ahorrar papel.
+     */
+
+        $dateLine =
+            $businessDate->format('d/m/Y');
+
 
         if ($session?->shift_number) {
+            $dateLine .=
+                ' - Turno '
+                . $session->shift_number;
+        }
+
+
+        $lines[] = $center(
+            $dateLine
+        );
+
+
+        /*
+     * Horarios compactos
+     */
+
+        if ($session?->opened_at) {
+
+            $timeLine =
+                'Desde '
+                . $session->opened_at
+                ->format('H:i');
+
+
+            if ($session?->closed_at) {
+
+                $timeLine .=
+                    ' Hasta '
+                    . $session->closed_at
+                    ->format('H:i');
+            }
+
+
             $lines[] = $center(
-                'Turno ' . $session->shift_number
+                $timeLine
             );
         }
 
-        if ($session?->opened_at) {
-            $lines[] =
-                'Desde: '
-                . $session->opened_at
-                ->format('d/m/Y H:i');
-        }
 
-        if ($session?->closed_at) {
-            $lines[] =
-                'Hasta: '
-                . $session->closed_at
-                ->format('d/m/Y H:i');
-        }
+        /*
+     * Persona responsable.
+     *
+     * Solo primeros nombres para evitar líneas largas.
+     */
 
         if ($session?->openedBy?->name) {
+
             $lines[] =
-                'Apertura: '
-                . $clean(
+                'Caja: '
+                . $firstTwoNames(
                     $session->openedBy->name
                 );
         }
 
-        if ($session?->closedBy?->name) {
-            $lines[] =
-                'Cierre: '
-                . $clean(
-                    $session->closedBy->name
-                );
-        }
 
         $lines[] = str_repeat(
             '-',
             $width
         );
+
 
         /*
     |--------------------------------------------------------------------------
@@ -1019,52 +1176,75 @@ class QuickCashbox extends Component
     |--------------------------------------------------------------------------
     */
 
-        $lines[] = '';
         $lines[] = 'SERVICIOS';
-        $lines[] = str_repeat('-', $width);
 
-        $servicesTotal = 0;
+
+        $serviceCash = 0;
+        $serviceQr = 0;
+        $serviceTotal = 0;
+
 
         foreach ($services as $row) {
-            /*
-         * Aquí NO utilizamos cash ni qr.
-         *
-         * El item ya tiene su total real.
-         */
+
+            $cash = (float) (
+                $row['cash'] ?? 0
+            );
+
+            $qr = (float) (
+                $row['qr'] ?? 0
+            );
 
             $total = (float) (
-                $row['total'] ?? 0
+                $row['total']
+                ?? ($cash + $qr)
             );
 
-            $servicesTotal += $total;
+
+            $serviceCash += $cash;
+            $serviceQr += $qr;
+            $serviceTotal += $total;
+
 
             /*
-         * Solo primeros dos nombres.
+         * Solo primeros dos nombres
          */
 
-            $patient = $firstTwoNames(
-                $row['client'] ?? 'Cliente'
-            );
+            $patient =
+                $firstTwoNames(
+                    $row['client']
+                        ?? 'Cliente'
+                );
 
-            $lines[] = $namePrice(
+
+            $lines[] = $paymentRow(
                 $patient,
-                $total
+                $cash,
+                $qr
             );
         }
+
 
         if (empty($services)) {
             $lines[] = 'Sin servicios';
         }
+
 
         $lines[] = str_repeat(
             '-',
             $width
         );
 
-        $lines[] = $namePrice(
-            'Total servicios',
-            $servicesTotal
+
+        /*
+     * AQUÍ ESTÁ EL TOTAL QUE TE FALTABA.
+     */
+
+        $lines[] = $sectionSummary(
+            $serviceCash,
+            $serviceQr,
+            $serviceTotal
         );
+
 
         /*
     |--------------------------------------------------------------------------
@@ -1073,36 +1253,61 @@ class QuickCashbox extends Component
     */
 
         if (! empty($products)) {
+
             $lines[] = '';
             $lines[] = 'PRODUCTOS';
-            $lines[] = str_repeat(
-                '-',
-                $width
-            );
 
-            $productsTotal = 0;
+
+            $productCash = 0;
+            $productQr = 0;
+            $productTotal = 0;
+
 
             foreach ($products as $row) {
-                $total = (float) (
-                    $row['total'] ?? 0
+
+                $cash = (float) (
+                    $row['cash'] ?? 0
                 );
 
-                $productsTotal += $total;
+                $qr = (float) (
+                    $row['qr'] ?? 0
+                );
+
+                $total = (float) (
+                    $row['total']
+                    ?? ($cash + $qr)
+                );
+
+
+                $productCash += $cash;
+                $productQr += $qr;
+                $productTotal += $total;
+
 
                 $productName = $clean(
                     $row['name']
                         ?? 'Producto'
                 );
 
+
+                /*
+             * Cantidad solo si hay más de uno.
+             */
+
                 if (
                     isset($row['quantity'])
                     && (float) $row['quantity'] > 1
                 ) {
-                    $quantity = (float) $row['quantity'];
 
-                    $productName .= ' x '
+                    $quantity =
+                        (float) $row['quantity'];
+
+
+                    $productName .=
+                        ' x'
                         . (
-                            floor($quantity) == $quantity
+                            floor($quantity)
+                            == $quantity
                             ? (int) $quantity
                             : number_format(
                                 $quantity,
@@ -1113,22 +1318,32 @@ class QuickCashbox extends Component
                         );
                 }
 
-                $lines[] = $namePrice(
+
+                $lines[] = $paymentRow(
                     $productName,
-                    $total
+                    $cash,
+                    $qr
                 );
             }
+
 
             $lines[] = str_repeat(
                 '-',
                 $width
             );
 
-            $lines[] = $namePrice(
-                'Total productos',
-                $productsTotal
+
+            /*
+         * TOTAL PRODUCTOS
+         */
+
+            $lines[] = $sectionSummary(
+                $productCash,
+                $productQr,
+                $productTotal
             );
         }
+
 
         /*
     |--------------------------------------------------------------------------
@@ -1137,53 +1352,59 @@ class QuickCashbox extends Component
     */
 
         if (! empty($expenses)) {
+
             $lines[] = '';
             $lines[] = 'GASTOS';
-            $lines[] = str_repeat(
-                '-',
-                $width
-            );
 
-            $expensesTotal = 0;
+
+            $expenseTotal = 0;
+
 
             foreach ($expenses as $expense) {
+
                 $amount = (float) (
                     $expense['amount']
                     ?? 0
                 );
 
-                $expensesTotal += $amount;
 
-                $lines[] = $namePrice(
+                $expenseTotal += $amount;
+
+
+                $lines[] = $totalRow(
                     $expense['name']
                         ?? 'Gasto',
                     $amount
                 );
             }
 
+
             $lines[] = str_repeat(
                 '-',
                 $width
             );
 
-            $lines[] = $namePrice(
+
+            $lines[] = $totalRow(
                 'Total gastos',
-                $expensesTotal
+                $expenseTotal
             );
         }
 
+
         /*
     |--------------------------------------------------------------------------
-    | TOTALES DE CAJA
+    | TOTALES GENERALES
     |--------------------------------------------------------------------------
     */
 
         $lines[] = '';
-        $lines[] = 'TOTALES';
+        $lines[] = 'TOTAL CAJA';
         $lines[] = str_repeat(
             '-',
             $width
         );
+
 
         if (
             array_key_exists(
@@ -1191,43 +1412,74 @@ class QuickCashbox extends Component
                 $totals
             )
         ) {
-            $lines[] = $namePrice(
-                'Monto inicial',
+
+            $lines[] = $totalRow(
+                'Inicial',
                 $totals['opening_amount']
             );
         }
 
-        $lines[] = $namePrice(
+
+        $lines[] = $totalRow(
             'Efectivo',
             $totals['cash'] ?? 0
         );
 
-        $lines[] = $namePrice(
+
+        $lines[] = $totalRow(
             'QR',
             $totals['qr'] ?? 0
         );
 
-        $lines[] = $namePrice(
-            'Gastos caja',
-            $totals['expenses'] ?? 0
+
+        if (
+            (float) (
+                $totals['expenses']
+                ?? 0
+            ) > 0
+        ) {
+
+            $lines[] = $totalRow(
+                'Gastos',
+                $totals['expenses']
+            );
+        }
+
+
+        /*
+     * TOTAL DE VENTAS
+     */
+
+        $grossTotal =
+            (float) (
+                $totals['cash'] ?? 0
+            )
+            +
+            (float) (
+                $totals['qr'] ?? 0
+            );
+
+
+        $lines[] = $totalRow(
+            'TOTAL',
+            $grossTotal
         );
 
-        $lines[] = $namePrice(
+
+        /*
+     * Caja física:
+     * efectivo menos gastos.
+     */
+
+        $lines[] = $totalRow(
             'Caja neta',
             $totals['net_cash'] ?? 0
         );
 
-        if (
-            array_key_exists(
-                'expected_cash_amount',
-                $totals
-            )
-        ) {
-            $lines[] = $namePrice(
-                'Esperado en caja',
-                $totals['expected_cash_amount']
-            );
-        }
+
+        /*
+     * Datos de cierre únicamente si corresponde.
+     */
 
         if (
             array_key_exists(
@@ -1235,23 +1487,31 @@ class QuickCashbox extends Component
                 $totals
             )
         ) {
-            $lines[] = $namePrice(
+
+            $lines[] = $totalRow(
                 'Contado',
                 $totals['counted_cash_amount']
             );
         }
+
 
         if (
             array_key_exists(
                 'cash_difference',
                 $totals
             )
+            &&
+            abs(
+                (float) $totals['cash_difference']
+            ) > 0.001
         ) {
-            $lines[] = $namePrice(
+
+            $lines[] = $totalRow(
                 'Diferencia',
                 $totals['cash_difference']
             );
         }
+
 
         /*
     |--------------------------------------------------------------------------
@@ -1265,18 +1525,20 @@ class QuickCashbox extends Component
         );
 
         $lines[] = $center(
-            'Sistema Rumika SaaS'
+            'Rumika'
         );
 
+
         /*
-     * Espacio para que la impresora
-     * termine de sacar el papel.
+     * Solamente 2 líneas vacías.
+     *
+     * Antes teníamos 4.
+     * Ahorramos papel.
      */
 
         $lines[] = '';
         $lines[] = '';
-        $lines[] = '';
-        $lines[] = '';
+
 
         return implode(
             "\n",

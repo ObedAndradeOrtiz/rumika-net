@@ -392,125 +392,189 @@
             ========================================== --}}
 
                 <div class="rm-print-section rm-print-compact-section">
+    <h3>Servicios</h3>
 
-                    <h3>Servicios</h3>
+    <div class="rm-print-table">
 
-                    <div class="rm-print-table">
+        @forelse ($previewServices as $row)
 
-                        <div class="rm-print-row rm-print-row-head">
-                            <span>Paciente</span>
-                            <span>Total</span>
-                        </div>
+            @php
+                $patientName = collect(
+                    preg_split(
+                        '/\s+/',
+                        trim($row['client'] ?? 'Paciente')
+                    )
+                )
+                    ->filter()
+                    ->take(2)
+                    ->implode(' ');
+
+                $cash = (float) ($row['cash'] ?? 0);
+                $qr = (float) ($row['qr'] ?? 0);
+            @endphp
+
+            <div class="rm-print-row">
+
+                <span>
+                    {{ $patientName }}
+                </span>
+
+                <span>
+
+                    @if ($cash > 0)
+                        E Bs {{ number_format($cash, 2) }}
+                    @endif
+
+                    @if ($qr > 0)
+                        Q Bs {{ number_format($qr, 2) }}
+                    @endif
+
+                </span>
+
+            </div>
+
+        @empty
+
+            <div class="rm-print-empty">
+                Sin servicios.
+            </div>
+
+        @endforelse
 
 
-                        @forelse ($previewServices as $row)
-                            @php
-                                $patientName = collect(preg_split('/\s+/', trim($row['client'] ?? 'Paciente')))
-                                    ->filter()
-                                    ->take(2)
-                                    ->implode(' ');
-                            @endphp
+        <div class="rm-print-row rm-print-row-total">
 
-                            <div class="rm-print-row">
+            <span>
+                Total servicios
+            </span>
 
-                                <span>
-                                    {{ $patientName }}
-                                </span>
+            <span>
+                E Bs {{
+                    number_format(
+                        (float) $previewServices->sum('cash'),
+                        2
+                    )
+                }}
 
-                                <span>
-                                    Bs
-                                    {{ number_format((float) ($row['total'] ?? 0), 2) }}
-                                </span>
+                |
 
-                            </div>
+                QR Bs {{
+                    number_format(
+                        (float) $previewServices->sum('qr'),
+                        2
+                    )
+                }}
 
-                        @empty
+                |
 
-                            <div class="rm-print-empty">
-                                Sin servicios.
-                            </div>
-                        @endforelse
+                Bs {{
+                    number_format(
+                        (float) $previewServices->sum('total'),
+                        2
+                    )
+                }}
+            </span>
 
+        </div>
 
-                        <div class="rm-print-row rm-print-row-total">
-
-                            <span>
-                                Total servicios
-                            </span>
-
-                            <span>
-                                Bs
-                                {{ number_format((float) $previewServices->sum('total'), 2) }}
-                            </span>
-
-                        </div>
-
-                    </div>
-
-                </div>
+    </div>
+</div>
 
 
                 {{-- =========================================
                 PRODUCTOS
             ========================================== --}}
 
-                <div class="rm-print-section rm-print-compact-section">
+              <div class="rm-print-section rm-print-compact-section">
+    <h3>Productos</h3>
 
-                    <h3>Productos</h3>
+    <div class="rm-print-table">
 
-                    <div class="rm-print-table">
+        @forelse ($previewProducts as $row)
 
-                        <div class="rm-print-row rm-print-row-head">
-                            <span>Producto</span>
-                            <span>Total</span>
-                        </div>
+            @php
+                $cash = (float) ($row['cash'] ?? 0);
+                $qr = (float) ($row['qr'] ?? 0);
+            @endphp
+
+            <div class="rm-print-row">
+
+                <span>
+
+                    {{ $row['name'] ?? 'Producto' }}
+
+                    @if (
+                        isset($row['quantity'])
+                        && (float) $row['quantity'] > 1
+                    )
+                        x {{ number_format(
+                            (float) $row['quantity'],
+                            0
+                        ) }}
+                    @endif
+
+                </span>
+
+                <span>
+
+                    @if ($cash > 0)
+                        E Bs {{ number_format($cash, 2) }}
+                    @endif
+
+                    @if ($qr > 0)
+                        Q Bs {{ number_format($qr, 2) }}
+                    @endif
+
+                </span>
+
+            </div>
+
+        @empty
+
+            <div class="rm-print-empty">
+                Sin productos.
+            </div>
+
+        @endforelse
 
 
-                        @forelse ($previewProducts as $row)
-                            <div class="rm-print-row">
+        <div class="rm-print-row rm-print-row-total">
 
-                                <span>
+            <span>
+                Total productos
+            </span>
 
-                                    {{ \Illuminate\Support\Str::limit($row['name'] ?? 'Producto', 35, '') }}
+            <span>
+                E Bs {{
+                    number_format(
+                        (float) $previewProducts->sum('cash'),
+                        2
+                    )
+                }}
 
-                                    @if (isset($row['quantity']) && (float) $row['quantity'] > 1)
-                                        x
-                                        {{ number_format((float) $row['quantity'], 0) }}
-                                    @endif
+                |
 
-                                </span>
+                QR Bs {{
+                    number_format(
+                        (float) $previewProducts->sum('qr'),
+                        2
+                    )
+                }}
 
-                                <span>
-                                    Bs
-                                    {{ number_format((float) ($row['total'] ?? 0), 2) }}
-                                </span>
+                |
 
-                            </div>
+                Bs {{
+                    number_format(
+                        (float) $previewProducts->sum('total'),
+                        2
+                    )
+                }}
+            </span>
 
-                        @empty
+        </div>
 
-                            <div class="rm-print-empty">
-                                Sin productos.
-                            </div>
-                        @endforelse
-
-
-                        <div class="rm-print-row rm-print-row-total">
-
-                            <span>
-                                Total productos
-                            </span>
-
-                            <span>
-                                Bs
-                                {{ number_format((float) $previewProducts->sum('total'), 2) }}
-                            </span>
-
-                        </div>
-
-                    </div>
-
-                </div>
+    </div>
+</div>
 
 
                 {{-- =========================================
