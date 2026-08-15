@@ -243,12 +243,33 @@
                                     @if ($ticket->printedBy)
                                         <span>{{ $ticket->printedBy->name }}</span>
                                     @endif
-                                    <button type="button"
-                                        wire:click="previewTicket({{ $ticket->id }})">Reimprimir</button>
+                                    <button type="button" wire:click="previewTicket({{ $ticket->id }})"
+                                        style="
+        background: #facc15;
+        color: #111827;
+        border: 1px solid #eab308;
+        border-radius: 7px;
+        padding: 6px 12px;
+        font-weight: 600;
+        cursor: pointer;
+    ">
+                                        Reimprimir
+                                    </button>
+
                                     @if ($ticket->type === 'session_close' && $ticket->session?->status === 'closed' && $this->canManageCashboxClosures())
                                         <button type="button"
-                                            wire:click="confirmDeleteClosedCashbox({{ $ticket->session->id }})">Eliminar
-                                            cierre</button>
+                                            wire:click="confirmDeleteClosedCashbox({{ $ticket->session->id }})"
+                                            style="
+            background: #dc2626;
+            color: #ffffff;
+            border: 1px solid #b91c1c;
+            border-radius: 7px;
+            padding: 6px 12px;
+            font-weight: 600;
+            cursor: pointer;
+        ">
+                                            Eliminar cierre
+                                        </button>
                                     @endif
                                 </div>
                             </article>
