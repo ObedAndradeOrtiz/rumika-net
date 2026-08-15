@@ -3,11 +3,13 @@
 namespace Tests\Feature\Clinic;
 
 use App\Livewire\Clinic\AgendaManager;
+use App\Livewire\Clinic\QuickCashbox;
 use App\Livewire\Inventory\InventoryManager;
 use App\Models\Appointment;
 use App\Models\AppointmentService;
 use App\Models\Branch;
 use App\Models\BusinessType;
+use App\Models\CashboxSession;
 use App\Models\Client;
 use App\Models\Company;
 use App\Models\ClientCharge;
@@ -17,6 +19,7 @@ use App\Models\InventoryProductBatch;
 use App\Models\Role;
 use App\Models\Service;
 use App\Models\TreatmentPayment;
+use App\Models\TreatmentPaymentSplit;
 use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -1011,6 +1014,68 @@ class AgendaManagerTest extends TestCase
         $this->assertSame('100.00', $payment->amount);
         $this->assertSame(70.0, (float) $payment->splits->where('method', 'cash')->sum('amount'));
         $this->assertSame(30.0, (float) $payment->splits->where('method', 'qr')->sum('amount'));
+    }
+
+    public function test_first_cashbox_shift_counts_existing_day_income_after_reopening_from_zero(): void
+    {
+        [$admin, $company, $branch] = $this->companyContext('rumika-caja-reapertura');
+        $client = Client::create([
+            'company_id' => $company->id,
+            'full_name' => 'Cliente Caja',
+        ]);
+        $payment = TreatmentPayment::create([
+            'company_id' => $company->id,
+            'branch_id' => $branch->id,
+            'client_id' => $client->id,
+            'amount' => 120,
+            'method' => 'cash',
+            'paid_at' => '2026-08-15 09:00:00',
+        ]);
+        TreatmentPaymentSplit::create([
+            'treatment_payment_id' => $payment->id,
+            'method' => 'cash',
+            'amount' => 120,
+        ]);
+
+        $this->actingAs($admin);
+        session(['active_branch_id' => $branch->id]);
+
+        Livewire::test(QuickCashbox::class)
+            ->set('selectedDate', '2026-08-15')
+            ->set('openingAmount', '0')
+            ->call('openCashbox')
+            ->assertHasNoErrors()
+            ->call('closeCashbox')
+            ->assertHasNoErrors();
+
+        $session = CashboxSession::firstOrFail();
+
+        $this->assertSame(1, $session->shift_number);
+        $this->assertSame('closed', $session->status);
+        $this->assertSame('120.00', $session->cash_total);
+        $this->assertSame('120.00', $session->expected_cash_amount);
+
+        Livewire::test(QuickCashbox::class)
+            ->set('selectedDate', '2026-08-15')
+            ->call('confirmDeleteClosedCashbox', $session->id)
+            ->call('deleteClosedCashbox')
+            ->assertHasNoErrors();
+
+        $this->assertSame(0, CashboxSession::count());
+
+        Livewire::test(QuickCashbox::class)
+            ->set('selectedDate', '2026-08-15')
+            ->set('openingAmount', '0')
+            ->call('openCashbox')
+            ->assertHasNoErrors()
+            ->call('closeCashbox')
+            ->assertHasNoErrors();
+
+        $newSession = CashboxSession::firstOrFail();
+
+        $this->assertSame(1, $newSession->shift_number);
+        $this->assertSame('120.00', $newSession->cash_total);
+        $this->assertSame('120.00', $newSession->expected_cash_amount);
     }
 
     private function companyContext(string $slug): array

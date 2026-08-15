@@ -320,10 +320,10 @@
         <div class="rm-modal-backdrop" wire:click="cancelDeleteClosedCashbox"></div>
         <section class="rm-modal-panel rm-modal-panel-small" role="dialog" aria-modal="true">
             <div class="rm-confirm-icon">!</div>
-            <h2>Eliminar caja cerrada</h2>
-            <p>Se eliminara el cierre y sus tickets guardados. Los cobros, productos vendidos y movimientos no se borran.</p>
+            <h2>Eliminar caja</h2>
+            <p>Se eliminara esta caja y sus tickets guardados. Los cobros, productos vendidos y movimientos no se borran. Si era la unica caja del dia, podras abrir nuevamente desde 0.</p>
             <div class="rm-form-actions">
-                <button class="rm-button rm-button-danger" type="button" wire:click="deleteClosedCashbox">Eliminar cierre</button>
+                <button class="rm-button rm-button-danger" type="button" wire:click="deleteClosedCashbox">Eliminar caja</button>
                 <button class="rm-button rm-button-outline" type="button" wire:click="cancelDeleteClosedCashbox">Cancelar</button>
             </div>
         </section>

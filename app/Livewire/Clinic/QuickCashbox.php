@@ -230,10 +230,23 @@ class QuickCashbox extends Component
             return;
         }
 
+        $businessDate = $session->business_date->toDateString();
+
         $session->tickets()->delete();
         $session->delete();
 
-        $this->cashboxMessage = 'Caja cerrada eliminada. Los cobros y productos vendidos se mantienen.';
+        $remainingSessions = $this->company()
+            ->cashboxSessions()
+            ->where('branch_id', $this->activeBranch()->id)
+            ->whereDate('business_date', $businessDate)
+            ->exists();
+
+        $this->openingAmount = '0';
+        $this->countedCashAmount = '';
+        $this->closingNotes = '';
+        $this->cashboxMessage = $remainingSessions
+            ? 'Caja eliminada. Los cobros y productos vendidos se mantienen.'
+            : 'Caja eliminada. El dia quedo sin cajas; puedes abrir nuevamente desde 0.';
         $this->confirmingCashboxSessionDeleteId = null;
     }
 
@@ -573,11 +586,12 @@ class QuickCashbox extends Component
     private function paymentsForSession(CashboxSession $session)
     {
         $end = $session->closed_at ?? now();
+        $start = $this->sessionStartAt($session);
 
         return $session->company->treatmentPayments()
             ->with(['client', 'splits', 'items'])
             ->where('branch_id', $session->branch_id)
-            ->whereBetween('paid_at', [$session->opened_at ?? $session->business_date->copy()->startOfDay(), $end])
+            ->whereBetween('paid_at', [$start, $end])
             ->latest('paid_at')
             ->get();
     }
@@ -585,14 +599,24 @@ class QuickCashbox extends Component
     private function expensesForSession(CashboxSession $session)
     {
         $end = $session->closed_at ?? now();
+        $start = $this->sessionStartAt($session);
 
         return $session->company->expenses()
             ->with(['type', 'createdBy'])
             ->where('branch_id', $session->branch_id)
             ->where('source', 'cashbox')
-            ->whereBetween('created_at', [$session->opened_at ?? $session->business_date->copy()->startOfDay(), $end])
+            ->whereBetween('created_at', [$start, $end])
             ->latest('created_at')
             ->get();
+    }
+
+    private function sessionStartAt(CashboxSession $session): Carbon
+    {
+        if ((int) $session->shift_number <= 1) {
+            return $session->business_date->copy()->startOfDay();
+        }
+
+        return $session->opened_at ?? $session->business_date->copy()->startOfDay();
     }
 
     private function decimal(string $value): float
