@@ -963,6 +963,14 @@ class QuickCashbox extends Component
                 . $session->shift_number;
         }
 
+        if ($session) {
+            $estadoCaja = $session->status === 'closed'
+                ? 'CERRADA'
+                : 'ABIERTA';
+
+            $lines[] = 'ESTADO: ' . $estadoCaja;
+        }
+
         if ($session?->openedBy?->name) {
             $lines[] = 'APERTURA: '
                 . $firstTwoNames(
@@ -1189,6 +1197,41 @@ class QuickCashbox extends Component
         }
 
         $lines[] = str_repeat('-', $width);
+
+        $lines[] = '';
+        $lines[] = '';
+        $lines[] = '';
+
+        $encargado = $session?->openedBy?->name
+            ? $firstTwoNames($session->openedBy->name)
+            : 'Encargado';
+
+        $lines[] = '__________________    __________________';
+        $lines[] = str_pad(
+            $encargado,
+            20,
+            ' ',
+            STR_PAD_BOTH
+        ) . str_pad(
+            'Administrador',
+            22,
+            ' ',
+            STR_PAD_BOTH
+        );
+
+        $lines[] = str_pad(
+            'Firma encargado',
+            20,
+            ' ',
+            STR_PAD_BOTH
+        ) . str_pad(
+            'Firma administrador',
+            22,
+            ' ',
+            STR_PAD_BOTH
+        );
+
+        $lines[] = '';
         $lines[] = '';
         $lines[] = $center('Sistema Rumika SaaS');
 
