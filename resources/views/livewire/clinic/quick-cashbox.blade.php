@@ -10,7 +10,7 @@
             <div class="rm-modal-title">
                 <div>
                     <span>Caja actual</span>
-                    <h2>Resumen del dia</h2>
+                    <h2>{{ $cashboxSession?->status === 'open' ? 'Caja abierta' : 'Resumen del dia' }}</h2>
                     <p class="rm-modal-subtitle">
                         {{ $cashboxSession?->status === 'closed' ? 'Cerrada' : ($cashboxSession ? 'Abierta' : 'Sin abrir') }}
                         @if ($cashboxSession)
@@ -33,19 +33,25 @@
                         <span>Fecha</span>
                         <input wire:model.live="selectedDate" type="date">
                     </label>
-                    <label class="rm-field">
-                        <span>Monto inicial</span>
-                        <input wire:model="openingAmount" type="number" step="0.01" min="0" placeholder="0.00" @disabled($cashboxSession?->status === 'open')>
-                        @error('openingAmount') <small>{{ $message }}</small> @enderror
-                    </label>
-                    <label class="rm-field">
-                        <span>Conteo al cierre</span>
-                        <input wire:model="countedCashAmount" type="number" step="0.01" min="0" placeholder="Opcional" @disabled(! $cashboxSession || $cashboxSession->status === 'closed')>
-                        @error('countedCashAmount') <small>{{ $message }}</small> @enderror
-                    </label>
+                    @if ($cashboxSession?->status === 'open')
+                        <label class="rm-field">
+                            <span>Conteo al cierre</span>
+                            <input wire:model="countedCashAmount" type="number" step="0.01" min="0" placeholder="Opcional">
+                            @error('countedCashAmount') <small>{{ $message }}</small> @enderror
+                        </label>
+                    @else
+                        <label class="rm-field">
+                            <span>Monto inicial</span>
+                            <input wire:model="openingAmount" type="number" step="0.01" min="0" placeholder="0.00">
+                            @error('openingAmount') <small>{{ $message }}</small> @enderror
+                        </label>
+                    @endif
                     <div class="rm-quick-cashbox-actions">
-                        <button class="rm-button rm-button-outline" type="button" wire:click="openCashbox" @disabled($cashboxSession?->status === 'open')>Abrir caja</button>
-                        <button class="rm-button rm-button-outline" type="button" wire:click="closeCashbox" @disabled(! $cashboxSession || $cashboxSession->status === 'closed')>Cerrar caja</button>
+                        @if ($cashboxSession?->status === 'open')
+                            <button class="rm-button rm-button-outline" type="button" wire:click="closeCashbox">Cerrar caja</button>
+                        @else
+                            <button class="rm-button rm-button-outline" type="button" wire:click="openCashbox">Abrir caja</button>
+                        @endif
                         <button class="rm-button rm-button-primary" type="button" wire:click="previewPrint">Imprimir</button>
                     </div>
                 </div>
@@ -185,6 +191,9 @@
                                     <span>Reimpresiones {{ $ticket->reprint_count }}</span>
                                     @if ($ticket->printedBy)<span>{{ $ticket->printedBy->name }}</span>@endif
                                     <button type="button" wire:click="previewTicket({{ $ticket->id }})">Reimprimir</button>
+                                    @if ($ticket->type === 'session_close' && $ticket->session?->status === 'closed' && $this->canManageCashboxClosures())
+                                        <button type="button" wire:click="confirmDeleteClosedCashbox({{ $ticket->session->id }})">Eliminar cierre</button>
+                                    @endif
                                 </div>
                             </article>
                         @empty
@@ -303,6 +312,19 @@
                     onclick="event.preventDefault(); window.RumikaQz.printFromButton(this)"
                 >Imprimir ahora</button>
                 <button class="rm-button rm-button-outline" type="button" wire:click="closePrintPreview">Volver</button>
+            </div>
+        </section>
+    @endif
+
+    @if ($confirmingCashboxSessionDeleteId)
+        <div class="rm-modal-backdrop" wire:click="cancelDeleteClosedCashbox"></div>
+        <section class="rm-modal-panel rm-modal-panel-small" role="dialog" aria-modal="true">
+            <div class="rm-confirm-icon">!</div>
+            <h2>Eliminar caja cerrada</h2>
+            <p>Se eliminara el cierre y sus tickets guardados. Los cobros, productos vendidos y movimientos no se borran.</p>
+            <div class="rm-form-actions">
+                <button class="rm-button rm-button-danger" type="button" wire:click="deleteClosedCashbox">Eliminar cierre</button>
+                <button class="rm-button rm-button-outline" type="button" wire:click="cancelDeleteClosedCashbox">Cancelar</button>
             </div>
         </section>
     @endif

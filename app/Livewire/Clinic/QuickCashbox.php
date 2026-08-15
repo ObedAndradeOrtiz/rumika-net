@@ -9,6 +9,7 @@ use App\Models\Company;
 use App\Models\TreatmentPaymentSplit;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Livewire\Component;
 
 class QuickCashbox extends Component
@@ -26,6 +27,7 @@ class QuickCashbox extends Component
     public string $openingNotes = '';
     public string $closingNotes = '';
     public array $ticketPreview = [];
+    public ?int $confirmingCashboxSessionDeleteId = null;
 
     public function mount(): void
     {
@@ -170,6 +172,69 @@ class QuickCashbox extends Component
         $ticket->increment('reprint_count');
         $this->ticketPreview = $ticket->payload;
         $this->showPrintPreview = true;
+    }
+
+    public function confirmDeleteClosedCashbox(int $sessionId): void
+    {
+        if (! $this->canManageCashboxClosures()) {
+            $this->cashboxMessage = 'Solo administrador o super administrador puede eliminar cajas cerradas.';
+
+            return;
+        }
+
+        $session = $this->company()
+            ->cashboxSessions()
+            ->where('branch_id', $this->activeBranch()->id)
+            ->where('status', 'closed')
+            ->whereKey($sessionId)
+            ->first();
+
+        if (! $session) {
+            $this->cashboxMessage = 'Solo se pueden eliminar cajas cerradas.';
+
+            return;
+        }
+
+        $this->confirmingCashboxSessionDeleteId = $session->id;
+    }
+
+    public function cancelDeleteClosedCashbox(): void
+    {
+        $this->confirmingCashboxSessionDeleteId = null;
+    }
+
+    public function deleteClosedCashbox(): void
+    {
+        if (! $this->confirmingCashboxSessionDeleteId) {
+            return;
+        }
+
+        if (! $this->canManageCashboxClosures()) {
+            $this->cashboxMessage = 'Solo administrador o super administrador puede eliminar cajas cerradas.';
+            $this->confirmingCashboxSessionDeleteId = null;
+
+            return;
+        }
+
+        $session = $this->company()
+            ->cashboxSessions()
+            ->where('branch_id', $this->activeBranch()->id)
+            ->where('status', 'closed')
+            ->whereKey($this->confirmingCashboxSessionDeleteId)
+            ->first();
+
+        if (! $session) {
+            $this->cashboxMessage = 'No se encontro una caja cerrada para eliminar.';
+            $this->confirmingCashboxSessionDeleteId = null;
+
+            return;
+        }
+
+        $session->tickets()->delete();
+        $session->delete();
+
+        $this->cashboxMessage = 'Caja cerrada eliminada. Los cobros y productos vendidos se mantienen.';
+        $this->confirmingCashboxSessionDeleteId = null;
     }
 
     public function markTicketPrinted(?int $ticketId = null): void
@@ -557,6 +622,26 @@ class QuickCashbox extends Component
             'external' => 'Gasto externo',
             default => 'Gasto',
         };
+    }
+
+    public function canManageCashboxClosures(): bool
+    {
+        $user = Auth::user();
+        $company = $this->company();
+        $branch = $this->activeBranch();
+        $companyRole = $user->companies()
+            ->where('companies.id', $company->id)
+            ->value('company_user.role');
+        $branchRole = $user->branches()
+            ->where('branches.id', $branch->id)
+            ->leftJoin('roles', 'roles.id', '=', 'branch_user.role_id')
+            ->select(['roles.slug', 'roles.name'])
+            ->first();
+        $roleName = Str::lower(Str::ascii($branchRole?->name ?? ''));
+
+        return in_array($companyRole, ['owner', 'super_admin', 'super-administrador', 'admin', 'administrador'], true)
+            || in_array($branchRole?->slug, ['owner', 'super_admin', 'super-administrador', 'admin', 'administrador'], true)
+            || str_contains($roleName, 'administrador');
     }
 
     private function company(): Company
