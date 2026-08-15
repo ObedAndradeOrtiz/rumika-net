@@ -515,7 +515,7 @@
                         {
                             type: 'raw',
                             format: 'command',
-                            data: '\x1B\x64\x06'
+                            data: '\x1B\x64\x10'
                         },
                         {
                             type: 'raw',
