@@ -842,6 +842,8 @@ class QuickCashbox extends Component
         ?CashboxSession $session = null
     ): string {
         $width = 42;
+        $descriptionWidth = 24;
+        $amountWidth = 18;
 
         $clean = function ($value): string {
             $value = Str::ascii((string) $value);
@@ -866,14 +868,12 @@ class QuickCashbox extends Component
                 $text = substr($text, 0, $width);
             }
 
-            $spaces = max(
-                0,
-                (int) floor(
-                    ($width - strlen($text)) / 2
-                )
+            return str_pad(
+                $text,
+                $width,
+                ' ',
+                STR_PAD_BOTH
             );
-
-            return str_repeat(' ', $spaces) . $text;
         };
 
         $firstTwoNames = function ($value) use ($clean): string {
@@ -889,24 +889,45 @@ class QuickCashbox extends Component
             );
         };
 
-        $sectionHeader = function ($title) use ($width, $clean): string {
-            $left = strtoupper($clean($title));
-            $right = 'MONTO EN BS.';
+        $row = function ($name, $value) use (
+            $clean,
+            $descriptionWidth,
+            $amountWidth
+        ): string {
+            $name = $clean($name);
+            $value = $clean($value);
 
-            $spaces = max(
-                1,
-                $width - strlen($left) - strlen($right)
-            );
+            if (strlen($name) > $descriptionWidth) {
+                $name = substr(
+                    $name,
+                    0,
+                    $descriptionWidth
+                );
+            }
 
-            return $left
-                . str_repeat(' ', $spaces)
-                . $right;
+            if (strlen($value) > $amountWidth) {
+                $value = substr(
+                    $value,
+                    0,
+                    $amountWidth
+                );
+            }
+
+            return str_pad(
+                $name,
+                $descriptionWidth,
+                ' ',
+                STR_PAD_RIGHT
+            )
+                . str_pad(
+                    $value,
+                    $amountWidth,
+                    ' ',
+                    STR_PAD_LEFT
+                );
         };
 
-        $paymentText = function (
-            $cash,
-            $qr
-        ) use ($money): string {
+        $paymentText = function ($cash, $qr) use ($money): string {
             $cash = (float) $cash;
             $qr = (float) $qr;
 
@@ -928,69 +949,56 @@ class QuickCashbox extends Component
             return '0.00';
         };
 
-        $row = function (
-            $name,
-            $value
-        ) use ($width, $clean): string {
-            $name = $clean($name);
-            $value = $clean($value);
-
-            $maxNameLength = max(
-                1,
-                $width - strlen($value) - 1
-            );
-
-            if (strlen($name) > $maxNameLength) {
-                $name = substr(
-                    $name,
-                    0,
-                    $maxNameLength
-                );
-            }
-
-            $spaces = max(
-                1,
-                $width - strlen($name) - strlen($value)
-            );
-
-            return $name
-                . str_repeat(' ', $spaces)
-                . $value;
-        };
-
         $lines = [];
 
         $lines[] = $center($branch->name);
         $lines[] = $center($title);
+        $lines[] = str_repeat('-', $width);
 
-        $dateText = $businessDate->format('d/m/Y');
+        $lines[] = 'FECHA: '
+            . $businessDate->format('d/m/Y');
 
         if ($session?->shift_number) {
-            $dateText .= ' - Turno ' . $session->shift_number;
+            $lines[] = 'CIERRE NRO: '
+                . $session->shift_number;
         }
 
-        $lines[] = $center($dateText);
+        if ($session?->openedBy?->name) {
+            $lines[] = 'APERTURA: '
+                . $firstTwoNames(
+                    $session->openedBy->name
+                );
+        }
 
         if ($session?->opened_at) {
-            $time = 'Desde '
+            $lines[] = 'HORA APERTURA: '
                 . $session->opened_at->format('H:i');
+        }
 
-            if ($session?->closed_at) {
-                $time .= ' Hasta '
-                    . $session->closed_at->format('H:i');
-            }
+        if ($session?->closedBy?->name) {
+            $lines[] = 'CIERRE: '
+                . $firstTwoNames(
+                    $session->closedBy->name
+                );
+        }
 
-            $lines[] = $center($time);
+        if ($session?->closed_at) {
+            $lines[] = 'HORA CIERRE: '
+                . $session->closed_at->format('H:i');
         }
 
         $lines[] = str_repeat('-', $width);
-
-        $lines[] = $sectionHeader('SERVICIOS');
+        $lines[] = 'SERVICIOS';
         $lines[] = str_repeat('-', $width);
 
         foreach ($services as $service) {
-            $cash = (float) ($service['cash'] ?? 0);
-            $qr = (float) ($service['qr'] ?? 0);
+            $cash = (float) (
+                $service['cash'] ?? 0
+            );
+
+            $qr = (float) (
+                $service['qr'] ?? 0
+            );
 
             $name = $firstTwoNames(
                 $service['client'] ?? 'Cliente'
@@ -998,7 +1006,10 @@ class QuickCashbox extends Component
 
             $lines[] = $row(
                 $name,
-                $paymentText($cash, $qr)
+                $paymentText(
+                    $cash,
+                    $qr
+                )
             );
         }
 
@@ -1008,16 +1019,21 @@ class QuickCashbox extends Component
 
         if (! empty($products)) {
             $lines[] = '';
-
-            $lines[] = $sectionHeader('PRODUCTOS');
+            $lines[] = 'PRODUCTOS';
             $lines[] = str_repeat('-', $width);
 
             foreach ($products as $product) {
-                $cash = (float) ($product['cash'] ?? 0);
-                $qr = (float) ($product['qr'] ?? 0);
+                $cash = (float) (
+                    $product['cash'] ?? 0
+                );
+
+                $qr = (float) (
+                    $product['qr'] ?? 0
+                );
 
                 $name = $clean(
-                    $product['name'] ?? 'Producto'
+                    $product['name']
+                        ?? 'Producto'
                 );
 
                 if (
@@ -1033,23 +1049,129 @@ class QuickCashbox extends Component
 
                 $lines[] = $row(
                     $name,
-                    $paymentText($cash, $qr)
+                    $paymentText(
+                        $cash,
+                        $qr
+                    )
                 );
             }
         }
 
         $lines[] = '';
-
-        $lines[] = $sectionHeader('GASTOS');
+        $lines[] = 'GASTOS';
         $lines[] = str_repeat('-', $width);
 
         $lines[] = $row(
-            'GASTOS',
+            'GASTOS DE CAJA',
             $money(
                 $totals['expenses'] ?? 0
             )
         );
 
+        $lines[] = '';
+        $lines[] = 'RESUMEN DE CAJA';
+        $lines[] = str_repeat('-', $width);
+
+        if (
+            isset($totals['opening_amount'])
+            && (float) $totals['opening_amount'] > 0
+        ) {
+            $lines[] = $row(
+                'MONTO INICIAL',
+                $money(
+                    $totals['opening_amount']
+                )
+            );
+        }
+
+        $cash = (float) (
+            $totals['cash'] ?? 0
+        );
+
+        $qr = (float) (
+            $totals['qr'] ?? 0
+        );
+
+        $expensesTotal = (float) (
+            $totals['expenses'] ?? 0
+        );
+
+        $openingAmount = (float) (
+            $totals['opening_amount'] ?? 0
+        );
+
+        $totalIngresos =
+            $cash
+            + $qr;
+
+        $totalGeneral =
+            $totalIngresos
+            - $expensesTotal;
+
+        $totalCaja =
+            $openingAmount
+            + $cash
+            - $expensesTotal;
+
+        $lines[] = $row(
+            'TOTAL EFECTIVO',
+            $money($cash)
+        );
+
+        $lines[] = $row(
+            'TOTAL QR',
+            $money($qr)
+        );
+
+        $lines[] = $row(
+            'TOTAL INGRESOS',
+            $money($totalIngresos)
+        );
+
+        $lines[] = $row(
+            'TOTAL GASTOS',
+            $money($expensesTotal)
+        );
+
+        $lines[] = str_repeat('-', $width);
+
+        $lines[] = $row(
+            'TOTAL GENERAL',
+            $money($totalGeneral)
+        );
+
+        $lines[] = $row(
+            'TOTAL EN CAJA',
+            $money($totalCaja)
+        );
+
+        if (
+            $session?->status === 'closed'
+            && isset($totals['counted_cash_amount'])
+        ) {
+            $lines[] = str_repeat('-', $width);
+
+            $lines[] = $row(
+                'CONTADO',
+                $money(
+                    $totals['counted_cash_amount']
+                )
+            );
+        }
+
+        if (
+            $session?->status === 'closed'
+            && isset($totals['cash_difference'])
+        ) {
+            $lines[] = $row(
+                'DIFERENCIA',
+                $money(
+                    $totals['cash_difference']
+                )
+            );
+        }
+
+        $lines[] = str_repeat('-', $width);
         $lines[] = '';
         $lines[] = '';
 
