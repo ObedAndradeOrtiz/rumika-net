@@ -988,6 +988,7 @@ class QuickCashbox extends Component
         }
 
         $lines[] = str_repeat('-', $width);
+
         $lines[] = 'SERVICIOS';
         $lines[] = str_repeat('-', $width);
 
@@ -1061,8 +1062,26 @@ class QuickCashbox extends Component
         $lines[] = 'GASTOS';
         $lines[] = str_repeat('-', $width);
 
+        if (! empty($expenses)) {
+            foreach ($expenses as $expense) {
+                $lines[] = $row(
+                    $expense['name'] ?? 'Gasto',
+                    $money(
+                        $expense['amount'] ?? 0
+                    )
+                );
+            }
+        } else {
+            $lines[] = $row(
+                'SIN GASTOS',
+                '0.00'
+            );
+        }
+
+        $lines[] = str_repeat('-', $width);
+
         $lines[] = $row(
-            'GASTOS DE CAJA',
+            'TOTAL GASTOS',
             $money(
                 $totals['expenses'] ?? 0
             )
@@ -1071,18 +1090,6 @@ class QuickCashbox extends Component
         $lines[] = '';
         $lines[] = 'RESUMEN DE CAJA';
         $lines[] = str_repeat('-', $width);
-
-        if (
-            isset($totals['opening_amount'])
-            && (float) $totals['opening_amount'] > 0
-        ) {
-            $lines[] = $row(
-                'MONTO INICIAL',
-                $money(
-                    $totals['opening_amount']
-                )
-            );
-        }
 
         $cash = (float) (
             $totals['cash'] ?? 0
@@ -1112,6 +1119,16 @@ class QuickCashbox extends Component
             $openingAmount
             + $cash
             - $expensesTotal;
+
+        if (
+            isset($totals['opening_amount'])
+            && $openingAmount > 0
+        ) {
+            $lines[] = $row(
+                'MONTO INICIAL',
+                $money($openingAmount)
+            );
+        }
 
         $lines[] = $row(
             'TOTAL EFECTIVO',
@@ -1173,7 +1190,7 @@ class QuickCashbox extends Component
 
         $lines[] = str_repeat('-', $width);
         $lines[] = '';
-        $lines[] = '';
+        $lines[] = $center('Sistema Rumika SaaS');
 
         return implode("\n", $lines);
     }

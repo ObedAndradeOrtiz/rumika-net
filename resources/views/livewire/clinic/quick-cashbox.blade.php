@@ -471,7 +471,9 @@
                     }
 
                     const textoLimpio = String(texto ?? '')
-                        .replace(/\r\n?/g, '\n');
+                        .replace(/\r\n?/g, '\n')
+                        .replace(/^\n+/, '')
+                        .trimStart();
 
                     const config = qz.configs.create(impresoraEncontrada);
 
@@ -513,7 +515,7 @@
                         {
                             type: 'raw',
                             format: 'command',
-                            data: '\x1B\x64\x03'
+                            data: '\x1B\x64\x06'
                         },
                         {
                             type: 'raw',
