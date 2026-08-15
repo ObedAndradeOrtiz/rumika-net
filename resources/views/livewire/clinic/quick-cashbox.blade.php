@@ -235,14 +235,13 @@
                 </div>
 
                 @foreach (['services' => 'Servicios', 'products' => 'Productos'] as $key => $title)
-                    <div class="rm-print-section">
+                    <div class="rm-print-section rm-print-compact-section">
                         <h3>{{ $title }}</h3>
                         <div class="rm-print-table">
-                            <div class="rm-print-row rm-print-row-head"><span>Detalle</span><span>Total</span><span>Efectivo</span><span>QR</span></div>
+                            <div class="rm-print-row rm-print-row-head"><span>Detalle</span><span>Efectivo</span><span>QR</span></div>
                             @forelse (($key === 'services' ? $previewServices : $previewProducts) as $row)
                                 <div class="rm-print-row">
-                                    <span>{{ $row['time'] }} {{ $row['client'] }} - {{ $row['name'] }}@if($row['quantity'] > 1) x {{ number_format($row['quantity'], 2) }}@endif</span>
-                                    <span>Bs {{ number_format($row['total'], 2) }}</span>
+                                    <span>{{ $row['client'] }} - {{ $row['name'] }}@if($row['quantity'] > 1) x {{ number_format($row['quantity'], 2) }}@endif</span>
                                     <span>Bs {{ number_format($row['cash'], 2) }}</span>
                                     <span>Bs {{ number_format($row['qr'], 2) }}</span>
                                 </div>
@@ -251,7 +250,6 @@
                             @endforelse
                             <div class="rm-print-row rm-print-row-total">
                                 <span>Total {{ strtolower($title) }}</span>
-                                <span>Bs {{ number_format(($key === 'services' ? $previewServices : $previewProducts)->sum('total'), 2) }}</span>
                                 <span>Bs {{ number_format(($key === 'services' ? $previewServices : $previewProducts)->sum('cash'), 2) }}</span>
                                 <span>Bs {{ number_format(($key === 'services' ? $previewServices : $previewProducts)->sum('qr'), 2) }}</span>
                             </div>

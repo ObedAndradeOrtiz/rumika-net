@@ -122,14 +122,18 @@ const ticketTextFrom = (paper) => {
     const { title, headerRows } = headerLinesFrom(paper);
     const branchName = branchNameFrom(paper);
     const sections = Array.from(paper.querySelectorAll('.rm-print-section'));
-    const detailRows = sections[0]
-        ? Array.from(sections[0].querySelectorAll('.rm-print-row'))
-            .filter((row) => ! row.classList.contains('rm-print-row-head'))
-            .map(spanTexts)
-            .filter((texts) => texts.length > 0)
-        : [];
     const pendingSection = sections
         .find((section) => normalizeTicketText(section.querySelector('h3')?.innerText).toLowerCase().includes('saldos'));
+    const detailSections = sections
+        .filter((section) => section !== pendingSection)
+        .map((section) => ({
+            title: normalizeTicketText(section.querySelector('h3')?.innerText || 'Detalle').toUpperCase(),
+            rows: Array.from(section.querySelectorAll('.rm-print-row'))
+                .filter((row) => ! row.classList.contains('rm-print-row-head'))
+                .map(spanTexts)
+                .filter((texts) => texts.length > 0),
+        }))
+        .filter((section) => section.rows.length > 0);
     const pendingRows = pendingSection
         ? Array.from(pendingSection.querySelectorAll('.rm-print-row'))
             .filter((row) => ! row.classList.contains('rm-print-row-head'))
@@ -147,27 +151,43 @@ const ticketTextFrom = (paper) => {
         ...headerRows.map(center),
         line(),
         `${esc}a\x00`,
-        'DETALLE',
-        line(),
     ];
 
-    if (detailRows.length === 0) {
+    if (detailSections.length === 0) {
+        output.push('DETALLE', line());
         output.push(center('Sin items'));
     }
 
-    detailRows.forEach(([item, total, cash, qr]) => {
-        wrap(item).forEach((row) => output.push(row));
-        output.push(right('Total', total));
-
-        if (! cash.endsWith('0.00')) {
-            output.push(right('Efectivo', cash));
+    detailSections.forEach((section, sectionIndex) => {
+        if (sectionIndex > 0) {
+            output.push('');
         }
 
-        if (! qr.endsWith('0.00')) {
-            output.push(right('QR', qr));
-        }
+        output.push(section.title, line());
 
-        output.push(line('-'));
+        section.rows.forEach((texts) => {
+            const isCompact = texts.length === 3;
+            const [item, totalOrCash, cashOrQr, qrValue] = texts;
+            const total = isCompact ? '' : totalOrCash;
+            const cash = isCompact ? totalOrCash : cashOrQr;
+            const qr = isCompact ? cashOrQr : qrValue;
+
+            wrap(item).forEach((row) => output.push(row));
+
+            if (total && ! item.toLowerCase().startsWith('total ')) {
+                output.push(right('Total', total));
+            }
+
+            if (cash && ! cash.endsWith('0.00')) {
+                output.push(right('Efectivo', cash));
+            }
+
+            if (qr && ! qr.endsWith('0.00')) {
+                output.push(right('QR', qr));
+            }
+
+            output.push(line('-'));
+        });
     });
 
     if (pendingRows.length > 0) {
