@@ -399,19 +399,6 @@
                                 Sin servicios.
                             </div>
                         @endforelse
-
-                        <div class="rm-print-row rm-print-row-total">
-
-                            <span>
-                                Total servicios
-                            </span>
-
-                            <span>
-                                {{ number_format((float) $previewServices->sum('total'), 2) }}
-                            </span>
-
-                        </div>
-
                     </div>
                 </div>
 
@@ -463,18 +450,6 @@
                             </div>
                         @endforelse
 
-                        <div class="rm-print-row rm-print-row-total">
-
-                            <span>
-                                Total productos
-                            </span>
-
-                            <span>
-                                {{ number_format((float) $previewProducts->sum('total'), 2) }}
-                            </span>
-
-                        </div>
-
                     </div>
                 </div>
 
@@ -506,18 +481,6 @@
                                 Sin gastos.
                             </div>
                         @endforelse
-
-                        <div class="rm-print-row rm-print-row-total">
-
-                            <span>
-                                Total gastos
-                            </span>
-
-                            <span>
-                                {{ number_format((float) $previewExpenses->sum('amount'), 2) }}
-                            </span>
-
-                        </div>
 
                     </div>
                 </div>

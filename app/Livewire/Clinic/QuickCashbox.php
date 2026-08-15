@@ -192,38 +192,26 @@ class QuickCashbox extends Component
 
         $payload = $ticket->payload ?? [];
 
-        /*
-    |--------------------------------------------------------------------------
-    | Compatibilidad con tickets anteriores
-    |--------------------------------------------------------------------------
-    |
-    | Si el ticket fue creado antes de implementar raw_ticket,
-    | lo generamos nuevamente desde el payload guardado.
-    |
-    */
+        $branch = $this->activeBranch();
 
-        if (empty($payload['raw_ticket'])) {
-            $branch = $this->activeBranch();
+        $businessDate = ! empty($payload['business_date'])
+            ? Carbon::createFromFormat('d/m/Y', $payload['business_date'])
+            : Carbon::parse($ticket->created_at);
 
-            $businessDate = ! empty($payload['business_date'])
-                ? Carbon::createFromFormat('d/m/Y', $payload['business_date'])
-                : Carbon::parse($ticket->created_at);
+        $payload['raw_ticket'] = $this->buildRawTicket(
+            title: $payload['title'] ?? $ticket->title ?? 'Detalle de caja',
+            branch: $branch,
+            businessDate: $businessDate,
+            services: $payload['services'] ?? [],
+            products: $payload['products'] ?? [],
+            totals: $payload['totals'] ?? [],
+            expenses: $payload['expenses'] ?? [],
+            session: $ticket->session
+        );
 
-            $payload['raw_ticket'] = $this->buildRawTicket(
-                title: $payload['title'] ?? $ticket->title ?? 'Detalle de caja',
-                branch: $branch,
-                businessDate: $businessDate,
-                services: $payload['services'] ?? [],
-                products: $payload['products'] ?? [],
-                totals: $payload['totals'] ?? [],
-                expenses: $payload['expenses'] ?? [],
-                session: $ticket->session
-            );
-
-            $ticket->update([
-                'payload' => $payload,
-            ]);
-        }
+        $ticket->update([
+            'payload' => $payload,
+        ]);
 
         $this->ticketPreview = $payload;
         $this->showPrintPreview = true;
