@@ -27,6 +27,7 @@ class QuickCashbox extends Component
     public string $openingNotes = '';
     public string $closingNotes = '';
     public array $ticketPreview = [];
+    public string $selectedShiftId = '';
     public ?int $confirmingCashboxSessionDeleteId = null;
 
     public function mount(): void
@@ -333,60 +334,191 @@ class QuickCashbox extends Component
         $company = $this->company();
         $branch = $this->activeBranch();
         $day = Carbon::parse($this->selectedDate);
-        $paymentsQuery = $company->treatmentPayments()
+
+        $sessions = $company->cashboxSessions()
+            ->with(['openedBy', 'closedBy'])
             ->where('branch_id', $branch->id)
-            ->whereBetween('paid_at', [$day->copy()->startOfDay(), $day->copy()->endOfDay()]);
-        $paymentIds = (clone $paymentsQuery)->pluck('id');
+            ->whereDate('business_date', $day->toDateString())
+            ->orderByDesc('shift_number')
+            ->get();
+
+        $cashboxSession = null;
+
+        if ($this->selectedShiftId !== '') {
+            $cashboxSession = $sessions->firstWhere(
+                'id',
+                (int) $this->selectedShiftId
+            );
+        }
+
+        if (! $cashboxSession) {
+            $cashboxSession = $sessions
+                ->firstWhere('status', 'open')
+                ?? $sessions->first();
+        }
+
+        if ($cashboxSession) {
+            $start = $this->sessionStartAt(
+                $cashboxSession
+            );
+
+            $end = $cashboxSession->closed_at
+                ?? now();
+
+            $paymentsQuery = $company
+                ->treatmentPayments()
+                ->where(
+                    'branch_id',
+                    $branch->id
+                )
+                ->whereBetween(
+                    'paid_at',
+                    [$start, $end]
+                );
+
+            $expenses = $company
+                ->expenses()
+                ->with([
+                    'type',
+                    'staffUser',
+                    'createdBy'
+                ])
+                ->where(
+                    'branch_id',
+                    $branch->id
+                )
+                ->whereBetween(
+                    'spent_at',
+                    [$start, $end]
+                )
+                ->latest('spent_at')
+                ->get();
+        } else {
+            $paymentsQuery = $company
+                ->treatmentPayments()
+                ->where(
+                    'branch_id',
+                    $branch->id
+                )
+                ->whereBetween(
+                    'paid_at',
+                    [
+                        $day->copy()->startOfDay(),
+                        $day->copy()->endOfDay()
+                    ]
+                );
+
+            $expenses = collect();
+        }
+
+        $paymentIds = (clone $paymentsQuery)
+            ->pluck('id');
+
         $payments = (clone $paymentsQuery)
-            ->with(['client', 'splits', 'items'])
+            ->with([
+                'client',
+                'splits',
+                'items'
+            ])
             ->latest('paid_at')
             ->get();
 
         $cashTotal = (float) TreatmentPaymentSplit::query()
-            ->whereIn('treatment_payment_id', $paymentIds)
+            ->whereIn(
+                'treatment_payment_id',
+                $paymentIds
+            )
             ->where('method', 'cash')
             ->sum('amount');
+
         $qrTotal = (float) TreatmentPaymentSplit::query()
-            ->whereIn('treatment_payment_id', $paymentIds)
+            ->whereIn(
+                'treatment_payment_id',
+                $paymentIds
+            )
             ->where('method', 'qr')
             ->sum('amount');
-        $cashboxExpenseTotal = (float) $company->expenses()
-            ->where('branch_id', $branch->id)
+
+        $cashboxExpenseTotal = (float) $expenses
             ->where('source', 'cashbox')
-            ->whereDate('spent_at', $day->toDateString())
             ->sum('amount');
-        $expenses = $company->expenses()
-            ->with(['type', 'staffUser', 'createdBy'])
-            ->where('branch_id', $branch->id)
-            ->whereDate('spent_at', $day->toDateString())
-            ->latest('spent_at')
-            ->get();
 
-        $cashboxSession = $this->visibleCashboxSession($company, $branch, $day);
-        $printSummary = $this->buildPrintSummary($payments);
+        $printSummary = $this->buildPrintSummary(
+            $payments
+        );
 
-        return view('livewire.clinic.quick-cashbox', [
-            'branch' => $branch,
-            'cashboxSession' => $cashboxSession,
-            'payments' => $payments,
-            'cashTotal' => $cashTotal,
-            'qrTotal' => $qrTotal,
-            'cashboxExpenseTotal' => $cashboxExpenseTotal,
-            'netCashTotal' => $cashTotal - $cashboxExpenseTotal,
-            'netTotal' => $cashTotal + $qrTotal - $cashboxExpenseTotal,
-            'invoiceTotal' => (float) $payments->where('invoice_requested', true)->sum('amount'),
-            'printSummary' => $printSummary,
-            'historyRows' => $this->cashboxHistoryRows($printSummary, $expenses),
-            'ticketRows' => $company->cashboxTickets()
-                ->with(['printedBy', 'session'])
-                ->where('branch_id', $branch->id)
-                ->whereIn('type', ['session_close', 'session_detail', 'daily_detail'])
-                ->latest()
-                ->limit(12)
-                ->get(),
-        ]);
+        return view(
+            'livewire.clinic.quick-cashbox',
+            [
+                'branch' => $branch,
+
+                'cashboxSession' => $cashboxSession,
+
+                'cashboxSessions' => $sessions,
+
+                'payments' => $payments,
+
+                'cashTotal' => $cashTotal,
+
+                'qrTotal' => $qrTotal,
+
+                'cashboxExpenseTotal' =>
+                $cashboxExpenseTotal,
+
+                'netCashTotal' =>
+                $cashTotal
+                    - $cashboxExpenseTotal,
+
+                'netTotal' =>
+                $cashTotal
+                    + $qrTotal
+                    - $cashboxExpenseTotal,
+
+                'invoiceTotal' => (float) $payments
+                    ->where(
+                        'invoice_requested',
+                        true
+                    )
+                    ->sum('amount'),
+
+                'printSummary' =>
+                $printSummary,
+
+                'historyRows' =>
+                $this->cashboxHistoryRows(
+                    $printSummary,
+                    $expenses
+                ),
+
+                'ticketRows' =>
+                $company
+                    ->cashboxTickets()
+                    ->with([
+                        'printedBy',
+                        'session'
+                    ])
+                    ->where(
+                        'branch_id',
+                        $branch->id
+                    )
+                    ->whereIn(
+                        'type',
+                        [
+                            'session_close',
+                            'session_detail',
+                            'daily_detail'
+                        ]
+                    )
+                    ->latest()
+                    ->limit(12)
+                    ->get(),
+            ]
+        );
     }
-
+    public function updatedSelectedDate(): void
+    {
+        $this->selectedShiftId = '';
+    }
     private function buildPrintSummary($payments): array
     {
         $summary = [

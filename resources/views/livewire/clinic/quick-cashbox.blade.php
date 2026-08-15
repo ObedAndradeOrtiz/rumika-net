@@ -37,6 +37,30 @@
                         <span>Fecha</span>
                         <input wire:model.live="selectedDate" type="date">
                     </label>
+                    <label class="rm-field">
+                        <span>Turno</span>
+
+                        <select wire:model.live="selectedShiftId">
+                            <option value="">
+                                Turno actual
+                            </option>
+
+                            @foreach ($cashboxSessions as $sessionOption)
+                                <option value="{{ $sessionOption->id }}">
+                                    Turno {{ $sessionOption->shift_number }}
+                                    -
+                                    {{ $sessionOption->status === 'open' ? 'Abierto' : 'Cerrado' }}
+                                    @if ($sessionOption->opened_at)
+                                        -
+                                        {{ $sessionOption->opened_at->format('H:i') }}
+                                    @endif
+                                    @if ($sessionOption->closed_at)
+                                        a {{ $sessionOption->closed_at->format('H:i') }}
+                                    @endif
+                                </option>
+                            @endforeach
+                        </select>
+                    </label>
                     @if ($cashboxSession?->status === 'open')
                         <label class="rm-field">
                             <span>Conteo al cierre</span>
