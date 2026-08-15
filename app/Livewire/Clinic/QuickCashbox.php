@@ -827,12 +827,7 @@ class QuickCashbox extends Component
         };
 
         $money = function ($value): string {
-            return number_format(
-                (float) $value,
-                2,
-                '.',
-                ''
-            );
+            return number_format((float) $value, 2, '.', '');
         };
 
         $center = function ($value) use ($width, $clean): string {
@@ -844,9 +839,7 @@ class QuickCashbox extends Component
 
             $spaces = max(
                 0,
-                (int) floor(
-                    ($width - strlen($text)) / 2
-                )
+                (int) floor(($width - strlen($text)) / 2)
             );
 
             return str_repeat(' ', $spaces) . $text;
@@ -879,18 +872,13 @@ class QuickCashbox extends Component
                 . $right;
         };
 
-        $paymentText = function (
-            $cash,
-            $qr
-        ) use ($money): string {
+        $paymentText = function ($cash, $qr) use ($money): string {
             $cash = (float) $cash;
             $qr = (float) $qr;
 
             if ($cash > 0 && $qr > 0) {
-                return 'EF '
-                    . $money($cash)
-                    . ' QR '
-                    . $money($qr);
+                return 'EF ' . $money($cash)
+                    . ' QR ' . $money($qr);
             }
 
             if ($qr > 0) {
@@ -904,10 +892,7 @@ class QuickCashbox extends Component
             return '0.00';
         };
 
-        $row = function (
-            $name,
-            $value
-        ) use ($width, $clean): string {
+        $row = function ($name, $value) use ($width, $clean): string {
             $name = $clean($name);
             $value = $clean($value);
 
@@ -936,10 +921,7 @@ class QuickCashbox extends Component
                 . $value;
         };
 
-        $amountRow = function (
-            $name,
-            $amount
-        ) use ($row, $money): string {
+        $amountRow = function ($name, $amount) use ($row, $money): string {
             return $row(
                 $name,
                 $money($amount)
@@ -960,12 +942,10 @@ class QuickCashbox extends Component
         $lines[] = $center($dateText);
 
         if ($session?->opened_at) {
-            $time = 'Desde '
-                . $session->opened_at->format('H:i');
+            $time = 'Desde ' . $session->opened_at->format('H:i');
 
             if ($session?->closed_at) {
-                $time .= ' Hasta '
-                    . $session->closed_at->format('H:i');
+                $time .= ' Hasta ' . $session->closed_at->format('H:i');
             }
 
             $lines[] = $center($time);
@@ -1017,103 +997,95 @@ class QuickCashbox extends Component
             $serviceTotal
         );
 
-        if (! empty($products)) {
-            $lines[] = '';
+        $lines[] = '';
 
-            $lines[] = $sectionHeader('PRODUCTOS');
-            $lines[] = str_repeat('-', $width);
+        $lines[] = $sectionHeader('PRODUCTOS');
+        $lines[] = str_repeat('-', $width);
 
-            $productTotal = 0;
+        $productTotal = 0;
 
-            foreach ($products as $product) {
-                $cash = (float) ($product['cash'] ?? 0);
-                $qr = (float) ($product['qr'] ?? 0);
+        foreach ($products as $product) {
+            $cash = (float) ($product['cash'] ?? 0);
+            $qr = (float) ($product['qr'] ?? 0);
 
-                $total = (float) (
-                    $product['total']
-                    ?? ($cash + $qr)
-                );
+            $total = (float) (
+                $product['total']
+                ?? ($cash + $qr)
+            );
 
-                $productTotal += $total;
+            $productTotal += $total;
 
-                $name = $clean(
-                    $product['name'] ?? 'Producto'
-                );
+            $name = $clean(
+                $product['name'] ?? 'Producto'
+            );
 
-                if (
-                    isset($product['quantity'])
-                    && (float) $product['quantity'] > 1
-                ) {
-                    $quantity = (float) $product['quantity'];
-
-                    $name .= ' x'
-                        . (
-                            floor($quantity) == $quantity
-                            ? (int) $quantity
-                            : number_format(
-                                $quantity,
-                                2,
-                                '.',
-                                ''
-                            )
-                        );
-                }
-
-                $lines[] = $row(
-                    $name,
-                    $paymentText($cash, $qr)
-                );
+            if (
+                isset($product['quantity'])
+                && (float) $product['quantity'] > 1
+            ) {
+                $name .= ' x'
+                    . number_format(
+                        (float) $product['quantity'],
+                        0
+                    );
             }
 
-            $lines[] = str_repeat('-', $width);
-
-            $lines[] = $amountRow(
-                'TOTAL PRODUCTOS',
-                $productTotal
+            $lines[] = $row(
+                $name,
+                $paymentText($cash, $qr)
             );
         }
 
-        if (! empty($expenses)) {
-            $lines[] = '';
-
-            $lines[] = $sectionHeader('GASTOS');
-            $lines[] = str_repeat('-', $width);
-
-            $expenseTotal = 0;
-
-            foreach ($expenses as $expense) {
-                $amount = (float) (
-                    $expense['amount'] ?? 0
-                );
-
-                $expenseTotal += $amount;
-
-                $lines[] = $amountRow(
-                    $expense['name'] ?? 'Gasto',
-                    $amount
-                );
-            }
-
-            $lines[] = str_repeat('-', $width);
-
-            $lines[] = $amountRow(
-                'TOTAL GASTOS',
-                $expenseTotal
-            );
+        if (empty($products)) {
+            $lines[] = 'Sin productos';
         }
+
+        $lines[] = str_repeat('-', $width);
+
+        $lines[] = $amountRow(
+            'TOTAL PRODUCTOS',
+            $productTotal
+        );
 
         $lines[] = '';
+
+        $lines[] = $sectionHeader('GASTOS');
+        $lines[] = str_repeat('-', $width);
+
+        $expenseTotal = 0;
+
+        foreach ($expenses as $expense) {
+            $amount = (float) (
+                $expense['amount'] ?? 0
+            );
+
+            $expenseTotal += $amount;
+
+            $lines[] = $amountRow(
+                $expense['name'] ?? 'Gasto',
+                $amount
+            );
+        }
+
+        if (empty($expenses)) {
+            $lines[] = 'Sin gastos';
+        }
+
+        $lines[] = str_repeat('-', $width);
+
+        $lines[] = $amountRow(
+            'TOTAL GASTOS',
+            $expenseTotal
+        );
+
+        $lines[] = '';
+
         $lines[] = $sectionHeader('TOTAL CAJA');
         $lines[] = str_repeat('-', $width);
 
-        if (
-            array_key_exists(
-                'opening_amount',
-                $totals
-            )
-        ) {
+        if (array_key_exists('opening_amount', $totals)) {
             $lines[] = $amountRow(
-                'Inicial',
+                'Monto inicial',
                 $totals['opening_amount']
             );
         }
@@ -1128,23 +1100,9 @@ class QuickCashbox extends Component
             $totals['qr'] ?? 0
         );
 
-        if (
-            (float) ($totals['expenses'] ?? 0) > 0
-        ) {
-            $lines[] = $amountRow(
-                'Gastos',
-                $totals['expenses']
-            );
-        }
-
-        $grossTotal =
-            (float) ($totals['cash'] ?? 0)
-            +
-            (float) ($totals['qr'] ?? 0);
-
         $lines[] = $amountRow(
-            'TOTAL',
-            $grossTotal
+            'Gastos',
+            $totals['expenses'] ?? 0
         );
 
         $lines[] = $amountRow(
@@ -1169,10 +1127,6 @@ class QuickCashbox extends Component
                 'cash_difference',
                 $totals
             )
-            &&
-            abs(
-                (float) $totals['cash_difference']
-            ) > 0.001
         ) {
             $lines[] = $amountRow(
                 'Diferencia',
