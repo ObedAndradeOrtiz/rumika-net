@@ -132,6 +132,263 @@ const printWithBrowser = () => {
     window.print();
 };
 
+function ticketTextFrom(paper) {
+    const WIDTH = 48;
+
+    const clean = (value = '') => {
+        return String(value)
+            .replace(/\s+/g, ' ')
+            .trim();
+    };
+
+    const money = (value = '') => {
+        return clean(value)
+            .replace(/^Bs\s*/i, '')
+            .trim();
+    };
+
+    const firstTwoNames = (value = '') => {
+        const text = clean(value);
+
+        return text
+            .split(' ')
+            .filter(Boolean)
+            .slice(0, 2)
+            .join(' ');
+    };
+
+    const separator = () => '-'.repeat(WIDTH);
+
+    const center = (text) => {
+        text = clean(text);
+
+        if (text.length >= WIDTH) {
+            return text.substring(0, WIDTH);
+        }
+
+        const left = Math.floor((WIDTH - text.length) / 2);
+
+        return ' '.repeat(left) + text;
+    };
+
+    const normalRow = (detail, cash, qr) => {
+        /*
+        48 caracteres aproximadamente:
+
+        26 detalle
+        11 efectivo
+        11 QR
+        */
+
+        detail = clean(detail).substring(0, 26);
+        cash = money(cash).substring(0, 11);
+        qr = money(qr).substring(0, 11);
+
+        return detail.padEnd(26)
+            + cash.padStart(11)
+            + qr.padStart(11);
+    };
+
+    const totalRow = (detail, cash, qr) => {
+        detail = clean(detail).substring(0, 26);
+        cash = money(cash).substring(0, 11);
+        qr = money(qr).substring(0, 11);
+
+        return detail.padEnd(26)
+            + cash.padStart(11)
+            + qr.padStart(11);
+    };
+
+    let output = '';
+
+    // ==================================================
+    // CABECERA
+    // ==================================================
+
+    const header = paper.querySelector('.rm-print-header');
+
+    if (header) {
+        const title = header.querySelector('strong');
+
+        if (title) {
+            output += center(title.textContent) + '\n';
+        }
+
+        header.querySelectorAll('span').forEach(span => {
+            output += center(span.textContent) + '\n';
+        });
+    }
+
+    output += separator() + '\n';
+
+    // ==================================================
+    // SERVICIOS Y PRODUCTOS
+    // ==================================================
+
+    const sections = paper.querySelectorAll('.rm-print-section');
+
+    sections.forEach(section => {
+        const titleElement = section.querySelector('h3');
+
+        if (!titleElement) {
+            return;
+        }
+
+        const title = clean(titleElement.textContent);
+
+        output += '\n';
+        output += title.toUpperCase() + '\n';
+        output += separator() + '\n';
+
+        const rows = section.querySelectorAll('.rm-print-row');
+
+        rows.forEach(row => {
+            const spans = Array.from(
+                row.querySelectorAll(':scope > span')
+            );
+
+            if (!spans.length) {
+                return;
+            }
+
+            /*
+             * CABECERA:
+             * Detalle / Efectivo / QR
+             */
+            if (row.classList.contains('rm-print-row-head')) {
+
+                if (spans.length === 3) {
+                    output += normalRow(
+                        'Detalle',
+                        'Efec.',
+                        'QR'
+                    ) + '\n';
+
+                    output += separator() + '\n';
+                }
+
+                return;
+            }
+
+            /*
+             * TOTAL
+             */
+            if (row.classList.contains('rm-print-row-total')) {
+
+                if (spans.length === 3) {
+                    output += separator() + '\n';
+
+                    output += totalRow(
+                        spans[0].textContent,
+                        spans[1].textContent,
+                        spans[2].textContent
+                    ) + '\n';
+                }
+
+                return;
+            }
+
+            /*
+             * FILA NORMAL DE SERVICIO / PRODUCTO
+             */
+            if (spans.length === 3) {
+
+                let detail = spans[0].textContent;
+
+                /*
+                 * Si es SERVICIOS, mostramos máximo
+                 * los 2 primeros nombres.
+                 */
+                if (
+                    title.toLowerCase().includes('servicio')
+                ) {
+                    detail = firstTwoNames(detail);
+                }
+
+                output += normalRow(
+                    detail,
+                    spans[1].textContent,
+                    spans[2].textContent
+                ) + '\n';
+            }
+
+            /*
+             * GASTOS
+             */
+            if (spans.length === 4) {
+                const detail = clean(spans[0].textContent);
+                const amount = clean(spans[1].textContent);
+                const responsible = firstTwoNames(
+                    spans[2].textContent
+                );
+
+                output += detail + '\n';
+                output += 'Monto: ' + amount + '\n';
+                output += 'Resp.: ' + responsible + '\n';
+
+                if (clean(spans[3].textContent) !== '-') {
+                    output += 'Ref.: ' +
+                        clean(spans[3].textContent) +
+                        '\n';
+                }
+
+                output += separator() + '\n';
+            }
+        });
+
+        const empty = section.querySelector('.rm-print-empty');
+
+        if (empty) {
+            output += clean(empty.textContent) + '\n';
+        }
+    });
+
+    // ==================================================
+    // TOTALES
+    // ==================================================
+
+    const totals = paper.querySelector('.rm-print-totals');
+
+    if (totals) {
+        output += '\n';
+        output += 'TOTALES\n';
+        output += separator() + '\n';
+
+        totals.querySelectorAll('span, strong').forEach(item => {
+            let text = clean(item.textContent);
+
+            /*
+             * Separamos:
+             *
+             * Efectivo Bs 2500.00
+             *
+             * en:
+             *
+             * Efectivo                  Bs 2500.00
+             */
+
+            const match = text.match(/^(.*?)\s+(Bs\s*-?[\d.,]+)$/i);
+
+            if (match) {
+                const label = clean(match[1]);
+                const value = clean(match[2]);
+
+                output += label.substring(0, 27).padEnd(27)
+                    + value.substring(0, 21).padStart(21)
+                    + '\n';
+            } else {
+                output += text + '\n';
+            }
+        });
+    }
+
+    output += separator() + '\n';
+    output += center('Sistema Rumika SaaS') + '\n';
+    output += '\n\n\n\n';
+
+    return output;
+}
+
 window.RumikaQz = {
     async printFromButton(button) {
         const modal = button.closest('.rm-print-preview-modal');
