@@ -218,7 +218,7 @@ const ticketTextFrom = (paper) => {
         line(),
         `${esc}a\x01`,
         center('Sistema Rumika SaaS'),
-        `${esc}d\x08`,
+        `${esc}d\x0c`,
         `${gs}V\x00`
     );
 
