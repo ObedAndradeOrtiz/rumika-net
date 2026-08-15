@@ -241,7 +241,13 @@
                             <div class="rm-print-row rm-print-row-head"><span>Detalle</span><span>Efectivo</span><span>QR</span></div>
                             @forelse (($key === 'services' ? $previewServices : $previewProducts) as $row)
                                 <div class="rm-print-row">
-                                    <span>{{ $row['client'] }} - {{ $row['name'] }}@if($row['quantity'] > 1) x {{ number_format($row['quantity'], 2) }}@endif</span>
+                                    <span>
+                                        @if ($key === 'services')
+                                            {{ $row['client'] }}
+                                        @else
+                                            {{ \Illuminate\Support\Str::limit($row['name'], 30, '') }}@if($row['quantity'] > 1) x {{ number_format($row['quantity'], 2) }}@endif
+                                        @endif
+                                    </span>
                                     <span>Bs {{ number_format($row['cash'], 2) }}</span>
                                     <span>Bs {{ number_format($row['qr'], 2) }}</span>
                                 </div>

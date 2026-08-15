@@ -347,7 +347,7 @@
                     <div class="rm-print-row rm-print-row-head"><span>Item</span><span>Total</span><span>Efectivo</span><span>QR</span></div>
                     @foreach (($paymentTicketPreview['rows'] ?? []) as $row)
                         <div class="rm-print-row">
-                            <span>{{ $row['type'] }} - {{ $row['name'] }} @if($row['quantity'] > 1) x {{ number_format($row['quantity'], 2) }} @endif</span>
+                            <span>{{ \Illuminate\Support\Str::limit($row['name'], 32, '') }} @if($row['quantity'] > 1) x {{ number_format($row['quantity'], 2) }} @endif</span>
                             <span>Bs {{ number_format($row['total'], 2) }}</span>
                             <span>Bs {{ number_format($row['cash'], 2) }}</span>
                             <span>Bs {{ number_format($row['qr'], 2) }}</span>
@@ -363,7 +363,7 @@
                         <div class="rm-print-row rm-print-row-head"><span>Detalle</span><span>Total</span><span>Pagado</span><span>Saldo</span></div>
                         @foreach ($paymentTicketPreview['outstanding_charges'] as $charge)
                             <div class="rm-print-row">
-                                <span>{{ $charge['type'] }} - {{ $charge['name'] }}</span>
+                                <span>{{ \Illuminate\Support\Str::limit($charge['name'], 32, '') }}</span>
                                 <span>Bs {{ number_format($charge['total'], 2) }}</span>
                                 <span>Bs {{ number_format($charge['paid'], 2) }}</span>
                                 <span>Bs {{ number_format($charge['balance'], 2) }}</span>
