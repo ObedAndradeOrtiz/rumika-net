@@ -807,278 +807,314 @@ class QuickCashbox extends Component
             ?? $company->branches()->firstOrFail();
     }
 
-    private function buildRawTicket(
-        string $title,
-        Branch $branch,
-        Carbon $businessDate,
-        array $services = [],
-        array $products = [],
-        array $totals = [],
-        array $expenses = [],
-        ?CashboxSession $session = null
-    ): string {
-        $width = 42;
+   private function buildRawTicket(
+    string $title,
+    Branch $branch,
+    Carbon $businessDate,
+    array $services = [],
+    array $products = [],
+    array $totals = [],
+    array $expenses = [],
+    ?CashboxSession $session = null
+): string {
+    $width = 42;
 
-        $clean = function ($value): string {
-            $value = Str::ascii((string) $value);
-            $value = preg_replace('/\s+/', ' ', $value);
+    $clean = function ($value): string {
+        $value = Str::ascii((string) $value);
+        $value = preg_replace('/\s+/', ' ', $value);
 
-            return trim($value);
-        };
+        return trim($value);
+    };
 
-        $money = function ($value): string {
-            return number_format(
-                (float) $value,
-                2,
-                '.',
-                ''
-            );
-        };
+    $money = function ($value): string {
+        return number_format(
+            (float) $value,
+            2,
+            '.',
+            ''
+        );
+    };
 
-        $center = function ($value) use ($width, $clean): string {
-            $text = $clean($value);
+    $center = function ($value) use ($width, $clean): string {
+        $text = $clean($value);
 
-            if (strlen($text) > $width) {
-                $text = substr($text, 0, $width);
-            }
+        if (strlen($text) > $width) {
+            $text = substr($text, 0, $width);
+        }
 
-            $spaces = max(
+        $spaces = max(
+            0,
+            (int) floor(
+                ($width - strlen($text)) / 2
+            )
+        );
+
+        return str_repeat(' ', $spaces) . $text;
+    };
+
+    $firstTwoNames = function ($value) use ($clean): string {
+        $parts = array_values(
+            array_filter(
+                explode(
+                    ' ',
+                    $clean($value)
+                )
+            )
+        );
+
+        return implode(
+            ' ',
+            array_slice(
+                $parts,
                 0,
-                (int) floor(
-                    ($width - strlen($text)) / 2
-                )
+                2
+            )
+        );
+    };
+
+    $sectionHeader = function ($title) use ($width, $clean): string {
+        $left = strtoupper(
+            $clean($title)
+        );
+
+        $right = 'MONTO EN BS.';
+
+        $spaces = max(
+            1,
+            $width
+                - strlen($left)
+                - strlen($right)
+        );
+
+        return $left
+            . str_repeat(' ', $spaces)
+            . $right;
+    };
+
+    $paymentText = function (
+        $cash,
+        $qr
+    ) use ($money): string {
+        $cash = (float) $cash;
+        $qr = (float) $qr;
+
+        if ($cash > 0 && $qr > 0) {
+            return 'EF '
+                . $money($cash)
+                . ' QR '
+                . $money($qr);
+        }
+
+        if ($qr > 0) {
+            return 'QR '
+                . $money($qr);
+        }
+
+        if ($cash > 0) {
+            return 'EF '
+                . $money($cash);
+        }
+
+        return '0.00';
+    };
+
+    $row = function (
+        $name,
+        $value
+    ) use ($width, $clean): string {
+        $name = $clean($name);
+        $value = $clean($value);
+
+        $maxNameLength = max(
+            1,
+            $width
+                - strlen($value)
+                - 1
+        );
+
+        if (strlen($name) > $maxNameLength) {
+            $name = substr(
+                $name,
+                0,
+                $maxNameLength
             );
+        }
 
-            return str_repeat(' ', $spaces) . $text;
-        };
+        $spaces = max(
+            1,
+            $width
+                - strlen($name)
+                - strlen($value)
+        );
 
-        $firstTwoNames = function ($value) use ($clean): string {
-            $parts = array_values(
-                array_filter(
-                    explode(' ', $clean($value))
-                )
-            );
-
-            return implode(
+        return $name
+            . str_repeat(
                 ' ',
-                array_slice($parts, 0, 2)
-            );
-        };
+                $spaces
+            )
+            . $value;
+    };
 
-        $sectionHeader = function ($title) use ($width, $clean): string {
-            $left = strtoupper($clean($title));
-            $right = 'MONTO EN BS.';
+    $lines = [];
 
-            $spaces = max(
-                1,
-                $width
-                    - strlen($left)
-                    - strlen($right)
-            );
+    $lines[] = $center(
+        $branch->name
+    );
 
-            return $left
-                . str_repeat(' ', $spaces)
-                . $right;
-        };
+    $lines[] = $center(
+        $title
+    );
 
-        $paymentText = function ($cash, $qr) use ($money): string {
-            $cash = (float) $cash;
-            $qr = (float) $qr;
+    $dateText = $businessDate->format(
+        'd/m/Y'
+    );
 
-            if ($cash > 0 && $qr > 0) {
-                return 'EF '
-                    . $money($cash)
-                    . ' QR '
-                    . $money($qr);
-            }
+    if ($session?->shift_number) {
+        $dateText .=
+            ' - Turno '
+            . $session->shift_number;
+    }
 
-            if ($qr > 0) {
-                return 'QR ' . $money($qr);
-            }
+    $lines[] = $center(
+        $dateText
+    );
 
-            if ($cash > 0) {
-                return 'EF ' . $money($cash);
-            }
+    if ($session?->opened_at) {
+        $time =
+            'Desde '
+            . $session->opened_at
+                ->format('H:i');
 
-            return '0.00';
-        };
-
-        $row = function ($name, $value) use ($width, $clean): string {
-            $name = $clean($name);
-            $value = $clean($value);
-
-            $maxNameLength = max(
-                1,
-                $width
-                    - strlen($value)
-                    - 1
-            );
-
-            if (strlen($name) > $maxNameLength) {
-                $name = substr(
-                    $name,
-                    0,
-                    $maxNameLength
-                );
-            }
-
-            $spaces = max(
-                1,
-                $width
-                    - strlen($name)
-                    - strlen($value)
-            );
-
-            return $name
-                . str_repeat(' ', $spaces)
-                . $value;
-        };
-
-        $lines = [];
-
-        $lines[] = $center($branch->name);
-        $lines[] = $center($title);
-
-        $dateText = $businessDate->format('d/m/Y');
-
-        if ($session?->shift_number) {
-            $dateText .= ' - Turno '
-                . $session->shift_number;
+        if ($session?->closed_at) {
+            $time .=
+                ' Hasta '
+                . $session->closed_at
+                    ->format('H:i');
         }
 
-        $lines[] = $center($dateText);
+        $lines[] = $center(
+            $time
+        );
+    }
 
-        if ($session?->opened_at) {
-            $time = 'Desde '
-                . $session->opened_at->format('H:i');
+    $lines[] = str_repeat(
+        '-',
+        $width
+    );
 
-            if ($session?->closed_at) {
-                $time .= ' Hasta '
-                    . $session->closed_at->format('H:i');
-            }
+    $lines[] = $sectionHeader(
+        'SERVICIOS'
+    );
 
-            $lines[] = $center($time);
-        }
+    $lines[] = str_repeat(
+        '-',
+        $width
+    );
 
-        $lines[] = str_repeat('-', $width);
+    foreach ($services as $service) {
+        $cash = (float) (
+            $service['cash']
+            ?? 0
+        );
 
-        $lines[] = $sectionHeader('SERVICIOS');
-        $lines[] = str_repeat('-', $width);
+        $qr = (float) (
+            $service['qr']
+            ?? 0
+        );
 
-        foreach ($services as $service) {
-            $cash = (float) ($service['cash'] ?? 0);
-            $qr = (float) ($service['qr'] ?? 0);
+        $name = $firstTwoNames(
+            $service['client']
+            ?? 'Cliente'
+        );
 
-            $name = $firstTwoNames(
-                $service['client'] ?? 'Cliente'
+        $lines[] = $row(
+            $name,
+            $paymentText(
+                $cash,
+                $qr
+            )
+        );
+    }
+
+    if (empty($services)) {
+        $lines[] = 'Sin servicios';
+    }
+
+    if (! empty($products)) {
+        $lines[] = '';
+
+        $lines[] = $sectionHeader(
+            'PRODUCTOS'
+        );
+
+        $lines[] = str_repeat(
+            '-',
+            $width
+        );
+
+        foreach ($products as $product) {
+            $cash = (float) (
+                $product['cash']
+                ?? 0
             );
+
+            $qr = (float) (
+                $product['qr']
+                ?? 0
+            );
+
+            $name = $clean(
+                $product['name']
+                ?? 'Producto'
+            );
+
+            if (
+                isset($product['quantity'])
+                && (float) $product['quantity'] > 1
+            ) {
+                $name .=
+                    ' x'
+                    . number_format(
+                        (float) $product['quantity'],
+                        0
+                    );
+            }
 
             $lines[] = $row(
                 $name,
-                $paymentText($cash, $qr)
-            );
-        }
-
-        if (empty($services)) {
-            $lines[] = 'Sin servicios';
-        }
-
-        if (! empty($products)) {
-            $lines[] = '';
-
-            $lines[] = $sectionHeader('PRODUCTOS');
-            $lines[] = str_repeat('-', $width);
-
-            foreach ($products as $product) {
-                $cash = (float) ($product['cash'] ?? 0);
-                $qr = (float) ($product['qr'] ?? 0);
-
-                $name = $clean(
-                    $product['name'] ?? 'Producto'
-                );
-
-                if (
-                    isset($product['quantity'])
-                    && (float) $product['quantity'] > 1
-                ) {
-                    $name .= ' x'
-                        . number_format(
-                            (float) $product['quantity'],
-                            0
-                        );
-                }
-
-                $lines[] = $row(
-                    $name,
-                    $paymentText($cash, $qr)
-                );
-            }
-        }
-
-        $lines[] = '';
-
-        $lines[] = $sectionHeader('GASTOS');
-        $lines[] = str_repeat('-', $width);
-
-        $expenseTotal = (float) (
-            $totals['expenses'] ?? 0
-        );
-
-        $lines[] = $row(
-            'TOTAL GASTOS',
-            $money($expenseTotal)
-        );
-
-        $lines[] = '';
-
-        $lines[] = $sectionHeader('TOTAL CAJA');
-        $lines[] = str_repeat('-', $width);
-
-        if (
-            array_key_exists(
-                'opening_amount',
-                $totals
-            )
-        ) {
-            $lines[] = $row(
-                'Monto inicial',
-                $money(
-                    $totals['opening_amount']
+                $paymentText(
+                    $cash,
+                    $qr
                 )
             );
         }
-
-        $lines[] = $row(
-            'Efectivo',
-            $money(
-                $totals['cash'] ?? 0
-            )
-        );
-
-        $lines[] = $row(
-            'QR',
-            $money(
-                $totals['qr'] ?? 0
-            )
-        );
-
-        $lines[] = $row(
-            'Gastos',
-            $money(
-                $totals['expenses'] ?? 0
-            )
-        );
-
-        $lines[] = $row(
-            'Caja neta',
-            $money(
-                $totals['net_cash'] ?? 0
-            )
-        );
-
-        $lines[] = str_repeat('-', $width);
-        $lines[] = '';
-
-        return implode("\n", $lines);
     }
+
+    $lines[] = '';
+
+    $lines[] = $sectionHeader(
+        'GASTOS'
+    );
+
+    $lines[] = str_repeat(
+        '-',
+        $width
+    );
+
+    $lines[] = $row(
+        'GASTOS',
+        $money(
+            $totals['expenses']
+            ?? 0
+        )
+    );
+
+    $lines[] = '';
+    $lines[] = '';
+
+    return implode(
+        "\n",
+        $lines
+    );
+}
 }
