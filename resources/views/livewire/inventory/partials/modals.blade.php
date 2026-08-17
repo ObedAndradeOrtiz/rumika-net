@@ -71,29 +71,123 @@
 @if ($showMovementModal)
     <div class="rm-modal-backdrop" wire:click="$set('showMovementModal', false)"></div>
     <section class="rm-modal-panel rm-modal-panel-wide" role="dialog" aria-modal="true">
-        <div class="rm-modal-title"><div><span>Movimiento</span><h2>{{ $this->movementTypeLabel() }}</h2></div><button type="button" wire:click="$set('showMovementModal', false)">x</button></div>
-        <form wire:submit="saveMovement" class="rm-form-stack">
-            <label class="rm-field"><span>Producto</span><select wire:model.live="movementProductId"><option value="">Seleccionar</option>@foreach ($products as $product)<option value="{{ $product->id }}">{{ $product->name }} - {{ $product->code }}</option>@endforeach</select>@error('movementProductId')<small>{{ $message }}</small>@enderror</label>
-            @if ($movementType !== 'purchase')
-                <label class="rm-field"><span>Lote disponible</span><select wire:model="movementBatchId"><option value="">Seleccionar lote</option>@foreach ($batches as $batch)<option value="{{ $batch->id }}">{{ $batch->product->name }} - {{ $batch->lot_code }} - {{ number_format((float) $batch->current_quantity, 2) }}</option>@endforeach</select>@error('movementBatchId')<small>{{ $message }}</small>@enderror</label>
-            @endif
-            <div class="rm-form-row">
-                <label class="rm-field"><span>Cantidad</span><input wire:model="movementQuantity" type="number" min="0.01" step="0.01">@error('movementQuantity')<small>{{ $message }}</small>@enderror</label>
-                <label class="rm-field"><span>Costo unitario</span><input wire:model="movementUnitCost" type="number" min="0" step="0.01"></label>
+        <div class="rm-modal-title">
+            <div>
+                <span>Movimiento</span>
+                <h2>{{ $this->movementTypeLabel() }}</h2>
             </div>
+            <button type="button" wire:click="$set('showMovementModal', false)">x</button>
+        </div>
+
+        <form wire:submit="saveMovement" class="rm-form-stack">
+            <label class="rm-field">
+                <span>Buscar producto</span>
+                <input
+                    wire:model.live.debounce.300ms="movementProductSearch"
+                    type="search"
+                    placeholder="Buscar por nombre o codigo"
+                    autocomplete="off"
+                >
+            </label>
+
+            <label class="rm-field">
+                <span>Producto</span>
+                <select wire:model.live="movementProductId">
+                    <option value="">Seleccionar producto</option>
+                    @foreach ($movementProducts as $product)
+                        <option value="{{ $product->id }}">
+                            {{ $product->name }} - {{ $product->code }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('movementProductId')<small>{{ $message }}</small>@enderror
+            </label>
+
+            @if ($movementType !== 'purchase')
+                <label class="rm-field">
+                    <span>Lote disponible</span>
+                    <select wire:model="movementBatchId" @disabled(!$movementProductId)>
+                        <option value="">
+                            {{ $movementProductId ? 'Seleccionar lote' : 'Primero selecciona un producto' }}
+                        </option>
+                        @foreach ($movementBatches as $batch)
+                            <option value="{{ $batch->id }}">
+                                {{ $batch->lot_code }} - Stock {{ number_format((float) $batch->current_quantity, 2) }}
+                                @if ($batch->expires_at)
+                                    - Vence {{ $batch->expires_at->format('d/m/Y') }}
+                                @endif
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('movementBatchId')<small>{{ $message }}</small>@enderror
+
+                    @if ($movementProductId && $movementBatches->isEmpty())
+                        <small>Este producto no tiene lotes disponibles con stock en esta sucursal.</small>
+                    @endif
+                </label>
+            @endif
+
+            <div class="rm-form-row">
+                <label class="rm-field">
+                    <span>Cantidad</span>
+                    <input wire:model="movementQuantity" type="number" min="0.01" step="0.01">
+                    @error('movementQuantity')<small>{{ $message }}</small>@enderror
+                </label>
+                <label class="rm-field">
+                    <span>Costo unitario</span>
+                    <input wire:model="movementUnitCost" type="number" min="0" step="0.01">
+                </label>
+            </div>
+
             @if ($movementType === 'purchase')
                 <div class="rm-form-row">
-                    <label class="rm-field"><span>Lote</span><input wire:model="movementLotCode" type="text" placeholder="Automatico si queda vacio"></label>
-                    <label class="rm-field"><span>Vencimiento</span><input wire:model="movementExpiresAt" type="date"></label>
+                    <label class="rm-field">
+                        <span>Lote</span>
+                        <input wire:model="movementLotCode" type="text" placeholder="Automatico si queda vacio">
+                        @error('movementLotCode')<small>{{ $message }}</small>@enderror
+                    </label>
+                    <label class="rm-field">
+                        <span>Vencimiento</span>
+                        <input wire:model="movementExpiresAt" type="date">
+                        @error('movementExpiresAt')<small>{{ $message }}</small>@enderror
+                    </label>
                 </div>
-                <label class="rm-field"><span>Fecha de entrada</span><input wire:model="movementReceivedAt" type="date"></label>
+                <label class="rm-field">
+                    <span>Fecha de entrada</span>
+                    <input wire:model="movementReceivedAt" type="date">
+                    @error('movementReceivedAt')<small>{{ $message }}</small>@enderror
+                </label>
             @endif
+
             @if ($movementType === 'transfer')
-                <label class="rm-field"><span>Sucursal destino</span><select wire:model="relatedBranchId"><option value="">Seleccionar</option>@foreach ($branches as $targetBranch)@if ($targetBranch->id !== $branch->id)<option value="{{ $targetBranch->id }}">{{ $targetBranch->name }}</option>@endif @endforeach</select>@error('relatedBranchId')<small>{{ $message }}</small>@enderror</label>
+                <label class="rm-field">
+                    <span>Sucursal destino</span>
+                    <select wire:model="relatedBranchId">
+                        <option value="">Seleccionar</option>
+                        @foreach ($branches as $targetBranch)
+                            @if ($targetBranch->id !== $branch->id)
+                                <option value="{{ $targetBranch->id }}">{{ $targetBranch->name }}</option>
+                            @endif
+                        @endforeach
+                    </select>
+                    @error('relatedBranchId')<small>{{ $message }}</small>@enderror
+                </label>
             @endif
-            <label class="rm-field"><span>Referencia</span><input wire:model="movementReference" type="text" placeholder="Factura, venta, orden interna"></label>
-            <label class="rm-field"><span>Motivo/explicacion</span><input wire:model="movementReason" type="text" placeholder="Obligatorio para salida, desecho o ajuste">@error('movementReason')<small>{{ $message }}</small>@enderror</label>
-            <div class="rm-form-actions"><button class="rm-button rm-button-primary" type="submit">Guardar movimiento</button></div>
+
+            <label class="rm-field">
+                <span>Referencia</span>
+                <input wire:model="movementReference" type="text" placeholder="Factura, venta, orden interna">
+            </label>
+
+            <label class="rm-field">
+                <span>Motivo/explicacion</span>
+                <input wire:model="movementReason" type="text" placeholder="Obligatorio para salida, desecho o ajuste">
+                @error('movementReason')<small>{{ $message }}</small>@enderror
+            </label>
+
+            <div class="rm-form-actions">
+                <button class="rm-button rm-button-primary" type="submit">Guardar movimiento</button>
+            </div>
         </form>
     </section>
 @endif

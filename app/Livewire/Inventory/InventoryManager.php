@@ -88,6 +88,7 @@ class InventoryManager extends Component
 
     public ?int $movementProductId = null;
     public ?int $movementBatchId = null;
+    public string $movementProductSearch = '';
     public ?int $relatedBranchId = null;
     public string $movementQuantity = '';
     public string $movementUnitCost = '';
@@ -141,6 +142,13 @@ class InventoryManager extends Component
     public function updatedUseAreaFilter(): void
     {
         $this->resetPage();
+    }
+
+    public function updatedMovementProductId(): void
+    {
+        // Al cambiar de producto, descartamos cualquier lote previamente elegido.
+        $this->movementBatchId = null;
+        $this->resetErrorBag('movementBatchId');
     }
 
     #[On('branch-switched')]
@@ -433,7 +441,18 @@ class InventoryManager extends Component
         $branch = $this->activeBranch();
         $productIds = $company->inventoryProducts()->pluck('id')->all();
         $branchIds = $this->availableBranches()->pluck('id')->reject(fn ($id) => $id === $branch->id)->all();
-        $batches = $company->inventoryBatches()->where('branch_id', $branch->id)->pluck('id')->all();
+
+        // Para salidas/traspasos/desechos/ajustes solo son válidos los lotes
+        // de la sucursal actual que además pertenezcan al producto elegido.
+        $batchIds = $company->inventoryBatches()
+            ->where('branch_id', $branch->id)
+            ->where('status', 'available')
+            ->when(
+                $this->movementProductId,
+                fn ($query) => $query->where('inventory_product_id', $this->movementProductId)
+            )
+            ->pluck('id')
+            ->all();
 
         $rules = [
             'movementProductId' => ['required', Rule::in($productIds)],
@@ -450,7 +469,7 @@ class InventoryManager extends Component
                 'movementReceivedAt' => ['nullable', 'date'],
             ];
         } else {
-            $rules['movementBatchId'] = ['required', Rule::in($batches)];
+            $rules['movementBatchId'] = ['required', Rule::in($batchIds)];
         }
 
         if ($this->movementType === 'transfer') {
@@ -468,9 +487,13 @@ class InventoryManager extends Component
             $unitCost = (float) ($validated['movementUnitCost'] ?: 0);
 
             if ($this->movementType === 'purchase') {
-                $product = $company->inventoryProducts()->whereKey($validated['movementProductId'])->firstOrFail();
+                $product = $company->inventoryProducts()
+                    ->whereKey($validated['movementProductId'])
+                    ->firstOrFail();
+
                 $count = $this->currentInventoryCountForProduct($branch, $product->id);
                 $lotCode = $validated['movementLotCode'] ?: $this->generateLotCode($product->name, $branch->id);
+
                 $batch = InventoryProductBatch::query()->firstOrCreate(
                     [
                         'branch_id' => $branch->id,
@@ -484,6 +507,7 @@ class InventoryManager extends Component
                         'unit_cost' => $unitCost ?: (float) $product->purchase_cost,
                         'initial_quantity' => 0,
                         'current_quantity' => 0,
+                        'status' => 'available',
                     ],
                 );
 
@@ -491,13 +515,26 @@ class InventoryManager extends Component
                 $batch->increment('current_quantity', $quantity);
                 $unitCost = $unitCost ?: (float) $batch->unit_cost;
 
-                $this->recordMovement($company, $branch, $count, $product->id, $batch->id, 'purchase', $quantity, $unitCost, $validated);
+                $this->recordMovement(
+                    $company,
+                    $branch,
+                    $count,
+                    $product->id,
+                    $batch->id,
+                    'purchase',
+                    $quantity,
+                    $unitCost,
+                    $validated
+                );
 
                 return;
             }
 
+            // Protección de backend: el lote debe ser de la sucursal Y del producto elegido.
             $batch = $company->inventoryBatches()
                 ->where('branch_id', $branch->id)
+                ->where('inventory_product_id', $validated['movementProductId'])
+                ->where('status', 'available')
                 ->whereKey($validated['movementBatchId'])
                 ->firstOrFail();
 
@@ -510,12 +547,32 @@ class InventoryManager extends Component
             $unitCost = $unitCost ?: (float) $batch->unit_cost;
             $type = $this->movementType === 'transfer' ? 'transfer_out' : $this->movementType;
             $count = $this->currentInventoryCountForProduct($branch, $batch->inventory_product_id);
+
             $batch->decrement('current_quantity', $quantity);
-            $this->recordMovement($company, $branch, $count, $batch->inventory_product_id, $batch->id, $type, $quantity, $unitCost, $validated);
+
+            $this->recordMovement(
+                $company,
+                $branch,
+                $count,
+                $batch->inventory_product_id,
+                $batch->id,
+                $type,
+                $quantity,
+                $unitCost,
+                $validated
+            );
 
             if ($this->movementType === 'transfer') {
-                $targetBranch = $this->availableBranches()->where('id', $validated['relatedBranchId'])->firstOrFail();
-                $targetCount = $this->currentInventoryCountForProduct($targetBranch, $batch->inventory_product_id);
+                $targetBranch = $this->availableBranches()
+                    ->where('id', $validated['relatedBranchId'])
+                    ->firstOrFail();
+
+                $targetCount = $this->currentInventoryCountForProduct(
+                    $targetBranch,
+                    $batch->inventory_product_id
+                );
+
+                // El traspaso conserva exactamente el mismo código de lote.
                 $targetBatch = InventoryProductBatch::query()->firstOrCreate(
                     [
                         'branch_id' => $targetBranch->id,
@@ -529,11 +586,24 @@ class InventoryManager extends Component
                         'unit_cost' => $unitCost,
                         'initial_quantity' => 0,
                         'current_quantity' => 0,
+                        'status' => 'available',
                     ],
                 );
+
                 $targetBatch->increment('initial_quantity', $quantity);
                 $targetBatch->increment('current_quantity', $quantity);
-                $this->recordMovement($company, $targetBranch, $targetCount, $batch->inventory_product_id, $targetBatch->id, 'transfer_in', $quantity, $unitCost, $validated + ['relatedBranchId' => $branch->id]);
+
+                $this->recordMovement(
+                    $company,
+                    $targetBranch,
+                    $targetCount,
+                    $batch->inventory_product_id,
+                    $targetBatch->id,
+                    'transfer_in',
+                    $quantity,
+                    $unitCost,
+                    $validated + ['relatedBranchId' => $branch->id]
+                );
             }
         });
 
@@ -987,17 +1057,57 @@ class InventoryManager extends Component
         $company = $this->company();
         $branch = $this->activeBranch();
         $search = trim($this->search);
+        $movementSearch = trim($this->movementProductSearch);
         $brandFilter = $this->brandFilter !== '' ? (int) $this->brandFilter : null;
         $useAreaFilter = $this->useAreaFilter !== '' ? (int) $this->useAreaFilter : null;
+
         $selectedCount = $this->selectedCountId
-            ? $company->inventoryCounts()->with(['useArea', 'items.product.brand', 'items.product.useArea'])->where('branch_id', $branch->id)->whereKey($this->selectedCountId)->first()
+            ? $company->inventoryCounts()
+                ->with(['useArea', 'items.product.brand', 'items.product.useArea'])
+                ->where('branch_id', $branch->id)
+                ->whereKey($this->selectedCountId)
+                ->first()
             : null;
+
         $selectedCountItems = $selectedCount
             ? $this->filteredCountItems($selectedCount)
             : collect();
+
         $selectedProduct = $this->selectedProductId
-            ? $company->inventoryProducts()->with(['brand', 'useArea'])->whereKey($this->selectedProductId)->first()
+            ? $company->inventoryProducts()
+                ->with(['brand', 'useArea'])
+                ->whereKey($this->selectedProductId)
+                ->first()
             : null;
+
+        // Listado independiente para el modal de movimientos.
+        // El buscador no altera la paginación del catálogo principal.
+        $movementProducts = $company->inventoryProducts()
+            ->when(
+                $movementSearch !== '',
+                fn ($query) => $query->where(
+                    fn ($nested) => $nested
+                        ->where('name', 'like', "%{$movementSearch}%")
+                        ->orWhere('code', 'like', "%{$movementSearch}%")
+                )
+            )
+            ->orderBy('name')
+            ->limit(30)
+            ->get();
+
+        // Solo lotes del producto elegido y de la sucursal actual.
+        $movementBatches = $company->inventoryBatches()
+            ->with('product')
+            ->where('branch_id', $branch->id)
+            ->where('status', 'available')
+            ->when(
+                $this->movementProductId,
+                fn ($query) => $query->where('inventory_product_id', $this->movementProductId),
+                fn ($query) => $query->whereRaw('1 = 0')
+            )
+            ->where('current_quantity', '>', 0)
+            ->orderByRaw('expires_at IS NULL, expires_at ASC')
+            ->get();
 
         return view('livewire.inventory.inventory-manager', [
             'branch' => $branch,
@@ -1012,12 +1122,10 @@ class InventoryManager extends Component
                 ->when($useAreaFilter, fn ($query) => $query->where('inventory_use_area_id', $useAreaFilter))
                 ->latest()
                 ->paginate(15),
-            'batches' => $company->inventoryBatches()
-                ->with('product')
-                ->where('branch_id', $branch->id)
-                ->where('status', 'available')
-                ->orderByRaw('expires_at IS NULL, expires_at ASC')
-                ->get(),
+            'movementProducts' => $movementProducts,
+            'movementBatches' => $movementBatches,
+            // Alias conservado por compatibilidad con cualquier otro partial existente.
+            'batches' => $movementBatches,
             'movements' => $company->inventoryMovements()
                 ->with(['product', 'batch', 'branch', 'relatedBranch'])
                 ->where('branch_id', $branch->id)
@@ -1558,7 +1666,7 @@ class InventoryManager extends Component
 
     private function resetMovementForm(): void
     {
-        $this->reset(['movementProductId', 'movementBatchId', 'relatedBranchId', 'movementQuantity', 'movementUnitCost', 'movementLotCode', 'movementExpiresAt', 'movementReceivedAt', 'movementReference', 'movementReason']);
+        $this->reset(['movementProductId', 'movementBatchId', 'movementProductSearch', 'relatedBranchId', 'movementQuantity', 'movementUnitCost', 'movementLotCode', 'movementExpiresAt', 'movementReceivedAt', 'movementReference', 'movementReason']);
         $this->resetErrorBag();
     }
 
