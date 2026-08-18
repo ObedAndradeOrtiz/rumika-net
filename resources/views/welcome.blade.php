@@ -98,11 +98,8 @@
             flex: 0 0 auto;
         }
 
-        .brand-text {
-            min-width: 0;
-        }
-
         .brand-title {
+            display: block;
             margin: 0;
             font-size: 28px;
             font-weight: 900;
@@ -112,10 +109,11 @@
         }
 
         .brand-subtitle {
+            display: block;
             margin-top: 6px;
             font-size: 13px;
             color: var(--muted);
-            font-weight: 600;
+            font-weight: 700;
         }
 
         .nav-actions {
@@ -134,7 +132,7 @@
             align-items: center;
             justify-content: center;
             border: 1px solid transparent;
-            font-weight: 800;
+            font-weight: 900;
             font-size: 15px;
             transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
             white-space: nowrap;
@@ -579,8 +577,7 @@
         .module-card {
             border-radius: 24px;
             padding: 22px;
-            background:
-                linear-gradient(180deg, #ffffff 0%, #f9fcfd 100%);
+            background: linear-gradient(180deg, #ffffff 0%, #f9fcfd 100%);
             border: 1px solid #e7eef4;
             transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
         }
@@ -936,24 +933,30 @@
 
             .site-header {
                 padding-top: 16px;
+                padding-bottom: 10px;
             }
 
             .nav {
-                align-items: flex-start;
-                flex-direction: column;
+                align-items: center;
+                flex-direction: row;
             }
 
             .nav-actions {
-                width: 100%;
-                justify-content: stretch;
+                display: none;
             }
 
-            .nav-actions .btn {
-                flex: 1 1 auto;
+            .brand-mark {
+                width: 48px;
+                height: 48px;
+                border-radius: 15px;
             }
 
             .brand-title {
-                font-size: 24px;
+                font-size: 23px;
+            }
+
+            .brand-subtitle {
+                display: none;
             }
 
             .hero {
@@ -962,49 +965,66 @@
             }
 
             .hero-shell {
-                padding: 24px 20px;
-                border-radius: 28px;
+                padding: 26px 18px 24px;
+                border-radius: 26px;
             }
 
             .hero-grid {
                 gap: 24px;
             }
 
+            .hero-eyebrow {
+                width: 100%;
+                justify-content: center;
+                font-size: 12px;
+                padding: 10px 12px;
+                text-align: center;
+            }
+
             .hero-title {
-                font-size: 42px;
-                line-height: 1;
+                font-size: 34px;
+                line-height: 1.08;
+                letter-spacing: -0.055em;
             }
 
             .hero-text {
-                font-size: 16px;
+                font-size: 15.5px;
+                line-height: 1.65;
+                margin-top: 18px;
             }
 
             .hero-actions {
                 display: grid;
                 grid-template-columns: 1fr;
+                gap: 10px;
+                margin-top: 24px;
             }
 
             .hero-actions .btn,
-            .cta-actions .btn,
-            .nav-actions .btn {
+            .cta-actions .btn {
                 width: 100%;
+                min-height: 50px;
+                font-size: 14px;
             }
 
-            .preview-card {
-                padding: 20px;
-                border-radius: 24px;
+            .hero-tags {
+                gap: 8px;
+                margin-top: 22px;
+            }
+
+            .hero-tag {
+                padding: 9px 12px;
+                font-size: 12.5px;
+            }
+
+            .hero-side {
+                display: none;
             }
 
             .stats-grid,
             .grid-3,
             .modules-grid {
                 grid-template-columns: 1fr;
-            }
-
-            .hero-note {
-                position: static;
-                margin-top: 14px;
-                width: 100%;
             }
 
             .section {
@@ -1046,31 +1066,17 @@
         }
 
         @media (max-width: 480px) {
-            .brand-mark {
-                width: 48px;
-                height: 48px;
-                border-radius: 15px;
-            }
-
-            .brand-title {
-                font-size: 22px;
-            }
-
-            .brand-subtitle {
-                font-size: 12px;
-            }
-
-            .hero-eyebrow {
-                font-size: 12px;
-                padding: 10px 13px;
+            .page {
+                width: min(100% - 24px, var(--container));
             }
 
             .hero-title {
-                font-size: 38px;
+                font-size: 31px;
+                line-height: 1.1;
             }
 
-            .stat-box strong {
-                font-size: 24px;
+            .hero-text {
+                font-size: 15px;
             }
 
             .section-title {
@@ -1094,7 +1100,7 @@
                         <x-application-logo class="h-7 w-7 text-white" />
                     </span>
 
-                    <span class="brand-text">
+                    <span>
                         <span class="brand-title">Rumika SaaS</span>
                         <span class="brand-subtitle">Sistema base modular para negocios de atención</span>
                     </span>
@@ -1131,7 +1137,7 @@
                             </div>
 
                             <h1 class="hero-title">
-                                La base que organiza la operación de tu negocio.
+                                La base modular para organizar tu negocio.
                             </h1>
 
                             <p class="hero-text">
@@ -1284,8 +1290,7 @@
                         Funciones claras, ordenadas y pensadas para el trabajo real del día a día.
                     </h2>
                     <p class="section-text">
-                        Mejoramos esta parte para que no se vea como una simple lista. Aquí se presentan los módulos de
-                        una manera más sólida y profesional.
+                        Cada sucursal puede activar únicamente las herramientas que necesita para operar con orden.
                     </p>
                 </div>
 
@@ -1404,7 +1409,7 @@
                     </div>
 
                     <div class="digitbol-box">
-                        <img src="{{ asset('digitbol-logo.jpg') }}" alt="DigitBol" class="digitbol-logo">
+                        <img src="{{ asset('digitbol.png') }}" alt="DigitBol" class="digitbol-logo">
                         <span>Un sistema más de</span>
                         <strong>DigitBol</strong>
                         <span>Desarrollo de soluciones y sistemas a medida.</span>
@@ -1418,9 +1423,6 @@
                     <h2 class="section-title">
                         Lo más importante, explicado de forma rápida.
                     </h2>
-                    <p class="section-text">
-                        Ahora las respuestas se muestran solo al hacer clic, con un diseño más limpio.
-                    </p>
                 </div>
 
                 <div class="faq-wrap">
