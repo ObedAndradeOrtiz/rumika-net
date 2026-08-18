@@ -19,11 +19,11 @@
             --rm-primary: #0f8f7f;
             --rm-primary-dark: #087568;
             --rm-primary-soft: #e7f7f5;
-            --rm-text: #101828;
+            --rm-text: #111827;
             --rm-muted: #667085;
             --rm-border: #dbe3ee;
             --rm-white: #ffffff;
-            --rm-shadow-lg: 0 30px 90px rgba(15, 23, 42, .12);
+            --rm-shadow-lg: 0 30px 90px rgba(15, 23, 42, .13);
             --rm-shadow-md: 0 18px 46px rgba(15, 23, 42, .08);
             --rm-shadow-sm: 0 10px 28px rgba(15, 23, 42, .06);
         }
@@ -32,14 +32,18 @@
             box-sizing: border-box;
         }
 
+        html {
+            min-height: 100%;
+        }
+
         body {
             margin: 0;
             min-height: 100vh;
             font-family: 'Figtree', sans-serif;
             color: var(--rm-text);
             background:
-                radial-gradient(circle at top left, rgba(15, 143, 127, .12), transparent 30%),
-                radial-gradient(circle at bottom right, rgba(29, 79, 145, .08), transparent 34%),
+                radial-gradient(circle at top left, rgba(15, 143, 127, .13), transparent 30%),
+                radial-gradient(circle at bottom right, rgba(29, 79, 145, .08), transparent 32%),
                 linear-gradient(135deg, #eef8f7 0%, #f8fbff 48%, #f5f7fb 100%);
         }
 
@@ -47,7 +51,7 @@
             text-decoration: none;
         }
 
-        .rm-auth-shell {
+        .rm-auth-page {
             min-height: 100vh;
             width: 100%;
             padding: 28px;
@@ -56,10 +60,10 @@
         }
 
         .rm-auth-layout {
-            width: min(1380px, 100%);
+            width: min(1420px, 100%);
             min-height: calc(100vh - 56px);
             display: grid;
-            grid-template-columns: minmax(0, 1fr) minmax(420px, .86fr);
+            grid-template-columns: minmax(0, 1.04fr) minmax(520px, .96fr);
             overflow: hidden;
             border-radius: 34px;
             background: rgba(255, 255, 255, .82);
@@ -71,14 +75,13 @@
         .rm-auth-preview {
             position: relative;
             overflow: hidden;
-            padding: 48px;
+            padding: 56px 58px;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
-            gap: 34px;
+            justify-content: center;
             background:
-                radial-gradient(circle at 14% 12%, rgba(15, 143, 127, .16), transparent 28%),
-                linear-gradient(135deg, rgba(255, 255, 255, .86), rgba(244, 250, 251, .74));
+                radial-gradient(circle at 12% 10%, rgba(15, 143, 127, .15), transparent 30%),
+                linear-gradient(135deg, rgba(255, 255, 255, .88), rgba(244, 250, 251, .76));
         }
 
         .rm-auth-preview::before {
@@ -93,19 +96,18 @@
             pointer-events: none;
         }
 
-        .rm-preview-main {
+        .rm-preview-content {
             position: relative;
             z-index: 1;
-            display: grid;
-            gap: 34px;
+            max-width: 740px;
         }
 
         .rm-preview-brand {
             display: inline-flex;
             align-items: center;
             gap: 14px;
-            width: fit-content;
             color: inherit;
+            margin-bottom: 56px;
         }
 
         .rm-brand-mark {
@@ -122,11 +124,11 @@
 
         .rm-preview-brand-title {
             display: block;
+            color: #0f172a;
             font-size: 28px;
             font-weight: 900;
-            line-height: 1;
             letter-spacing: -0.04em;
-            color: #0f172a;
+            line-height: 1;
         }
 
         .rm-preview-brand-subtitle {
@@ -137,16 +139,13 @@
             font-weight: 700;
         }
 
-        .rm-preview-copy {
-            max-width: 760px;
-        }
-
         .rm-preview-kicker {
+            width: fit-content;
             display: inline-flex;
             align-items: center;
             gap: 10px;
             padding: 10px 14px;
-            margin-bottom: 22px;
+            margin-bottom: 24px;
             border-radius: 999px;
             color: var(--rm-primary-dark);
             background: rgba(15, 143, 127, .09);
@@ -163,29 +162,29 @@
             box-shadow: 0 0 0 6px rgba(15, 143, 127, .12);
         }
 
-        .rm-preview-copy h1 {
+        .rm-preview-title {
             margin: 0;
-            max-width: 720px;
-            font-size: clamp(44px, 5vw, 76px);
+            color: #101828;
+            font-size: clamp(54px, 5vw, 76px);
             line-height: 1.02;
             font-weight: 900;
-            letter-spacing: -0.045em;
-            color: #101828;
+            letter-spacing: -0.055em;
         }
 
-        .rm-preview-copy p {
-            margin: 22px 0 0;
-            max-width: 740px;
+        .rm-preview-text {
+            margin: 26px 0 0;
             color: #5d6b84;
-            font-size: 19px;
-            line-height: 1.72;
+            font-size: 20px;
+            line-height: 1.75;
             font-weight: 500;
+            max-width: 720px;
         }
 
         .rm-module-strip {
             display: flex;
             flex-wrap: wrap;
             gap: 12px;
+            margin-top: 36px;
         }
 
         .rm-module-chip {
@@ -206,13 +205,14 @@
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 16px;
+            margin-top: 30px;
         }
 
         .rm-preview-card {
             position: relative;
-            min-height: 138px;
-            padding: 22px;
-            border-radius: 24px;
+            min-height: 126px;
+            padding: 20px;
+            border-radius: 22px;
             background: rgba(255, 255, 255, .78);
             border: 1px solid rgba(219, 227, 238, .95);
             box-shadow: 0 16px 40px rgba(15, 23, 42, .07);
@@ -221,11 +221,11 @@
 
         .rm-preview-icon {
             position: absolute;
-            top: 20px;
-            right: 20px;
-            width: 46px;
-            height: 46px;
-            border-radius: 16px;
+            top: 18px;
+            right: 18px;
+            width: 42px;
+            height: 42px;
+            border-radius: 15px;
             display: grid;
             place-items: center;
             color: var(--rm-primary-dark);
@@ -236,7 +236,7 @@
         .rm-preview-card span {
             display: block;
             color: #667085;
-            font-size: 15px;
+            font-size: 14.5px;
             font-weight: 600;
             line-height: 1.4;
         }
@@ -244,168 +244,73 @@
         .rm-preview-card strong {
             display: block;
             margin: 8px 0;
-            padding-right: 56px;
+            padding-right: 50px;
             color: #020617;
-            font-size: 24px;
+            font-size: 22px;
             line-height: 1.12;
             font-weight: 900;
             letter-spacing: -0.035em;
         }
 
-        .rm-preview-card span:first-of-type {
-            padding-right: 56px;
-        }
-
-        .rm-digitbol-box {
-            position: relative;
-            z-index: 1;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 18px;
-            padding: 18px;
-            border-radius: 24px;
-            background: rgba(255, 255, 255, .76);
-            border: 1px solid rgba(219, 227, 238, .94);
-            box-shadow: var(--rm-shadow-sm);
-        }
-
-        .rm-digitbol-info {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            min-width: 0;
-        }
-
-        .rm-digitbol-logo {
-            width: 64px;
-            height: 64px;
-            object-fit: contain;
-            border-radius: 18px;
-            background: #fff;
-            border: 1px solid #e7edf5;
-            padding: 5px;
-            flex: 0 0 auto;
-        }
-
-        .rm-digitbol-info span {
-            display: block;
-            color: #667085;
-            font-size: 12px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: .04em;
-            margin-bottom: 4px;
-        }
-
-        .rm-digitbol-info strong {
-            display: block;
-            color: #0f172a;
-            font-size: 18px;
-            font-weight: 900;
-            letter-spacing: -0.03em;
-        }
-
-        .rm-digitbol-info small {
-            display: block;
-            margin-top: 5px;
-            color: #667085;
-            font-size: 13px;
-            font-weight: 600;
-            line-height: 1.4;
-        }
-
-        .rm-digitbol-action {
-            min-height: 44px;
-            padding: 0 16px;
-            border-radius: 999px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 9px;
-            background: #25D366;
-            color: white;
-            font-size: 13px;
-            font-weight: 900;
-            box-shadow: 0 14px 28px rgba(37, 211, 102, .20);
-            white-space: nowrap;
-            transition: transform .18s ease, box-shadow .18s ease;
-        }
-
-        .rm-digitbol-action:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 18px 34px rgba(37, 211, 102, .28);
-        }
-
         .rm-auth-form-panel {
-            position: relative;
-            display: block;
+            display: grid;
+            align-items: center;
             padding: 48px;
-            padding-top: 38px;
             background:
                 radial-gradient(circle at bottom left, rgba(15, 143, 127, .08), transparent 36%),
-                rgba(255, 255, 255, .94);
+                rgba(255, 255, 255, .96);
+            border-left: 1px solid rgba(219, 227, 238, .9);
         }
 
-        .rm-auth-form-panel::before {
-            content: "";
-            position: absolute;
-            left: 0;
-            top: 42px;
-            bottom: 42px;
-            width: 1px;
-            background: linear-gradient(180deg, transparent, #dbe3ee, transparent);
-        }
-
-        /* LOGIN FORM */
-        .rm-login-page {
+        .rm-auth-form-inner {
             width: 100%;
+            max-width: 560px;
+            margin: 0 auto;
         }
 
+        /* LOGIN */
         .rm-login-shell {
             width: 100%;
-            max-width: 470px;
-            margin: 0 auto;
             display: grid;
             gap: 22px;
             animation: rmFadeUp .42s ease both;
         }
 
-        .rm-login-head {
+        .rm-login-header {
             display: flex;
             align-items: flex-start;
             justify-content: space-between;
             gap: 16px;
         }
 
-        .rm-brand-link {
+        .rm-login-brand {
             display: inline-flex;
             align-items: center;
             gap: 14px;
-            min-width: 0;
             color: inherit;
+            min-width: 0;
         }
 
         .rm-login-brand-title {
             display: block;
-            font-size: 22px;
-            font-weight: 900;
             color: #0f172a;
-            letter-spacing: -0.035em;
+            font-size: 25px;
+            font-weight: 900;
+            letter-spacing: -0.04em;
             line-height: 1;
         }
 
         .rm-login-brand-subtitle {
             display: block;
-            margin-top: 6px;
-            font-size: 12.5px;
-            font-weight: 700;
+            margin-top: 7px;
             color: #667085;
+            font-size: 13.5px;
+            font-weight: 700;
             line-height: 1.35;
         }
 
-        .rm-auth-badge {
-            padding: 9px 12px;
+        .rm-secure-badge {
+            padding: 10px 14px;
             border-radius: 999px;
             background: #e7f7f5;
             color: #087568;
@@ -415,20 +320,20 @@
             border: 1px solid #cfeee8;
         }
 
-        .rm-login-copy h2 {
+        .rm-login-copy h1 {
             margin: 0;
             color: #111827;
-            font-size: clamp(31px, 4.4vw, 40px);
-            line-height: 1.08;
+            font-size: 46px;
+            line-height: 1.06;
             font-weight: 900;
-            letter-spacing: -0.035em;
+            letter-spacing: -0.045em;
         }
 
         .rm-login-copy p {
-            margin: 12px 0 0;
+            margin: 14px 0 0;
             color: #667085;
-            line-height: 1.7;
-            font-size: 15px;
+            font-size: 16px;
+            line-height: 1.72;
         }
 
         .rm-session-status {
@@ -443,9 +348,9 @@
 
         .rm-google-button {
             width: 100%;
-            min-height: 58px;
+            min-height: 60px;
             border: 1px solid #dbe3ee;
-            background: rgba(255, 255, 255, .82);
+            background: rgba(255, 255, 255, .88);
             border-radius: 20px;
             padding: 10px 14px;
             display: flex;
@@ -453,13 +358,13 @@
             gap: 13px;
             color: #101828;
             cursor: not-allowed;
-            opacity: .82;
+            opacity: .84;
             box-shadow: 0 12px 32px rgba(15, 23, 42, .05);
         }
 
         .rm-google-icon {
-            width: 36px;
-            height: 36px;
+            width: 38px;
+            height: 38px;
             border-radius: 999px;
             background: #f2f4f7;
             color: #344054;
@@ -478,7 +383,7 @@
         }
 
         .rm-google-text strong {
-            font-size: 14.5px;
+            font-size: 15px;
             font-weight: 900;
         }
 
@@ -525,26 +430,26 @@
         }
 
         .rm-label {
+            color: #101828;
             font-size: 14px;
             font-weight: 900;
-            color: #101828;
         }
 
         .rm-input-box {
-            min-height: 58px;
+            min-height: 60px;
             border: 1px solid #dbe3ee;
-            border-radius: 19px;
-            background: rgba(255, 255, 255, .92);
+            border-radius: 20px;
+            background: rgba(255, 255, 255, .96);
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 0 14px;
+            gap: 11px;
+            padding: 0 15px;
             transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
         }
 
         .rm-input-box:focus-within {
             border-color: #0f8f7f;
-            background: #ffffff;
+            background: white;
             box-shadow: 0 0 0 5px rgba(15, 143, 127, .10);
         }
 
@@ -623,10 +528,10 @@
             height: 22px;
             border-radius: 7px;
             border: 1.5px solid #aab4c3;
-            background: #ffffff;
+            background: white;
             display: grid;
             place-items: center;
-            color: #ffffff;
+            color: white;
             flex: 0 0 auto;
             transition: .18s ease;
         }
@@ -639,13 +544,13 @@
             transition: .18s ease;
         }
 
-        .rm-remember-input:checked+.rm-remember-box {
+        .rm-remember-input:checked + .rm-remember-box {
             background: #0f8f7f;
             border-color: #0f8f7f;
             box-shadow: 0 8px 18px rgba(15, 143, 127, .22);
         }
 
-        .rm-remember-input:checked+.rm-remember-box svg {
+        .rm-remember-input:checked + .rm-remember-box svg {
             opacity: 1;
             transform: scale(1);
         }
@@ -662,11 +567,11 @@
         }
 
         .rm-submit-button {
-            min-height: 58px;
+            min-height: 60px;
             border: 0;
-            border-radius: 19px;
+            border-radius: 20px;
             background: linear-gradient(135deg, #0f8f7f, #087568);
-            color: #ffffff;
+            color: white;
             font-size: 16px;
             font-weight: 900;
             cursor: pointer;
@@ -697,7 +602,7 @@
             height: 17px;
             border-radius: 999px;
             border: 2px solid rgba(255, 255, 255, .45);
-            border-top-color: #ffffff;
+            border-top-color: white;
             animation: rmSpin .75s linear infinite;
         }
 
@@ -714,43 +619,54 @@
             font-weight: 900;
         }
 
-        .rm-form-digitbol {
+        .rm-digitbol-card {
             padding: 16px;
             border-radius: 20px;
             background: linear-gradient(135deg, #ffffff 0%, #f7fbfd 100%);
             border: 1px solid #dbe3ee;
-            box-shadow: var(--rm-shadow-sm);
+            box-shadow: 0 10px 28px rgba(15, 23, 42, .06);
             display: flex;
             align-items: center;
             gap: 13px;
         }
 
-        .rm-form-digitbol img {
-            width: 54px;
-            height: 54px;
+        .rm-digitbol-card img {
+            width: 58px;
+            height: 58px;
             object-fit: contain;
             border-radius: 15px;
             border: 1px solid #e7edf5;
             padding: 4px;
-            background: #fff;
+            background: white;
+            flex: 0 0 auto;
         }
 
-        .rm-form-digitbol span {
+        .rm-digitbol-card span {
             display: block;
             color: #667085;
             font-size: 12px;
             font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .04em;
         }
 
-        .rm-form-digitbol strong {
+        .rm-digitbol-card strong {
             display: block;
             color: #0f172a;
-            font-size: 16px;
+            font-size: 17px;
             font-weight: 900;
             margin-top: 2px;
         }
 
-        .rm-form-digitbol a {
+        .rm-digitbol-card p {
+            margin: 4px 0 0;
+            color: #667085;
+            font-size: 13px;
+            line-height: 1.45;
+            font-weight: 600;
+        }
+
+        .rm-digitbol-card a {
             display: inline-block;
             margin-top: 6px;
             color: #087568;
@@ -782,58 +698,47 @@
             }
 
             .rm-auth-preview {
-                padding: 34px;
-            }
-
-            .rm-auth-form-panel {
-                display: block;
-                padding: 32px;
-                padding-top: 28px;
-            }
-
-            .rm-auth-form-panel::before {
                 display: none;
             }
 
-            .rm-preview-copy h1 {
-                font-size: 48px;
+            .rm-auth-form-panel {
+                min-height: calc(100vh - 56px);
+                border-left: 0;
+                padding: 34px;
+            }
+
+            .rm-auth-form-inner {
+                max-width: 560px;
             }
         }
 
-        @media (max-width: 640px) {
-            .rm-auth-shell {
-                min-height: 100vh;
+        @media (max-width: 560px) {
+            .rm-auth-page {
                 padding: 0;
                 display: block;
             }
 
             .rm-auth-layout {
                 min-height: 100vh;
-                border: 0;
                 border-radius: 0;
+                border: 0;
                 box-shadow: none;
                 background: transparent;
-            }
-
-            .rm-auth-preview {
-                display: none;
             }
 
             .rm-auth-form-panel {
                 min-height: 100vh;
                 padding: 22px 18px 30px;
-                display: block;
                 background:
                     radial-gradient(circle at top left, rgba(15, 143, 127, .11), transparent 34%),
                     linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
             }
 
             .rm-login-shell {
-                max-width: 100%;
                 gap: 19px;
             }
 
-            .rm-login-head {
+            .rm-login-header {
                 align-items: center;
             }
 
@@ -844,35 +749,40 @@
             }
 
             .rm-login-brand-title {
-                font-size: 21px;
+                font-size: 22px;
             }
 
             .rm-login-brand-subtitle,
-            .rm-auth-badge {
+            .rm-secure-badge {
                 display: none;
             }
 
-            .rm-login-copy h2 {
-                font-size: 32px;
-                letter-spacing: -0.025em;
+            .rm-login-copy h1 {
+                font-size: 34px;
+                letter-spacing: -0.03em;
             }
 
             .rm-login-copy p {
-                font-size: 14.5px;
+                font-size: 14.8px;
             }
 
-            .rm-google-button {
+            .rm-google-button,
+            .rm-input-box,
+            .rm-submit-button {
                 min-height: 56px;
             }
 
             .rm-login-options {
-                align-items: center;
                 gap: 10px;
             }
 
             .rm-remember,
             .rm-forgot {
                 font-size: 13.5px;
+            }
+
+            .rm-digitbol-card {
+                align-items: flex-start;
             }
         }
 
@@ -882,31 +792,42 @@
                 align-items: flex-start;
             }
 
-            .rm-form-digitbol {
-                align-items: flex-start;
+            .rm-digitbol-card {
+                flex-direction: column;
             }
         }
     </style>
 </head>
 
-<body class="font-sans antialiased">
-    <main class="rm-auth-shell">
+<body>
+    <main class="rm-auth-page">
         <div class="rm-auth-layout">
             <section class="rm-auth-preview" aria-label="Resumen de Rumika SaaS">
-                <div class="rm-preview-main">
-                    <div class="rm-preview-copy">
-                        <div class="rm-preview-kicker">
-                            <span class="rm-preview-kicker-dot"></span>
-                            Plataforma escalable para múltiples sucursales
-                        </div>
+                <div class="rm-preview-content">
+                    <a href="{{ url('/') }}" class="rm-preview-brand" wire:navigate>
+                        <span class="rm-brand-mark">
+                            <x-application-logo class="h-7 w-7 text-white" />
+                        </span>
 
-                        <h1>Agenda, clientes e historial en bloques.</h1>
+                        <span>
+                            <span class="rm-preview-brand-title">Rumika SaaS</span>
+                            <span class="rm-preview-brand-subtitle">Sistema modular para negocios de atención</span>
+                        </span>
+                    </a>
 
-                        <p>
-                            Una base modular para clínicas, spas, centros de belleza, barberías y dentistas.
-                            Cada sucursal podrá activar sus módulos según su tipo de negocio.
-                        </p>
+                    <div class="rm-preview-kicker">
+                        <span class="rm-preview-kicker-dot"></span>
+                        Plataforma escalable para múltiples sucursales
                     </div>
+
+                    <h1 class="rm-preview-title">
+                        Agenda, clientes e historial en bloques.
+                    </h1>
+
+                    <p class="rm-preview-text">
+                        Una base modular para clínicas, spas, centros de belleza, barberías y dentistas.
+                        Cada sucursal podrá activar sus módulos según su tipo de negocio.
+                    </p>
 
                     <div class="rm-module-strip" aria-label="Módulos iniciales">
                         <span class="rm-module-chip">Agenda</span>
@@ -918,12 +839,11 @@
                     <div class="rm-preview-grid">
                         <article class="rm-preview-card">
                             <div class="rm-preview-icon">
-                                <svg width="23" height="23" viewBox="0 0 24 24" fill="none">
-                                    <rect x="3" y="5" width="18" height="16" rx="3" stroke="currentColor"
-                                        stroke-width="2" />
-                                    <path d="M8 3V7" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                                    <path d="M16 3V7" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                                    <path d="M3 10H21" stroke="currentColor" stroke-width="2" />
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                                    <rect x="3" y="5" width="18" height="16" rx="3" stroke="currentColor" stroke-width="2"/>
+                                    <path d="M8 3V7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    <path d="M16 3V7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    <path d="M3 10H21" stroke="currentColor" stroke-width="2"/>
                                 </svg>
                             </div>
                             <span>Hoy</span>
@@ -933,11 +853,9 @@
 
                         <article class="rm-preview-card">
                             <div class="rm-preview-icon">
-                                <svg width="23" height="23" viewBox="0 0 24 24" fill="none">
-                                    <path d="M4 21V8.5L12 3L20 8.5V21" stroke="currentColor" stroke-width="2"
-                                        stroke-linecap="round" stroke-linejoin="round" />
-                                    <path d="M9 21V14H15V21" stroke="currentColor" stroke-width="2"
-                                        stroke-linecap="round" stroke-linejoin="round" />
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                                    <path d="M4 21V8.5L12 3L20 8.5V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M9 21V14H15V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
                             </div>
                             <span>Sucursal</span>
@@ -947,14 +865,11 @@
 
                         <article class="rm-preview-card">
                             <div class="rm-preview-icon">
-                                <svg width="23" height="23" viewBox="0 0 24 24" fill="none">
-                                    <path d="M16 19C16 16.7909 14.2091 15 12 15C9.79086 15 8 16.7909 8 19"
-                                        stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                                    <circle cx="12" cy="8" r="4" stroke="currentColor"
-                                        stroke-width="2" />
-                                    <path d="M19 8V13" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                                    <path d="M21.5 10.5H16.5" stroke="currentColor" stroke-width="2"
-                                        stroke-linecap="round" />
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                                    <path d="M16 19C16 16.7909 14.2091 15 12 15C9.79086 15 8 16.7909 8 19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/>
+                                    <path d="M19 8V13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    <path d="M21.5 10.5H16.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                                 </svg>
                             </div>
                             <span>Cliente</span>
@@ -964,13 +879,10 @@
 
                         <article class="rm-preview-card">
                             <div class="rm-preview-icon">
-                                <svg width="23" height="23" viewBox="0 0 24 24" fill="none">
-                                    <path d="M4 7.5L12 4L20 7.5L12 11L4 7.5Z" stroke="currentColor" stroke-width="2"
-                                        stroke-linejoin="round" />
-                                    <path d="M4 12.5L12 16L20 12.5" stroke="currentColor" stroke-width="2"
-                                        stroke-linecap="round" stroke-linejoin="round" />
-                                    <path d="M4 17.5L12 21L20 17.5" stroke="currentColor" stroke-width="2"
-                                        stroke-linecap="round" stroke-linejoin="round" />
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                                    <path d="M4 7.5L12 4L20 7.5L12 11L4 7.5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                                    <path d="M4 12.5L12 16L20 12.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M4 17.5L12 21L20 17.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
                             </div>
                             <span>Marca</span>
@@ -979,33 +891,18 @@
                         </article>
                     </div>
                 </div>
-
-                <div class="rm-digitbol-box">
-                    <div class="rm-digitbol-info">
-                        <img src="{{ asset('digitbol-logo.jpg') }}" alt="DigitBol" class="rm-digitbol-logo">
-
-                        <div>
-                            <span>Desarrollado por</span>
-                            <strong>DigitBol</strong>
-                            <small>Sistemas web, SaaS y soluciones a medida para negocios.</small>
-                        </div>
-                    </div>
-
-                    <a href="https://wa.me/59177348087?text=Hola%2C%20quiero%20informaci%C3%B3n%20sobre%20DigitBol%20y%20sus%20sistemas."
-                        target="_blank" rel="noopener" class="rm-digitbol-action">
-                        Hablar por WhatsApp
-                    </a>
-                </div>
             </section>
 
             <section class="rm-auth-form-panel">
-                {{ $slot }}
+                <div class="rm-auth-form-inner">
+                    {{ $slot }}
+                </div>
             </section>
         </div>
     </main>
 
     <script>
-        document.addEventListener('click', function(event) {
+        document.addEventListener('click', function (event) {
             const button = event.target.closest('[data-password-toggle]');
 
             if (!button) {
