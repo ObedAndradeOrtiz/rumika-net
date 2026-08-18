@@ -890,6 +890,84 @@
     <main class="rm-auth-shell">
         <div class="rm-auth-layout">
             <section class="rm-auth-preview" aria-label="Resumen de Rumika SaaS">
+                <div class="rm-preview-main">
+                    <div class="rm-preview-copy">
+                        <div class="rm-preview-kicker">
+                            <span class="rm-preview-kicker-dot"></span>
+                            Plataforma escalable para múltiples sucursales
+                        </div>
+
+                        <h1>Agenda, clientes e historial en bloques.</h1>
+
+                        <p>
+                            Una base modular para clínicas, spas, centros de belleza, barberías y dentistas.
+                            Cada sucursal podrá activar sus módulos según su tipo de negocio.
+                        </p>
+                    </div>
+
+                    <div class="rm-module-strip" aria-label="Módulos iniciales">
+                        <span class="rm-module-chip">Agenda</span>
+                        <span class="rm-module-chip">Clientes</span>
+                        <span class="rm-module-chip">Historial</span>
+                        <span class="rm-module-chip">Sucursales</span>
+                    </div>
+
+                    <div class="rm-preview-grid">
+                        <article class="rm-preview-card">
+                            <div class="rm-preview-icon">
+                                <svg width="23" height="23" viewBox="0 0 24 24" fill="none">
+                                    <rect x="3" y="5" width="18" height="16" rx="3" stroke="currentColor" stroke-width="2"/>
+                                    <path d="M8 3V7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    <path d="M16 3V7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    <path d="M3 10H21" stroke="currentColor" stroke-width="2"/>
+                                </svg>
+                            </div>
+                            <span>Hoy</span>
+                            <strong>18 citas</strong>
+                            <span>4 tipos de servicio activos</span>
+                        </article>
+
+                        <article class="rm-preview-card">
+                            <div class="rm-preview-icon">
+                                <svg width="23" height="23" viewBox="0 0 24 24" fill="none">
+                                    <path d="M4 21V8.5L12 3L20 8.5V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M9 21V14H15V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <span>Sucursal</span>
+                            <strong>Centro</strong>
+                            <span>Clínica estética</span>
+                        </article>
+
+                        <article class="rm-preview-card">
+                            <div class="rm-preview-icon">
+                                <svg width="23" height="23" viewBox="0 0 24 24" fill="none">
+                                    <path d="M16 19C16 16.7909 14.2091 15 12 15C9.79086 15 8 16.7909 8 19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/>
+                                    <path d="M19 8V13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    <path d="M21.5 10.5H16.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                            <span>Cliente</span>
+                            <strong>Historial visible</strong>
+                            <span>Desde cada cita en agenda</span>
+                        </article>
+
+                        <article class="rm-preview-card">
+                            <div class="rm-preview-icon">
+                                <svg width="23" height="23" viewBox="0 0 24 24" fill="none">
+                                    <path d="M4 7.5L12 4L20 7.5L12 11L4 7.5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                                    <path d="M4 12.5L12 16L20 12.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M4 17.5L12 21L20 17.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <span>Marca</span>
+                            <strong>Logo propio</strong>
+                            <span>Nombre y sucursales configurables</span>
+                        </article>
+                    </div>
+                </div>
+
                 <div class="rm-digitbol-box">
                     <div class="rm-digitbol-info">
                         <img src="{{ asset('digitbol-logo.jpg') }}" alt="DigitBol" class="rm-digitbol-logo">
