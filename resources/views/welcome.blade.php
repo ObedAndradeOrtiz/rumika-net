@@ -1409,7 +1409,7 @@
                     </div>
 
                     <div class="digitbol-box">
-                        <img src="{{ asset('digitbol.png') }}" alt="DigitBol" class="digitbol-logo">
+                        <img src="{{ asset('digitbol-logo.jpg') }}" alt="DigitBol" class="digitbol-logo">
                         <span>Un sistema más de</span>
                         <strong>DigitBol</strong>
                         <span>Desarrollo de soluciones y sistemas a medida.</span>

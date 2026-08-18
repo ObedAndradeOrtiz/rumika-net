@@ -137,14 +137,22 @@ new #[Layout('layouts.guest')] class extends Component
             </div>
 
             <div class="rm-login-options">
-                <label for="remember" class="rm-check">
+                <label for="remember" class="rm-remember">
                     <input
                         wire:model="form.remember"
                         id="remember"
                         type="checkbox"
                         name="remember"
+                        class="rm-remember-input"
                     >
-                    <span>Recordarme</span>
+
+                    <span class="rm-remember-box">
+                        <svg viewBox="0 0 20 20" fill="none">
+                            <path d="M5 10.5L8.2 13.5L15 6.5" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </span>
+
+                    <span class="rm-remember-text">Recordarme</span>
                 </label>
 
                 @if (Route::has('password.request'))
@@ -428,30 +436,74 @@ new #[Layout('layouts.guest')] class extends Component
         }
 
         .rm-login-options {
+            width: 100%;
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 14px;
-            flex-wrap: wrap;
             margin-top: 2px;
         }
 
-        .rm-check {
+        .rm-remember {
             display: inline-flex;
             align-items: center;
-            gap: 9px;
+            gap: 10px;
             color: #475467;
             font-size: 14px;
             font-weight: 800;
             cursor: pointer;
             user-select: none;
+            line-height: 1;
+            min-width: 0;
         }
 
-        .rm-check input {
-            width: 17px;
-            height: 17px;
-            border-radius: 5px;
-            accent-color: #087568;
+        .rm-remember-input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+            width: 1px;
+            height: 1px;
+        }
+
+        .rm-remember-box {
+            width: 22px;
+            height: 22px;
+            border-radius: 7px;
+            border: 1.5px solid #aab4c3;
+            background: #ffffff;
+            display: grid;
+            place-items: center;
+            color: #ffffff;
+            flex: 0 0 auto;
+            transition: .18s ease;
+        }
+
+        .rm-remember-box svg {
+            width: 15px;
+            height: 15px;
+            opacity: 0;
+            transform: scale(.7);
+            transition: .18s ease;
+        }
+
+        .rm-remember-input:checked + .rm-remember-box {
+            background: #0f8f7f;
+            border-color: #0f8f7f;
+            box-shadow: 0 8px 18px rgba(15, 143, 127, .22);
+        }
+
+        .rm-remember-input:checked + .rm-remember-box svg {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .rm-remember-input:focus + .rm-remember-box {
+            box-shadow: 0 0 0 5px rgba(15, 143, 127, .10);
+            border-color: #0f8f7f;
+        }
+
+        .rm-remember-text {
+            white-space: nowrap;
         }
 
         .rm-forgot {
@@ -459,6 +511,7 @@ new #[Layout('layouts.guest')] class extends Component
             font-size: 14px;
             font-weight: 900;
             text-decoration: none;
+            white-space: nowrap;
         }
 
         .rm-forgot:hover,
@@ -591,11 +644,23 @@ new #[Layout('layouts.guest')] class extends Component
             }
 
             .rm-login-options {
-                align-items: flex-start;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .rm-remember {
+                font-size: 13.5px;
             }
 
             .rm-forgot {
-                margin-left: auto;
+                font-size: 13.5px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .rm-login-options {
+                flex-direction: column;
+                align-items: flex-start;
             }
         }
     </style>
