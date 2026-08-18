@@ -1,3 +1,26 @@
+<?php
+
+use App\Livewire\Forms\LoginForm;
+use Illuminate\Support\Facades\Session;
+use Livewire\Attributes\Layout;
+use Livewire\Volt\Component;
+
+new #[Layout('layouts.guest')] class extends Component
+{
+    public LoginForm $form;
+
+    public function login(): void
+    {
+        $this->validate();
+
+        $this->form->authenticate();
+
+        Session::regenerate();
+
+        $this->redirectIntended(default: route('dashboard', absolute: false), navigate: true);
+    }
+}; ?>
+
 <div class="rm-login-page">
     <main class="rm-login-wrapper">
         <section class="rm-login-card">
