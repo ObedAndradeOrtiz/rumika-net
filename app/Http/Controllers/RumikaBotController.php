@@ -21,9 +21,11 @@ class RumikaBotController extends Controller
             if (!$apiKey) {
                 return response()->json([
                     'ok' => false,
-                    'answer' => 'La API del asistente todavía no está configurada. Falta GOOGLE_AI_API_KEY en el archivo .env.',
+                    'answer' => 'La API del asistente todavía no está configurada.',
                 ]);
             }
+
+            $model = config('services.google_ai.model', 'gemini-3.5-flash');
 
             $knowledgePath = public_path('rumika-knowledge.txt');
 
@@ -33,26 +35,27 @@ class RumikaBotController extends Controller
 
             $userMessage = $request->input('message');
 
-            $prompt = "
+            $prompt = trim("
 Eres el asistente virtual oficial de Rumika SaaS.
 
 Responde siempre en español.
 Responde de forma clara, profesional, amable y breve.
-No inventes precios ni datos que no estén en la base de conocimiento.
-Si no sabes algo, indica que el usuario puede comunicarse con un representante por WhatsApp al 59177348087.
+No inventes precios, planes ni datos que no estén en la base de conocimiento.
+Si el usuario pregunta algo que no está en la base de conocimiento, indica que puede comunicarse con un representante por WhatsApp al 59177348087.
 
 Base de conocimiento:
 {$knowledge}
 
 Pregunta del usuario:
 {$userMessage}
-";
+");
 
-            $response = Http::timeout(30)->post(
-                'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=' . $apiKey,
-                [
+            $response = Http::withoutVerifying()
+                ->timeout(20)
+                ->post("https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}", [
                     'contents' => [
                         [
+                            'role' => 'user',
                             'parts' => [
                                 [
                                     'text' => $prompt,
@@ -60,17 +63,13 @@ Pregunta del usuario:
                             ],
                         ],
                     ],
-                    'generationConfig' => [
-                        'temperature' => 0.4,
-                        'maxOutputTokens' => 350,
-                    ],
-                ]
-            );
+                ]);
 
             if (!$response->successful()) {
                 Log::error('Error Google AI Rumika Bot', [
                     'status' => $response->status(),
                     'body' => $response->body(),
+                    'model' => $model,
                 ]);
 
                 return response()->json([
@@ -80,21 +79,14 @@ Pregunta del usuario:
                 ]);
             }
 
-            $answer = data_get(
+            $answer = trim((string) data_get(
                 $response->json(),
                 'candidates.0.content.parts.0.text'
-            );
-
-            if (!$answer) {
-                return response()->json([
-                    'ok' => false,
-                    'answer' => 'No pude generar una respuesta en este momento. Puedes escribirnos por WhatsApp al 59177348087.',
-                ]);
-            }
+            ));
 
             return response()->json([
                 'ok' => true,
-                'answer' => trim($answer),
+                'answer' => $answer ?: 'Puedes comunicarte con un representante por WhatsApp al 59177348087.',
             ]);
         } catch (\Throwable $e) {
             Log::error('Error interno Rumika Bot', [
