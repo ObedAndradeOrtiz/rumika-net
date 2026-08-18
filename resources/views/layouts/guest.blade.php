@@ -339,10 +339,9 @@
 
         .rm-auth-form-panel {
             position: relative;
-            display: grid;
-            align-items: start;
+            display: block;
             padding: 48px;
-            padding-top: 70px;
+            padding-top: 38px;
             background:
                 radial-gradient(circle at bottom left, rgba(15, 143, 127, .08), transparent 36%),
                 rgba(255, 255, 255, .94);
@@ -787,7 +786,9 @@
             }
 
             .rm-auth-form-panel {
-                padding: 38px;
+                display: block;
+                padding: 32px;
+                padding-top: 28px;
             }
 
             .rm-auth-form-panel::before {
@@ -821,6 +822,7 @@
             .rm-auth-form-panel {
                 min-height: 100vh;
                 padding: 22px 18px 30px;
+                display: block;
                 background:
                     radial-gradient(circle at top left, rgba(15, 143, 127, .11), transparent 34%),
                     linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
