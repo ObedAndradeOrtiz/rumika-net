@@ -1,6 +1,11 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\RumikaBotController;
+
+Route::post('/rumika-bot', [RumikaBotController::class, 'ask'])
+    ->name('rumika.bot');
+
 
 Route::get('/', function () {
     return view('welcome');
@@ -58,4 +63,4 @@ Route::view('profile', 'profile')
     ->middleware(['auth'])
     ->name('profile');
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

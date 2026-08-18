@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Rumika SaaS | Sistema modular para negocios de atención</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800,900" rel="stylesheet" />
@@ -459,7 +461,7 @@
         .about-box {
             background:
                 linear-gradient(135deg, rgba(15, 143, 127, .96), rgba(4, 88, 79, .96)),
-                radial-gradient(circle at top right, rgba(255,255,255,.22), transparent 40%);
+                radial-gradient(circle at top right, rgba(255, 255, 255, .22), transparent 40%);
             color: white;
             border-radius: var(--radius-xl);
             padding: 48px;
@@ -568,7 +570,7 @@
 
         .float-actions {
             position: fixed;
-            left: 22px;
+            right: 22px;
             bottom: 22px;
             display: grid;
             gap: 12px;
@@ -603,7 +605,7 @@
 
         .chat-modal {
             position: fixed;
-            left: 22px;
+            right: 22px;
             bottom: 96px;
             width: min(390px, calc(100vw - 44px));
             height: 560px;
@@ -855,7 +857,7 @@
             }
 
             .float-actions {
-                left: 16px;
+                right: 16px;
                 bottom: 16px;
             }
 
@@ -864,8 +866,9 @@
                 height: 54px;
             }
 
+
             .chat-modal {
-                left: 12px;
+                right: 12px;
                 bottom: 84px;
                 width: calc(100vw - 24px);
                 height: 530px;
@@ -1139,7 +1142,8 @@
                         </p>
 
                         <p>
-                            La idea es clara: que cada empresa tenga una herramienta moderna, escalable y lista para crecer.
+                            La idea es clara: que cada empresa tenga una herramienta moderna, escalable y lista para
+                            crecer.
                         </p>
                     </div>
 
@@ -1165,7 +1169,8 @@
                         <h3>¿Rumika sirve solo para spas?</h3>
                         <p>
                             No. Rumika está pensado para spas, clínicas, centros de belleza, barberías,
-                            dentistas y cualquier negocio que necesite agenda, clientes, inventario y control por sucursal.
+                            dentistas y cualquier negocio que necesite agenda, clientes, inventario y control por
+                            sucursal.
                         </p>
                     </div>
 
@@ -1173,21 +1178,24 @@
                         <h3>¿Puedo activar solo algunos módulos?</h3>
                         <p>
                             Sí. Cada empresa o sucursal puede trabajar con los módulos que realmente necesita.
-                            Por ejemplo, una sucursal puede usar agenda e historial, mientras otra también activa inventario y caja.
+                            Por ejemplo, una sucursal puede usar agenda e historial, mientras otra también activa
+                            inventario y caja.
                         </p>
                     </div>
 
                     <div class="faq-item">
                         <h3>¿Se puede usar con varias sucursales?</h3>
                         <p>
-                            Sí. Rumika está preparado para separar información por sucursal y permitir una administración más ordenada.
+                            Sí. Rumika está preparado para separar información por sucursal y permitir una
+                            administración más ordenada.
                         </p>
                     </div>
 
                     <div class="faq-item">
                         <h3>¿Puedo hablar con un representante?</h3>
                         <p>
-                            Sí. Puedes escribir por WhatsApp desde el botón flotante o usar el asistente virtual para resolver dudas iniciales.
+                            Sí. Puedes escribir por WhatsApp desde el botón flotante o usar el asistente virtual para
+                            resolver dudas iniciales.
                         </p>
                     </div>
                 </div>
@@ -1198,7 +1206,8 @@
                     <div>
                         <h2>Empieza a ordenar tu negocio con Rumika.</h2>
                         <p>
-                            Registra tu empresa, activa los módulos necesarios y administra tu operación desde una plataforma moderna.
+                            Registra tu empresa, activa los módulos necesarios y administra tu operación desde una
+                            plataforma moderna.
                         </p>
                     </div>
 
@@ -1230,25 +1239,25 @@
     </div>
 
     <div class="float-actions">
-        <button type="button" class="float-btn bot-btn" onclick="toggleChat()" aria-label="Abrir asistente virtual">
+        <button type="button" class="float-btn bot-btn" onclick="toggleChat()"
+            aria-label="Abrir asistente virtual">
             <svg width="27" height="27" viewBox="0 0 24 24" fill="none">
-                <path d="M12 3V5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                <rect x="4" y="6" width="16" height="12" rx="4" stroke="currentColor" stroke-width="2"/>
-                <path d="M8.5 11.5H8.51" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-                <path d="M15.5 11.5H15.51" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-                <path d="M9 15C10.6 16 13.4 16 15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <path d="M12 3V5" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                <rect x="4" y="6" width="16" height="12" rx="4" stroke="currentColor"
+                    stroke-width="2" />
+                <path d="M8.5 11.5H8.51" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+                <path d="M15.5 11.5H15.51" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+                <path d="M9 15C10.6 16 13.4 16 15 15" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" />
             </svg>
         </button>
 
-        <a
-            class="float-btn whatsapp-btn"
+        <a class="float-btn whatsapp-btn"
             href="https://wa.me/59177348087?text=Hola%2C%20quiero%20comunicarme%20con%20un%20representante%20de%20Rumika."
-            target="_blank"
-            rel="noopener"
-            aria-label="Contactar por WhatsApp"
-        >
+            target="_blank" rel="noopener" aria-label="Contactar por WhatsApp">
             <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
-                <path fill="currentColor" d="M16.02 4C9.4 4 4.02 9.28 4.02 15.78c0 2.08.56 4.1 1.62 5.88L4 28l6.52-1.68a12.2 12.2 0 0 0 5.5 1.32C22.64 27.64 28 22.36 28 15.86C28.02 9.36 22.64 4 16.02 4Zm0 21.62c-1.78 0-3.52-.46-5.04-1.34l-.36-.22l-3.86 1l1.02-3.68l-.24-.38a9.66 9.66 0 0 1-1.5-5.18c0-5.38 4.48-9.76 9.98-9.76S26 10.44 26 15.82c0 5.4-4.48 9.8-9.98 9.8Zm5.48-7.32c-.3-.14-1.78-.86-2.06-.96c-.28-.1-.48-.14-.68.14c-.2.3-.78.96-.96 1.16c-.18.2-.36.22-.66.08c-.3-.14-1.26-.46-2.4-1.46c-.88-.78-1.48-1.74-1.66-2.04c-.18-.3-.02-.46.14-.6c.14-.14.3-.36.46-.54c.16-.18.2-.3.3-.5c.1-.2.06-.38-.02-.54c-.08-.14-.68-1.62-.94-2.22c-.24-.58-.5-.5-.68-.52h-.58c-.2 0-.52.08-.8.38c-.28.3-1.04 1-1.04 2.44s1.06 2.84 1.2 3.04c.14.2 2.08 3.12 5.04 4.38c.7.3 1.26.48 1.68.62c.7.22 1.34.18 1.84.12c.56-.08 1.78-.72 2.04-1.42c.26-.7.26-1.3.18-1.42c-.08-.14-.28-.22-.58-.36Z"/>
+                <path fill="currentColor"
+                    d="M16.02 4C9.4 4 4.02 9.28 4.02 15.78c0 2.08.56 4.1 1.62 5.88L4 28l6.52-1.68a12.2 12.2 0 0 0 5.5 1.32C22.64 27.64 28 22.36 28 15.86C28.02 9.36 22.64 4 16.02 4Zm0 21.62c-1.78 0-3.52-.46-5.04-1.34l-.36-.22l-3.86 1l1.02-3.68l-.24-.38a9.66 9.66 0 0 1-1.5-5.18c0-5.38 4.48-9.76 9.98-9.76S26 10.44 26 15.82c0 5.4-4.48 9.8-9.98 9.8Zm5.48-7.32c-.3-.14-1.78-.86-2.06-.96c-.28-.1-.48-.14-.68.14c-.2.3-.78.96-.96 1.16c-.18.2-.36.22-.66.08c-.3-.14-1.26-.46-2.4-1.46c-.88-.78-1.48-1.74-1.66-2.04c-.18-.3-.02-.46.14-.6c.14-.14.3-.36.46-.54c.16-.18.2-.3.3-.5c.1-.2.06-.38-.02-.54c-.08-.14-.68-1.62-.94-2.22c-.24-.58-.5-.5-.68-.52h-.58c-.2 0-.52.08-.8.38c-.28.3-1.04 1-1.04 2.44s1.06 2.84 1.2 3.04c.14.2 2.08 3.12 5.04 4.38c.7.3 1.26.48 1.68.62c.7.22 1.34.18 1.84.12c.56-.08 1.78-.72 2.04-1.42c.26-.7.26-1.3.18-1.42c-.08-.14-.28-.22-.58-.36Z" />
             </svg>
         </a>
     </div>
@@ -1258,10 +1267,11 @@
             <div class="chat-user">
                 <div class="chat-avatar">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                        <path d="M12 3V5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                        <rect x="4" y="6" width="16" height="12" rx="4" stroke="currentColor" stroke-width="2"/>
-                        <path d="M8.5 11.5H8.51" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-                        <path d="M15.5 11.5H15.51" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+                        <path d="M12 3V5" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                        <rect x="4" y="6" width="16" height="12" rx="4" stroke="currentColor"
+                            stroke-width="2" />
+                        <path d="M8.5 11.5H8.51" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+                        <path d="M15.5 11.5H15.51" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
                     </svg>
                 </div>
 
@@ -1328,11 +1338,13 @@
             chatMessages.scrollTop = chatMessages.scrollHeight;
 
             try {
-                const response = await fetch('{{ url('/api/rumika-bot') }}', {
+                const response = await fetch('{{ route('rumika.bot') }}', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute(
+                            'content')
                     },
                     body: JSON.stringify({
                         message: question
@@ -1346,7 +1358,9 @@
                 if (data.ok) {
                     addMessage(data.answer, 'bot');
                 } else {
-                    addMessage('No pude responder en este momento. Por favor intenta nuevamente o comunícate por WhatsApp.', 'bot');
+                    addMessage(
+                        'No pude responder en este momento. Por favor intenta nuevamente o comunícate por WhatsApp.',
+                        'bot');
                 }
             } catch (error) {
                 loadingMessage.remove();
@@ -1355,4 +1369,5 @@
         }
     </script>
 </body>
+
 </html>
