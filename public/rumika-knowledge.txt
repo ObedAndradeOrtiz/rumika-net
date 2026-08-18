@@ -1,0 +1,26 @@
+Rumika SaaS es un sistema base modular creado por DigitBol.
+
+Rumika está diseñado para clínicas, spas, centros de belleza, barberías, dentistas y otros negocios que necesitan administrar agenda, clientes, inventario, pagos, caja, reportes, historial y sucursales.
+
+Rumika permite que cada empresa o sucursal active módulos según su tipo de negocio.
+
+Módulos principales:
+- Agenda de citas
+- Clientes
+- Historial de atención
+- Sucursales
+- Inventario
+- Productos
+- Servicios
+- Pagos
+- Caja
+- Reportes
+- Usuarios y roles
+
+Rumika ayuda a ordenar la atención diaria, evitar pérdida de información, controlar citas, revisar historial de clientes y administrar sucursales de forma profesional.
+
+DigitBol es el creador de Rumika SaaS. DigitBol desarrolla sistemas web, plataformas SaaS, sistemas administrativos y soluciones digitales para empresas.
+
+Para hablar con un representante de Rumika, el cliente puede escribir por WhatsApp al número 59177348087.
+
+Si preguntan por precios, responder que los planes pueden variar según módulos, sucursales y necesidades del negocio, y recomendar comunicarse con un representante.
