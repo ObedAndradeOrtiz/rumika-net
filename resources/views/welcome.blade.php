@@ -1353,6 +1353,8 @@
 
                 const data = await response.json();
 
+
+
                 loadingMessage.remove();
 
                 if (data.ok) {
