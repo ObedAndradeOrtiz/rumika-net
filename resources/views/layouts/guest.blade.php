@@ -804,17 +804,6 @@
         <div class="rm-auth-layout">
             <section class="rm-auth-preview" aria-label="Resumen de Rumika SaaS">
                 <div class="rm-preview-content">
-                    <a href="{{ url('/') }}" class="rm-preview-brand" wire:navigate>
-                        <span class="rm-brand-mark">
-                            <x-application-logo class="h-7 w-7 text-white" />
-                        </span>
-
-                        <span>
-                            <span class="rm-preview-brand-title">Rumika SaaS</span>
-                            <span class="rm-preview-brand-subtitle">Sistema modular para negocios de atención</span>
-                        </span>
-                    </a>
-
                     <div class="rm-preview-kicker">
                         <span class="rm-preview-kicker-dot"></span>
                         Plataforma escalable para múltiples sucursales
