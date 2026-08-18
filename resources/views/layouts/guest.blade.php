@@ -340,8 +340,9 @@
         .rm-auth-form-panel {
             position: relative;
             display: grid;
-            align-items: center;
+            align-items: start;
             padding: 48px;
+            padding-top: 70px;
             background:
                 radial-gradient(circle at bottom left, rgba(15, 143, 127, .08), transparent 36%),
                 rgba(255, 255, 255, .94);
@@ -639,13 +640,13 @@
             transition: .18s ease;
         }
 
-        .rm-remember-input:checked + .rm-remember-box {
+        .rm-remember-input:checked+.rm-remember-box {
             background: #0f8f7f;
             border-color: #0f8f7f;
             box-shadow: 0 8px 18px rgba(15, 143, 127, .22);
         }
 
-        .rm-remember-input:checked + .rm-remember-box svg {
+        .rm-remember-input:checked+.rm-remember-box svg {
             opacity: 1;
             transform: scale(1);
         }
@@ -916,10 +917,11 @@
                         <article class="rm-preview-card">
                             <div class="rm-preview-icon">
                                 <svg width="23" height="23" viewBox="0 0 24 24" fill="none">
-                                    <rect x="3" y="5" width="18" height="16" rx="3" stroke="currentColor" stroke-width="2"/>
-                                    <path d="M8 3V7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                    <path d="M16 3V7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                    <path d="M3 10H21" stroke="currentColor" stroke-width="2"/>
+                                    <rect x="3" y="5" width="18" height="16" rx="3" stroke="currentColor"
+                                        stroke-width="2" />
+                                    <path d="M8 3V7" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                                    <path d="M16 3V7" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                                    <path d="M3 10H21" stroke="currentColor" stroke-width="2" />
                                 </svg>
                             </div>
                             <span>Hoy</span>
@@ -930,8 +932,10 @@
                         <article class="rm-preview-card">
                             <div class="rm-preview-icon">
                                 <svg width="23" height="23" viewBox="0 0 24 24" fill="none">
-                                    <path d="M4 21V8.5L12 3L20 8.5V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <path d="M9 21V14H15V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M4 21V8.5L12 3L20 8.5V21" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round" />
+                                    <path d="M9 21V14H15V21" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round" />
                                 </svg>
                             </div>
                             <span>Sucursal</span>
@@ -942,10 +946,13 @@
                         <article class="rm-preview-card">
                             <div class="rm-preview-icon">
                                 <svg width="23" height="23" viewBox="0 0 24 24" fill="none">
-                                    <path d="M16 19C16 16.7909 14.2091 15 12 15C9.79086 15 8 16.7909 8 19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                    <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/>
-                                    <path d="M19 8V13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                                    <path d="M21.5 10.5H16.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    <path d="M16 19C16 16.7909 14.2091 15 12 15C9.79086 15 8 16.7909 8 19"
+                                        stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                                    <circle cx="12" cy="8" r="4" stroke="currentColor"
+                                        stroke-width="2" />
+                                    <path d="M19 8V13" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                                    <path d="M21.5 10.5H16.5" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" />
                                 </svg>
                             </div>
                             <span>Cliente</span>
@@ -956,9 +963,12 @@
                         <article class="rm-preview-card">
                             <div class="rm-preview-icon">
                                 <svg width="23" height="23" viewBox="0 0 24 24" fill="none">
-                                    <path d="M4 7.5L12 4L20 7.5L12 11L4 7.5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-                                    <path d="M4 12.5L12 16L20 12.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <path d="M4 17.5L12 21L20 17.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M4 7.5L12 4L20 7.5L12 11L4 7.5Z" stroke="currentColor" stroke-width="2"
+                                        stroke-linejoin="round" />
+                                    <path d="M4 12.5L12 16L20 12.5" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round" />
+                                    <path d="M4 17.5L12 21L20 17.5" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round" />
                                 </svg>
                             </div>
                             <span>Marca</span>
@@ -979,12 +989,8 @@
                         </div>
                     </div>
 
-                    <a
-                        href="https://wa.me/59177348087?text=Hola%2C%20quiero%20informaci%C3%B3n%20sobre%20DigitBol%20y%20sus%20sistemas."
-                        target="_blank"
-                        rel="noopener"
-                        class="rm-digitbol-action"
-                    >
+                    <a href="https://wa.me/59177348087?text=Hola%2C%20quiero%20informaci%C3%B3n%20sobre%20DigitBol%20y%20sus%20sistemas."
+                        target="_blank" rel="noopener" class="rm-digitbol-action">
                         Hablar por WhatsApp
                     </a>
                 </div>
@@ -997,7 +1003,7 @@
     </main>
 
     <script>
-        document.addEventListener('click', function (event) {
+        document.addEventListener('click', function(event) {
             const button = event.target.closest('[data-password-toggle]');
 
             if (!button) {
