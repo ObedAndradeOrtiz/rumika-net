@@ -4,8 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Rumika SaaS | Sistema modular para negocios de atención</title>
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Rumika SaaS | Sistema modular para clínicas, spas y más</title>
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700,800,900" rel="stylesheet" />
@@ -14,17 +13,22 @@
         :root {
             --primary: #0f8f7f;
             --primary-dark: #087568;
-            --primary-darker: #04584f;
-            --primary-soft: #e7f7f5;
-            --bg: #f5f8fc;
+            --primary-deep: #054d45;
+            --primary-soft: #dff6f1;
+            --text: #101828;
+            --muted: #667085;
+            --border: #dbe3ee;
             --white: #ffffff;
-            --text: #101827;
-            --muted: #64708a;
-            --border: #d9e3ef;
-            --shadow: 0 24px 70px rgba(15, 32, 55, .12);
+            --bg: #f4f7fb;
+            --bg-soft: #f8fbfd;
+            --shadow-lg: 0 30px 80px rgba(15, 23, 42, 0.12);
+            --shadow-md: 0 18px 45px rgba(15, 23, 42, 0.08);
+            --shadow-sm: 0 10px 24px rgba(15, 23, 42, 0.06);
             --radius-xl: 34px;
             --radius-lg: 24px;
-            --radius-md: 16px;
+            --radius-md: 18px;
+            --radius-sm: 14px;
+            --container: 1320px;
         }
 
         * {
@@ -40,73 +44,86 @@
             font-family: 'Figtree', sans-serif;
             color: var(--text);
             background:
-                radial-gradient(circle at top left, rgba(15, 143, 127, .16), transparent 36%),
-                radial-gradient(circle at bottom right, rgba(15, 143, 127, .10), transparent 34%),
-                linear-gradient(135deg, #eef8f7 0%, #f8fbff 48%, #eef3f9 100%);
-            min-height: 100vh;
+                radial-gradient(circle at top left, rgba(15, 143, 127, .08), transparent 28%),
+                radial-gradient(circle at bottom right, rgba(15, 143, 127, .06), transparent 30%),
+                linear-gradient(180deg, #f7fbfb 0%, #f4f7fb 32%, #f8fbfd 100%);
         }
 
         a {
-            color: inherit;
             text-decoration: none;
+            color: inherit;
         }
 
-        button,
-        input,
-        textarea {
-            font-family: inherit;
+        img {
+            max-width: 100%;
+            display: block;
+        }
+
+        button {
+            font: inherit;
         }
 
         .page {
-            width: min(1380px, calc(100% - 48px));
+            width: min(var(--container), calc(100% - 40px));
             margin: 0 auto;
         }
 
-        .navbar {
-            min-height: 92px;
+        .site-header {
+            padding: 22px 0 14px;
+        }
+
+        .nav {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 24px;
+            gap: 20px;
         }
 
         .brand {
-            display: flex;
+            display: inline-flex;
             align-items: center;
             gap: 14px;
-            font-size: 27px;
-            font-weight: 900;
-            letter-spacing: -0.045em;
+            min-width: 0;
         }
 
-        .brand-icon {
-            width: 58px;
-            height: 58px;
-            border-radius: 20px;
-            background: linear-gradient(145deg, var(--primary), #0aa591);
+        .brand-mark {
+            width: 56px;
+            height: 56px;
+            border-radius: 18px;
             display: grid;
             place-items: center;
-            box-shadow: 0 18px 36px rgba(15, 143, 127, .26);
-            color: #ffffff;
+            color: white;
+            background: linear-gradient(135deg, var(--primary), #11a290);
+            box-shadow: 0 16px 36px rgba(15, 143, 127, .22);
+            flex: 0 0 auto;
         }
 
-        .nav-links {
-            display: flex;
-            align-items: center;
-            gap: 24px;
+        .brand-text {
+            min-width: 0;
+        }
+
+        .brand-title {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 900;
+            line-height: 1;
+            letter-spacing: -0.05em;
+            color: #0f172a;
+        }
+
+        .brand-subtitle {
+            margin-top: 6px;
+            font-size: 13px;
             color: var(--muted);
-            font-weight: 700;
-            font-size: 15px;
-        }
-
-        .nav-links a:hover {
-            color: var(--primary-dark);
+            font-weight: 600;
         }
 
         .nav-actions {
             display: flex;
             align-items: center;
             gap: 12px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
         }
 
         .btn {
@@ -117,685 +134,849 @@
             align-items: center;
             justify-content: center;
             border: 1px solid transparent;
-            font-weight: 900;
+            font-weight: 800;
             font-size: 15px;
-            cursor: pointer;
-            transition: .22s ease;
+            transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
             white-space: nowrap;
         }
 
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
         .btn-primary {
+            color: #fff;
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            box-shadow: 0 18px 36px rgba(15, 143, 127, .25);
+            box-shadow: 0 16px 32px rgba(15, 143, 127, .22);
         }
 
         .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 22px 46px rgba(15, 143, 127, .32);
+            box-shadow: 0 18px 36px rgba(15, 143, 127, .28);
         }
 
         .btn-outline {
-            background: rgba(255, 255, 255, .76);
             color: var(--primary-dark);
+            background: rgba(255, 255, 255, 0.82);
             border-color: var(--border);
-            backdrop-filter: blur(8px);
+            backdrop-filter: blur(10px);
         }
 
         .btn-outline:hover {
-            transform: translateY(-2px);
-            background: white;
-        }
-
-        .btn-light {
-            background: #ffffff;
-            color: var(--primary-dark);
-            border-color: rgba(255, 255, 255, .5);
+            background: #fff;
+            box-shadow: var(--shadow-sm);
         }
 
         .hero {
-            padding: 64px 0 92px;
-            display: grid;
-            grid-template-columns: minmax(0, 1.08fr) minmax(420px, .92fr);
-            align-items: center;
-            gap: 64px;
+            padding: 18px 0 56px;
         }
 
-        .eyebrow {
+        .hero-shell {
+            position: relative;
+            overflow: hidden;
+            border-radius: 38px;
+            padding: 34px;
+            background:
+                radial-gradient(circle at top right, rgba(255, 255, 255, .18), transparent 25%),
+                linear-gradient(135deg, #0e8072 0%, #0c6f64 45%, #0a5c54 100%);
+            box-shadow: 0 30px 80px rgba(7, 74, 68, .26);
+            color: white;
+        }
+
+        .hero-shell::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background:
+                radial-gradient(circle at 20% 10%, rgba(255, 255, 255, .10), transparent 20%),
+                radial-gradient(circle at 80% 25%, rgba(255, 255, 255, .08), transparent 20%);
+        }
+
+        .hero-grid {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: minmax(0, 1.08fr) minmax(360px, .92fr);
+            gap: 34px;
+            align-items: center;
+        }
+
+        .hero-eyebrow {
             display: inline-flex;
             align-items: center;
             gap: 10px;
-            padding: 10px 16px;
+            padding: 11px 16px;
             border-radius: 999px;
-            background: rgba(255, 255, 255, .78);
-            border: 1px solid var(--border);
-            color: var(--primary-dark);
-            font-weight: 900;
-            margin-bottom: 24px;
-            box-shadow: 0 12px 30px rgba(15, 32, 55, .06);
+            background: rgba(255, 255, 255, .14);
+            border: 1px solid rgba(255, 255, 255, .18);
+            font-size: 14px;
+            font-weight: 800;
+            color: rgba(255, 255, 255, .95);
+            backdrop-filter: blur(10px);
         }
 
-        .eyebrow-dot {
+        .hero-dot {
             width: 9px;
             height: 9px;
             border-radius: 50%;
-            background: var(--primary);
-            box-shadow: 0 0 0 6px rgba(15, 143, 127, .14);
+            background: #91f0dc;
+            box-shadow: 0 0 0 6px rgba(145, 240, 220, .14);
         }
 
-        h1 {
-            margin: 0;
-            font-size: clamp(45px, 6vw, 88px);
-            line-height: .98;
-            letter-spacing: -0.075em;
-            color: #111827;
+        .hero-title {
+            margin: 22px 0 0;
+            font-size: clamp(42px, 5.4vw, 78px);
+            line-height: .96;
+            font-weight: 900;
+            letter-spacing: -0.08em;
+            max-width: 760px;
         }
 
         .hero-text {
-            margin: 26px 0 0;
+            margin: 24px 0 0;
             max-width: 760px;
-            color: var(--muted);
-            font-size: clamp(18px, 2vw, 23px);
+            font-size: clamp(17px, 2vw, 21px);
             line-height: 1.72;
+            color: rgba(255, 255, 255, .84);
         }
 
         .hero-actions {
-            margin-top: 34px;
+            margin-top: 30px;
             display: flex;
             flex-wrap: wrap;
             gap: 14px;
         }
 
-        .trust-line {
-            margin-top: 22px;
-            color: var(--muted);
-            font-weight: 700;
-            font-size: 15px;
-        }
-
-        .trust-line strong {
+        .btn-light {
+            background: #fff;
             color: var(--primary-dark);
+            box-shadow: 0 16px 32px rgba(7, 74, 68, .18);
         }
 
-        .chips {
-            margin-top: 34px;
+        .btn-light:hover {
+            box-shadow: 0 20px 36px rgba(7, 74, 68, .24);
+        }
+
+        .btn-ghost {
+            background: rgba(255, 255, 255, .10);
+            border-color: rgba(255, 255, 255, .18);
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-ghost:hover {
+            background: rgba(255, 255, 255, .16);
+        }
+
+        .hero-tags {
             display: flex;
             flex-wrap: wrap;
-            gap: 12px;
+            gap: 10px;
+            margin-top: 28px;
         }
 
-        .chip {
-            padding: 12px 18px;
+        .hero-tag {
+            padding: 11px 15px;
             border-radius: 999px;
-            background: rgba(255, 255, 255, .78);
-            border: 1px solid var(--border);
-            color: #00695d;
-            font-weight: 900;
-            box-shadow: 0 8px 22px rgba(15, 32, 55, .05);
+            background: rgba(255, 255, 255, .12);
+            border: 1px solid rgba(255, 255, 255, .16);
+            font-size: 14px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, .93);
         }
 
-        .hero-panel {
+        .hero-side {
             position: relative;
         }
 
-        .dashboard-card {
-            border-radius: var(--radius-xl);
-            background: rgba(255, 255, 255, .88);
-            border: 1px solid var(--border);
-            box-shadow: var(--shadow);
-            padding: 34px;
-            overflow: hidden;
-            backdrop-filter: blur(16px);
+        .preview-card {
+            border-radius: 30px;
+            background: rgba(255, 255, 255, .96);
+            color: var(--text);
+            padding: 26px;
+            box-shadow: 0 28px 60px rgba(8, 25, 39, .16);
         }
 
-        .dashboard-top {
+        .preview-top {
             display: flex;
+            align-items: center;
             justify-content: space-between;
-            gap: 18px;
-            align-items: flex-start;
-            margin-bottom: 26px;
+            gap: 16px;
+            margin-bottom: 22px;
         }
 
-        .mini-brand {
+        .preview-brand {
             display: flex;
             align-items: center;
             gap: 12px;
         }
 
-        .mini-icon {
-            width: 54px;
-            height: 54px;
-            border-radius: 18px;
-            background: linear-gradient(145deg, var(--primary), #0aa591);
-            color: white;
+        .preview-mark {
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, var(--primary), #0fa18e);
             display: grid;
             place-items: center;
+            color: white;
+            flex: 0 0 auto;
         }
 
-        .mini-title strong {
+        .preview-brand strong {
+            display: block;
+            font-size: 18px;
+            letter-spacing: -0.03em;
+        }
+
+        .preview-brand span {
+            display: block;
+            margin-top: 4px;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .status-pill {
+            padding: 9px 13px;
+            border-radius: 999px;
+            background: var(--primary-soft);
+            color: var(--primary-deep);
+            font-size: 12px;
+            font-weight: 900;
+            letter-spacing: .02em;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .stat-box {
+            border: 1px solid #e8edf3;
+            background: #fbfdff;
+            border-radius: 20px;
+            padding: 18px;
+            min-height: 108px;
+        }
+
+        .stat-box span {
+            display: block;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .stat-box strong {
+            display: block;
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: -0.05em;
+            color: #0f172a;
+        }
+
+        .stat-box small {
+            display: block;
+            margin-top: 8px;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+
+        .feature-list {
+            display: grid;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .feature-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 15px 16px;
+            border-radius: 18px;
+            background: #f7fbfb;
+            border: 1px solid #e6eef2;
+        }
+
+        .feature-row-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+        }
+
+        .feature-dot {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            background: var(--primary);
+            flex: 0 0 auto;
+        }
+
+        .feature-row-left strong {
+            font-size: 15px;
+            font-weight: 800;
+        }
+
+        .feature-state {
+            font-size: 12px;
+            font-weight: 900;
+            color: var(--primary-deep);
+            background: #eaf8f4;
+            padding: 8px 11px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+
+        .hero-note {
+            position: absolute;
+            left: -12px;
+            bottom: 28px;
+            background: #ffffff;
+            color: var(--text);
+            padding: 16px 18px;
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(8, 25, 39, .14);
+            border: 1px solid #edf2f7;
+            min-width: 210px;
+        }
+
+        .hero-note span {
+            display: block;
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+
+        .hero-note strong {
             display: block;
             font-size: 20px;
             letter-spacing: -0.04em;
         }
 
-        .mini-title span {
-            display: block;
-            color: var(--muted);
-            font-weight: 600;
-            margin-top: 3px;
-        }
-
-        .status {
-            padding: 10px 14px;
-            border-radius: 999px;
-            background: var(--primary-soft);
-            color: var(--primary-dark);
-            font-weight: 900;
-            font-size: 13px;
-        }
-
-        .metric-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 14px;
-        }
-
-        .metric {
-            background: #ffffff;
-            border: 1px solid var(--border);
-            border-radius: 22px;
-            padding: 20px;
-            min-height: 122px;
-        }
-
-        .metric span {
-            display: block;
-            color: var(--muted);
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-
-        .metric strong {
-            display: block;
-            font-size: 28px;
-            letter-spacing: -0.05em;
-        }
-
-        .metric small {
-            display: block;
-            color: var(--muted);
-            margin-top: 8px;
-            line-height: 1.45;
-        }
-
-        .module-list {
-            margin-top: 18px;
-            display: grid;
-            gap: 12px;
-        }
-
-        .module-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 14px;
-            padding: 15px;
-            border-radius: 18px;
-            background: #f8fbff;
-            border: 1px solid #e1e8f2;
-        }
-
-        .module-name {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-weight: 900;
-        }
-
-        .module-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: var(--primary);
-        }
-
-        .module-state {
-            color: var(--primary-dark);
-            font-size: 13px;
-            font-weight: 900;
-        }
-
-        .floating-info {
-            position: absolute;
-            left: -28px;
-            bottom: 36px;
-            width: 235px;
-            background: white;
-            border: 1px solid var(--border);
-            border-radius: 24px;
-            padding: 18px;
-            box-shadow: 0 24px 60px rgba(15, 32, 55, .16);
-        }
-
-        .floating-info span {
-            display: block;
-            color: var(--muted);
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
-
-        .floating-info strong {
-            font-size: 22px;
-            letter-spacing: -0.045em;
-        }
-
         .section {
-            padding: 82px 0;
+            padding: 74px 0;
         }
 
-        .section-header {
-            max-width: 760px;
-            margin-bottom: 34px;
+        .section-head {
+            max-width: 780px;
+            margin-bottom: 32px;
         }
 
         .section-kicker {
-            color: var(--primary-dark);
+            display: inline-block;
+            font-size: 14px;
             font-weight: 900;
+            letter-spacing: .03em;
+            color: var(--primary-dark);
             margin-bottom: 10px;
         }
 
         .section-title {
             margin: 0;
-            font-size: clamp(34px, 4vw, 54px);
-            line-height: 1.05;
+            font-size: clamp(32px, 4vw, 52px);
+            line-height: 1.04;
             letter-spacing: -0.065em;
+            color: #0f172a;
         }
 
         .section-text {
-            margin: 18px 0 0;
+            margin: 16px 0 0;
             color: var(--muted);
-            font-size: 19px;
-            line-height: 1.7;
+            font-size: 18px;
+            line-height: 1.72;
         }
 
-        .cards-grid {
+        .grid-3 {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 18px;
         }
 
-        .card {
-            background: rgba(255, 255, 255, .78);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
+        .info-card {
+            position: relative;
+            overflow: hidden;
             padding: 26px;
-            box-shadow: 0 16px 45px rgba(15, 32, 55, .07);
-            backdrop-filter: blur(12px);
+            border-radius: 26px;
+            background: rgba(255, 255, 255, .88);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-md);
+            transition: transform .18s ease, box-shadow .18s ease;
         }
 
-        .card-icon {
+        .info-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 22px 48px rgba(15, 23, 42, .10);
+        }
+
+        .info-card::after {
+            content: "";
+            position: absolute;
+            top: -42px;
+            right: -42px;
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(15, 143, 127, .12), transparent 68%);
+        }
+
+        .card-index {
             width: 48px;
             height: 48px;
             border-radius: 16px;
-            background: var(--primary-soft);
-            color: var(--primary-dark);
             display: grid;
             place-items: center;
+            background: var(--primary-soft);
+            color: var(--primary-deep);
             font-weight: 900;
             margin-bottom: 18px;
+            position: relative;
+            z-index: 1;
         }
 
-        .card h3 {
+        .info-card h3 {
             margin: 0;
             font-size: 22px;
             letter-spacing: -0.035em;
+            color: #111827;
+            position: relative;
+            z-index: 1;
         }
 
-        .card p {
+        .info-card p {
             margin: 12px 0 0;
             color: var(--muted);
-            line-height: 1.65;
+            line-height: 1.68;
+            font-size: 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .modules-wrap {
+            display: grid;
+            grid-template-columns: minmax(0, 1.05fr) minmax(320px, .95fr);
+            gap: 20px;
+            align-items: stretch;
+        }
+
+        .modules-panel {
+            background: linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-lg);
+            border-radius: 32px;
+            padding: 26px;
+        }
+
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .module-card {
+            border-radius: 24px;
+            padding: 22px;
+            background:
+                linear-gradient(180deg, #ffffff 0%, #f9fcfd 100%);
+            border: 1px solid #e7eef4;
+            transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+        }
+
+        .module-card:hover {
+            transform: translateY(-3px);
+            border-color: #cfe5de;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .module-icon {
+            width: 54px;
+            height: 54px;
+            border-radius: 18px;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(135deg, var(--primary-soft), #edf8f5);
+            color: var(--primary-deep);
+            margin-bottom: 16px;
+        }
+
+        .module-card h3 {
+            margin: 0;
+            font-size: 20px;
+            letter-spacing: -0.035em;
+        }
+
+        .module-card p {
+            margin: 10px 0 0;
+            color: var(--muted);
+            line-height: 1.62;
+            font-size: 15px;
+        }
+
+        .module-card ul {
+            margin: 14px 0 0;
+            padding: 0;
+            list-style: none;
+            display: grid;
+            gap: 8px;
+        }
+
+        .module-card li {
+            position: relative;
+            padding-left: 18px;
+            color: #475467;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .module-card li::before {
+            content: "";
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--primary);
+            position: absolute;
+            left: 0;
+            top: 8px;
+        }
+
+        .modules-side {
+            background: linear-gradient(160deg, #0f172a 0%, #162032 100%);
+            color: white;
+            border-radius: 32px;
+            padding: 28px;
+            box-shadow: 0 26px 56px rgba(15, 23, 42, .18);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .modules-side::before {
+            content: "";
+            position: absolute;
+            inset: auto -60px -60px auto;
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(15, 143, 127, .28), transparent 68%);
+        }
+
+        .modules-side h3 {
+            margin: 0;
+            font-size: 28px;
+            line-height: 1.08;
+            letter-spacing: -0.05em;
+        }
+
+        .modules-side p {
+            margin: 14px 0 0;
+            color: rgba(255, 255, 255, .78);
+            line-height: 1.7;
             font-size: 16px;
         }
 
-        .about-box {
-            background:
-                linear-gradient(135deg, rgba(15, 143, 127, .96), rgba(4, 88, 79, .96)),
-                radial-gradient(circle at top right, rgba(255, 255, 255, .22), transparent 40%);
-            color: white;
-            border-radius: var(--radius-xl);
-            padding: 48px;
-            box-shadow: var(--shadow);
+        .modules-points {
             display: grid;
-            grid-template-columns: 1fr .8fr;
-            gap: 34px;
-            align-items: center;
+            gap: 12px;
+            margin-top: 22px;
         }
 
-        .about-box h2 {
+        .modules-point {
+            padding: 14px 16px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, .08);
+            border: 1px solid rgba(255, 255, 255, .10);
+            font-weight: 700;
+            color: rgba(255, 255, 255, .94);
+        }
+
+        .about-box {
+            display: grid;
+            grid-template-columns: minmax(0, 1.08fr) minmax(220px, .55fr);
+            gap: 24px;
+            align-items: center;
+            padding: 34px;
+            border-radius: 32px;
+            background: linear-gradient(135deg, #ffffff 0%, #f7fbfd 100%);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-md);
+        }
+
+        .about-box h3 {
             margin: 0;
-            font-size: clamp(34px, 4vw, 52px);
-            letter-spacing: -0.06em;
+            font-size: clamp(28px, 4vw, 44px);
             line-height: 1.06;
+            letter-spacing: -0.055em;
         }
 
         .about-box p {
-            margin: 18px 0 0;
-            color: rgba(255, 255, 255, .82);
+            margin: 16px 0 0;
+            color: var(--muted);
+            font-size: 17px;
+            line-height: 1.72;
+        }
+
+        .digitbol-box {
+            padding: 22px;
+            border-radius: 24px;
+            background: #f9fbff;
+            border: 1px solid #e6ecf4;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            align-items: flex-start;
+        }
+
+        .digitbol-logo {
+            width: 110px;
+            max-width: 100%;
+            object-fit: contain;
+        }
+
+        .digitbol-box span {
+            font-size: 13px;
+            color: var(--muted);
+            font-weight: 700;
+        }
+
+        .digitbol-box strong {
             font-size: 18px;
-            line-height: 1.7;
+            line-height: 1.3;
+            color: #0f172a;
         }
 
-        .about-points {
-            display: grid;
-            gap: 12px;
-        }
-
-        .about-point {
-            padding: 16px;
-            border-radius: 18px;
-            background: rgba(255, 255, 255, .12);
-            border: 1px solid rgba(255, 255, 255, .18);
-            font-weight: 800;
-        }
-
-        .faq {
+        .faq-wrap {
             display: grid;
             gap: 14px;
         }
 
         .faq-item {
-            background: rgba(255, 255, 255, .8);
             border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 22px 24px;
-            box-shadow: 0 12px 34px rgba(15, 32, 55, .05);
-        }
-
-        .faq-item h3 {
-            margin: 0;
-            font-size: 19px;
-            letter-spacing: -0.03em;
-        }
-
-        .faq-item p {
-            margin: 10px 0 0;
-            color: var(--muted);
-            line-height: 1.65;
-        }
-
-        .cta {
-            padding: 70px 0 95px;
-        }
-
-        .cta-box {
-            border-radius: var(--radius-xl);
-            background: #ffffff;
-            border: 1px solid var(--border);
-            box-shadow: var(--shadow);
-            padding: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 28px;
-        }
-
-        .cta-box h2 {
-            margin: 0;
-            font-size: clamp(30px, 4vw, 46px);
-            letter-spacing: -0.06em;
-        }
-
-        .cta-box p {
-            margin: 12px 0 0;
-            color: var(--muted);
-            font-size: 18px;
-            line-height: 1.6;
-        }
-
-        .footer {
-            padding: 26px 0 36px;
-            border-top: 1px solid rgba(217, 227, 239, .9);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 18px;
-            color: var(--muted);
-            font-weight: 700;
-        }
-
-        .footer strong {
-            color: var(--primary-dark);
-        }
-
-        .float-actions {
-            position: fixed;
-            right: 22px;
-            bottom: 22px;
-            display: grid;
-            gap: 12px;
-            z-index: 60;
-        }
-
-        .float-btn {
-            width: 58px;
-            height: 58px;
-            border-radius: 999px;
-            border: 0;
-            display: grid;
-            place-items: center;
-            cursor: pointer;
-            box-shadow: 0 16px 36px rgba(15, 32, 55, .2);
-            transition: .2s ease;
-        }
-
-        .float-btn:hover {
-            transform: translateY(-3px);
-        }
-
-        .bot-btn {
-            background: #111827;
-            color: white;
-        }
-
-        .whatsapp-btn {
-            background: #22c55e;
-            color: white;
-        }
-
-        .chat-modal {
-            position: fixed;
-            right: 22px;
-            bottom: 96px;
-            width: min(390px, calc(100vw - 44px));
-            height: 560px;
-            max-height: calc(100vh - 130px);
-            background: white;
-            border: 1px solid var(--border);
-            border-radius: 26px;
-            box-shadow: 0 24px 80px rgba(15, 32, 55, .24);
-            z-index: 80;
-            display: none;
+            background: rgba(255, 255, 255, .9);
+            border-radius: 22px;
+            box-shadow: var(--shadow-sm);
             overflow: hidden;
         }
 
-        .chat-modal.active {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .chat-header {
-            padding: 18px;
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
+        .faq-question {
+            width: 100%;
+            border: 0;
+            background: transparent;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 14px;
+            gap: 16px;
+            padding: 22px 24px;
+            text-align: left;
+            cursor: pointer;
         }
 
-        .chat-user {
-            display: flex;
-            align-items: center;
-            gap: 12px;
+        .faq-question:hover {
+            background: rgba(15, 143, 127, .02);
         }
 
-        .chat-avatar {
-            width: 42px;
-            height: 42px;
-            border-radius: 15px;
-            background: rgba(255, 255, 255, .16);
+        .faq-question span:first-child {
+            font-size: 18px;
+            font-weight: 800;
+            color: #101828;
+            line-height: 1.35;
+        }
+
+        .faq-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 999px;
+            border: 1px solid #d9e6e3;
             display: grid;
             place-items: center;
+            color: var(--primary-dark);
+            font-size: 22px;
+            font-weight: 500;
+            flex: 0 0 auto;
+            transition: transform .18s ease, background .18s ease;
+            background: #f8fffd;
         }
 
-        .chat-user strong {
-            display: block;
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height .28s ease;
+        }
+
+        .faq-answer-inner {
+            padding: 0 24px 22px;
+            color: var(--muted);
+            line-height: 1.72;
             font-size: 16px;
         }
 
-        .chat-user span {
-            display: block;
-            font-size: 13px;
-            opacity: .82;
-            margin-top: 2px;
+        .faq-item.active .faq-icon {
+            transform: rotate(45deg);
+            background: var(--primary-soft);
         }
 
-        .chat-close {
-            width: 36px;
-            height: 36px;
-            border-radius: 999px;
-            border: 0;
-            background: rgba(255, 255, 255, .16);
-            color: white;
-            cursor: pointer;
-            font-size: 22px;
-            line-height: 1;
+        .cta {
+            padding: 26px 0 88px;
         }
 
-        .chat-messages {
-            flex: 1;
-            padding: 18px;
-            overflow-y: auto;
-            background: #f7fafc;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .message {
-            max-width: 86%;
-            padding: 12px 14px;
-            border-radius: 16px;
-            font-size: 14px;
-            line-height: 1.55;
-        }
-
-        .message.bot {
-            align-self: flex-start;
-            background: white;
-            border: 1px solid #e4ebf5;
-            color: #172033;
-        }
-
-        .message.user {
-            align-self: flex-end;
-            background: var(--primary);
-            color: white;
-        }
-
-        .chat-form {
-            padding: 14px;
-            background: white;
-            border-top: 1px solid var(--border);
-            display: flex;
-            gap: 10px;
-        }
-
-        .chat-form input {
-            flex: 1;
+        .cta-box {
+            border-radius: 34px;
+            background: linear-gradient(135deg, #ffffff 0%, #f7fbfd 100%);
             border: 1px solid var(--border);
-            border-radius: 999px;
-            padding: 0 15px;
-            height: 44px;
-            outline: none;
-            color: var(--text);
+            box-shadow: var(--shadow-lg);
+            padding: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
         }
 
-        .chat-form input:focus {
-            border-color: var(--primary);
+        .cta-box h3 {
+            margin: 0;
+            font-size: clamp(30px, 4vw, 44px);
+            line-height: 1.05;
+            letter-spacing: -0.055em;
         }
 
-        .chat-form button {
-            width: 44px;
-            height: 44px;
+        .cta-box p {
+            margin: 14px 0 0;
+            color: var(--muted);
+            font-size: 17px;
+            line-height: 1.68;
+            max-width: 720px;
+        }
+
+        .cta-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .footer {
+            padding: 0 0 34px;
+        }
+
+        .footer-box {
+            border-top: 1px solid rgba(219, 227, 238, .9);
+            padding-top: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .footer-box strong {
+            color: var(--primary-dark);
+        }
+
+        .whatsapp-float {
+            position: fixed;
+            right: 18px;
+            bottom: 18px;
+            width: 58px;
+            height: 58px;
             border-radius: 999px;
-            border: 0;
-            background: var(--primary);
+            background: #25D366;
             color: white;
-            cursor: pointer;
-            font-weight: 900;
+            display: grid;
+            place-items: center;
+            box-shadow: 0 18px 38px rgba(37, 211, 102, .28);
+            z-index: 50;
+            transition: transform .18s ease, box-shadow .18s ease;
         }
 
-        @media (max-width: 1120px) {
-            .hero {
+        .whatsapp-float:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 22px 42px rgba(37, 211, 102, .34);
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(18px);
+            transition: opacity .55s ease, transform .55s ease;
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        @media (max-width: 1180px) {
+            .hero-grid,
+            .modules-wrap,
+            .about-box,
+            .cta-box {
                 grid-template-columns: 1fr;
-                gap: 42px;
             }
 
-            .hero-panel {
-                max-width: 720px;
-            }
-
-            .floating-info {
+            .hero-note {
                 left: auto;
-                right: 18px;
+                right: 16px;
+                bottom: 18px;
             }
 
-            .cards-grid {
+            .grid-3 {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
 
-            .about-box {
-                grid-template-columns: 1fr;
+            .cta-actions {
+                justify-content: flex-start;
             }
         }
 
-        @media (max-width: 800px) {
+        @media (max-width: 860px) {
             .page {
-                width: min(100% - 34px, 1380px);
+                width: min(100% - 28px, var(--container));
             }
 
-            .navbar {
-                min-height: 78px;
+            .site-header {
+                padding-top: 16px;
             }
 
-            .brand {
-                font-size: 22px;
+            .nav {
+                align-items: flex-start;
+                flex-direction: column;
             }
 
-            .brand-icon {
-                width: 48px;
-                height: 48px;
-                border-radius: 16px;
-            }
-
-            .nav-links,
             .nav-actions {
-                display: none;
+                width: 100%;
+                justify-content: stretch;
+            }
+
+            .nav-actions .btn {
+                flex: 1 1 auto;
+            }
+
+            .brand-title {
+                font-size: 24px;
             }
 
             .hero {
-                padding: 38px 0 70px;
+                padding-top: 10px;
+                padding-bottom: 42px;
             }
 
-            h1 {
-                font-size: 45px;
-                line-height: 1.03;
+            .hero-shell {
+                padding: 24px 20px;
+                border-radius: 28px;
+            }
+
+            .hero-grid {
+                gap: 24px;
+            }
+
+            .hero-title {
+                font-size: 42px;
+                line-height: 1;
             }
 
             .hero-text {
-                font-size: 17px;
+                font-size: 16px;
             }
 
             .hero-actions {
@@ -803,75 +984,102 @@
                 grid-template-columns: 1fr;
             }
 
-            .btn {
+            .hero-actions .btn,
+            .cta-actions .btn,
+            .nav-actions .btn {
                 width: 100%;
-                min-height: 54px;
             }
 
-            .chips {
-                gap: 9px;
+            .preview-card {
+                padding: 20px;
+                border-radius: 24px;
             }
 
-            .chip {
-                font-size: 14px;
-                padding: 10px 14px;
-            }
-
-            .dashboard-card {
-                padding: 24px;
-                border-radius: 26px;
-            }
-
-            .dashboard-top {
-                flex-direction: column;
-            }
-
-            .metric-grid,
-            .cards-grid {
+            .stats-grid,
+            .grid-3,
+            .modules-grid {
                 grid-template-columns: 1fr;
             }
 
-            .floating-info {
+            .hero-note {
                 position: static;
-                margin-top: 16px;
+                margin-top: 14px;
                 width: 100%;
             }
 
             .section {
-                padding: 58px 0;
+                padding: 56px 0;
             }
 
+            .section-text {
+                font-size: 16px;
+            }
+
+            .modules-panel,
+            .modules-side,
             .about-box,
             .cta-box {
-                padding: 28px;
-                border-radius: 26px;
+                padding: 22px;
+                border-radius: 24px;
             }
 
-            .cta-box {
-                display: grid;
+            .faq-question {
+                padding: 18px 18px;
             }
 
-            .footer {
+            .faq-answer-inner {
+                padding: 0 18px 18px;
+                font-size: 15px;
+            }
+
+            .footer-box {
                 flex-direction: column;
                 align-items: flex-start;
             }
 
-            .float-actions {
-                right: 16px;
-                bottom: 16px;
-            }
-
-            .float-btn {
+            .whatsapp-float {
                 width: 54px;
                 height: 54px;
+                right: 14px;
+                bottom: 14px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .brand-mark {
+                width: 48px;
+                height: 48px;
+                border-radius: 15px;
             }
 
+            .brand-title {
+                font-size: 22px;
+            }
 
-            .chat-modal {
-                right: 12px;
-                bottom: 84px;
-                width: calc(100vw - 24px);
-                height: 530px;
+            .brand-subtitle {
+                font-size: 12px;
+            }
+
+            .hero-eyebrow {
+                font-size: 12px;
+                padding: 10px 13px;
+            }
+
+            .hero-title {
+                font-size: 38px;
+            }
+
+            .stat-box strong {
+                font-size: 24px;
+            }
+
+            .section-title {
+                font-size: 30px;
+            }
+
+            .info-card,
+            .module-card {
+                padding: 20px;
             }
         }
     </style>
@@ -879,339 +1087,422 @@
 
 <body>
     <div class="page">
-        <header class="navbar">
-            <a href="{{ url('/') }}" class="brand">
-                <span class="brand-icon">
-                    <x-application-logo class="h-7 w-7 text-white" />
-                </span>
-                <span>Rumika SaaS</span>
-            </a>
+        <header class="site-header">
+            <div class="nav">
+                <a href="{{ url('/') }}" class="brand">
+                    <span class="brand-mark">
+                        <x-application-logo class="h-7 w-7 text-white" />
+                    </span>
 
-            <nav class="nav-links">
-                <a href="#que-es">Qué es Rumika</a>
-                <a href="#modulos">Módulos</a>
-                <a href="#nosotros">Quiénes somos</a>
-                <a href="#faq">Preguntas frecuentes</a>
-            </nav>
+                    <span class="brand-text">
+                        <span class="brand-title">Rumika SaaS</span>
+                        <span class="brand-subtitle">Sistema base modular para negocios de atención</span>
+                    </span>
+                </a>
 
-            <div class="nav-actions">
-                @auth
-                    <a href="{{ route('dashboard') }}" class="btn btn-primary">
-                        Entrar al sistema
-                    </a>
-                @else
-                    <a href="{{ route('login') }}" class="btn btn-outline">
-                        Iniciar sesión
-                    </a>
-
-                    @if (Route::has('register'))
-                        <a href="{{ route('register') }}" class="btn btn-primary">
-                            Registrar empresa
+                <div class="nav-actions">
+                    @auth
+                        <a href="{{ route('dashboard') }}" class="btn btn-primary">
+                            Entrar al sistema
                         </a>
-                    @endif
-                @endauth
+                    @else
+                        <a href="{{ route('login') }}" class="btn btn-outline">
+                            Iniciar sesión
+                        </a>
+
+                        @if (Route::has('register'))
+                            <a href="{{ route('register') }}" class="btn btn-primary">
+                                Registrar empresa
+                            </a>
+                        @endif
+                    @endauth
+                </div>
             </div>
         </header>
 
         <main>
-            <section class="hero">
-                <div>
-                    <div class="eyebrow">
-                        <span class="eyebrow-dot"></span>
-                        Sistema base modular para negocios de atención
-                    </div>
-
-                    <h1>
-                        Gestiona agenda, clientes, inventario y sucursales desde un solo lugar.
-                    </h1>
-
-                    <p class="hero-text">
-                        Rumika es una plataforma SaaS diseñada para clínicas, spas, centros de belleza, barberías,
-                        dentistas y negocios que necesitan organizar sus citas, clientes, servicios, inventarios,
-                        pagos e historial de atención de manera simple y profesional.
-                    </p>
-
-                    <div class="hero-actions">
-                        @auth
-                            <a href="{{ route('dashboard') }}" class="btn btn-primary">
-                                Entrar al sistema
-                            </a>
-                        @else
-                            @if (Route::has('register'))
-                                <a href="{{ route('register') }}" class="btn btn-primary">
-                                    Registrar empresa
-                                </a>
-                            @endif
-
-                            <a href="{{ route('login') }}" class="btn btn-outline">
-                                Iniciar sesión
-                            </a>
-                        @endauth
-                    </div>
-
-                    <div class="trust-line">
-                        Un sistema más de <strong>DigitBol</strong>, creado para negocios que quieren crecer con orden.
-                    </div>
-
-                    <div class="chips">
-                        <span class="chip">Agenda</span>
-                        <span class="chip">Clientes</span>
-                        <span class="chip">Inventario</span>
-                        <span class="chip">Sucursales</span>
-                        <span class="chip">Reportes</span>
-                    </div>
-                </div>
-
-                <div class="hero-panel">
-                    <div class="dashboard-card">
-                        <div class="dashboard-top">
-                            <div class="mini-brand">
-                                <div class="mini-icon">
-                                    <x-application-logo class="h-7 w-7 text-white" />
-                                </div>
-
-                                <div class="mini-title">
-                                    <strong>Panel Rumika</strong>
-                                    <span>Vista general por sucursal</span>
-                                </div>
+            <section class="hero reveal">
+                <div class="hero-shell">
+                    <div class="hero-grid">
+                        <div>
+                            <div class="hero-eyebrow">
+                                <span class="hero-dot"></span>
+                                Plataforma escalable para múltiples sucursales
                             </div>
 
-                            <span class="status">Modular</span>
-                        </div>
+                            <h1 class="hero-title">
+                                La base que organiza la operación de tu negocio.
+                            </h1>
 
-                        <div class="metric-grid">
-                            <div class="metric">
-                                <span>Citas de hoy</span>
-                                <strong>18</strong>
-                                <small>Control de agenda por fecha, sucursal y estado.</small>
+                            <p class="hero-text">
+                                Rumika es un sistema base modular para clínicas, spas, centros de belleza, barberías,
+                                dentistas y otros negocios que necesitan gestionar agendas, clientes, historial,
+                                inventario, pagos, caja y sucursales de una forma clara, rápida y profesional.
+                            </p>
+
+                            <div class="hero-actions">
+                                @auth
+                                    <a href="{{ route('dashboard') }}" class="btn btn-light">
+                                        Entrar al sistema
+                                    </a>
+                                @else
+                                    @if (Route::has('register'))
+                                        <a href="{{ route('register') }}" class="btn btn-light">
+                                            Registrar empresa
+                                        </a>
+                                    @endif
+
+                                    <a href="{{ route('login') }}" class="btn btn-ghost">
+                                        Iniciar sesión
+                                    </a>
+                                @endauth
                             </div>
 
-                            <div class="metric">
-                                <span>Clientes activos</span>
-                                <strong>324</strong>
-                                <small>Historial completo de visitas, servicios y pagos.</small>
+                            <div class="hero-tags">
+                                <span class="hero-tag">Agenda</span>
+                                <span class="hero-tag">Clientes</span>
+                                <span class="hero-tag">Historial</span>
+                                <span class="hero-tag">Inventario</span>
+                                <span class="hero-tag">Sucursales</span>
+                                <span class="hero-tag">Caja y reportes</span>
                             </div>
                         </div>
 
-                        <div class="module-list">
-                            <div class="module-item">
-                                <div class="module-name">
-                                    <span class="module-dot"></span>
-                                    Agenda por sucursal
+                        <div class="hero-side">
+                            <div class="preview-card">
+                                <div class="preview-top">
+                                    <div class="preview-brand">
+                                        <div class="preview-mark">
+                                            <x-application-logo class="h-6 w-6 text-white" />
+                                        </div>
+
+                                        <div>
+                                            <strong>Panel Rumika</strong>
+                                            <span>Resumen general del negocio</span>
+                                        </div>
+                                    </div>
+
+                                    <span class="status-pill">MODULAR</span>
                                 </div>
-                                <span class="module-state">Activo</span>
+
+                                <div class="stats-grid">
+                                    <div class="stat-box">
+                                        <span>Citas programadas</span>
+                                        <strong>18</strong>
+                                        <small>Control del día por sucursal, horario y estado.</small>
+                                    </div>
+
+                                    <div class="stat-box">
+                                        <span>Clientes activos</span>
+                                        <strong>324</strong>
+                                        <small>Historial completo de atención y seguimiento.</small>
+                                    </div>
+                                </div>
+
+                                <div class="feature-list">
+                                    <div class="feature-row">
+                                        <div class="feature-row-left">
+                                            <span class="feature-dot"></span>
+                                            <strong>Agenda por sucursal</strong>
+                                        </div>
+                                        <span class="feature-state">Activo</span>
+                                    </div>
+
+                                    <div class="feature-row">
+                                        <div class="feature-row-left">
+                                            <span class="feature-dot"></span>
+                                            <strong>Inventario y productos</strong>
+                                        </div>
+                                        <span class="feature-state">Activable</span>
+                                    </div>
+
+                                    <div class="feature-row">
+                                        <div class="feature-row-left">
+                                            <span class="feature-dot"></span>
+                                            <strong>Pagos, caja y reportes</strong>
+                                        </div>
+                                        <span class="feature-state">Activable</span>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div class="module-item">
-                                <div class="module-name">
-                                    <span class="module-dot"></span>
-                                    Inventario y productos
-                                </div>
-                                <span class="module-state">Activable</span>
-                            </div>
-
-                            <div class="module-item">
-                                <div class="module-name">
-                                    <span class="module-dot"></span>
-                                    Pagos, caja y reportes
-                                </div>
-                                <span class="module-state">Activable</span>
+                            <div class="hero-note">
+                                <span>Diseñado para que cada sucursal</span>
+                                <strong>active solo lo que necesita</strong>
                             </div>
                         </div>
-                    </div>
-
-                    <div class="floating-info">
-                        <span>Cada sucursal puede activar</span>
-                        <strong>sus propios módulos</strong>
                     </div>
                 </div>
             </section>
 
-            <section class="section" id="que-es">
-                <div class="section-header">
-                    <div class="section-kicker">Qué es Rumika</div>
+            <section class="section reveal">
+                <div class="section-head">
+                    <span class="section-kicker">QUÉ ES RUMIKA</span>
                     <h2 class="section-title">
-                        Una base flexible para administrar negocios con atención por agenda.
+                        Una base flexible para negocios que trabajan con clientes, atención y control operativo.
                     </h2>
                     <p class="section-text">
-                        Rumika no es un sistema cerrado. Es una base modular que puede adaptarse al tipo de negocio,
-                        permitiendo activar funciones según las necesidades reales de cada empresa o sucursal.
+                        Rumika no es una plantilla rígida. Está pensado como un sistema base modular para crecer según
+                        el tipo de negocio y permitir que cada empresa o sucursal habilite sus propias funciones.
                     </p>
                 </div>
 
-                <div class="cards-grid">
-                    <div class="card">
-                        <div class="card-icon">01</div>
-                        <h3>Para distintos rubros</h3>
+                <div class="grid-3">
+                    <article class="info-card">
+                        <div class="card-index">01</div>
+                        <h3>Adaptable a varios rubros</h3>
                         <p>
-                            Ideal para clínicas, spas, centros estéticos, barberías, consultorios dentales,
-                            centros de belleza y otros negocios que trabajan con clientes recurrentes.
+                            Funciona para clínicas, spas, centros de belleza, barberías, dentistas y más negocios que
+                            dependen de agenda, seguimiento e historial.
                         </p>
-                    </div>
+                    </article>
 
-                    <div class="card">
-                        <div class="card-icon">02</div>
-                        <h3>Por sucursal</h3>
+                    <article class="info-card">
+                        <div class="card-index">02</div>
+                        <h3>Organización por sucursal</h3>
                         <p>
-                            Cada sucursal puede tener su propia agenda, clientes, servicios, usuarios,
-                            inventario, caja y reportes según su operación diaria.
+                            Cada sucursal puede tener su propia operación, usuarios, módulos, productos, caja e
+                            información sin perder el orden general.
                         </p>
-                    </div>
+                    </article>
 
-                    <div class="card">
-                        <div class="card-icon">03</div>
-                        <h3>Por módulos</h3>
+                    <article class="info-card">
+                        <div class="card-index">03</div>
+                        <h3>Listo para crecer</h3>
                         <p>
-                            Activa solo lo que necesitas: agenda, clientes, historial, inventario,
-                            ventas, pagos, caja, reportes, roles y más.
+                            Puedes comenzar con lo esencial y luego incorporar más procesos sin cambiar de herramienta
+                            ni romper tu flujo de trabajo.
                         </p>
-                    </div>
+                    </article>
                 </div>
             </section>
 
-            <section class="section" id="modulos">
-                <div class="section-header">
-                    <div class="section-kicker">Módulos principales</div>
+            <section class="section reveal">
+                <div class="section-head">
+                    <span class="section-kicker">MÓDULOS PRINCIPALES</span>
                     <h2 class="section-title">
-                        Herramientas pensadas para ordenar el trabajo diario.
+                        Funciones claras, ordenadas y pensadas para el trabajo real del día a día.
+                    </h2>
+                    <p class="section-text">
+                        Mejoramos esta parte para que no se vea como una simple lista. Aquí se presentan los módulos de
+                        una manera más sólida y profesional.
+                    </p>
+                </div>
+
+                <div class="modules-wrap">
+                    <div class="modules-panel">
+                        <div class="modules-grid">
+                            <article class="module-card">
+                                <div class="module-icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                        <rect x="3" y="5" width="18" height="16" rx="3" stroke="currentColor" stroke-width="2"/>
+                                        <path d="M8 3V7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                        <path d="M16 3V7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                        <path d="M3 10H21" stroke="currentColor" stroke-width="2"/>
+                                    </svg>
+                                </div>
+                                <h3>Agenda y citas</h3>
+                                <p>Gestiona la programación diaria con mejor control visual y operativo.</p>
+                                <ul>
+                                    <li>Registro de citas por fecha y hora</li>
+                                    <li>Estados de atención y seguimiento</li>
+                                    <li>Organización por sucursal y profesional</li>
+                                </ul>
+                            </article>
+
+                            <article class="module-card">
+                                <div class="module-icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                        <path d="M16 19C16 16.7909 14.2091 15 12 15C9.79086 15 8 16.7909 8 19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                        <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/>
+                                        <path d="M4 19C4 17.3431 5.34315 16 7 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                        <path d="M20 19C20 17.3431 18.6569 16 17 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+                                </div>
+                                <h3>Clientes e historial</h3>
+                                <p>Ten toda la información del cliente en un solo lugar, sin duplicidad.</p>
+                                <ul>
+                                    <li>Datos de contacto y registro</li>
+                                    <li>Historial de atención y observaciones</li>
+                                    <li>Seguimiento de pagos y visitas</li>
+                                </ul>
+                            </article>
+
+                            <article class="module-card">
+                                <div class="module-icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                        <path d="M4 7.5L12 4L20 7.5L12 11L4 7.5Z" stroke="currentColor" stroke-width="2"/>
+                                        <path d="M4 12.5L12 16L20 12.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                        <path d="M4 17.5L12 21L20 17.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+                                </div>
+                                <h3>Inventario</h3>
+                                <p>Controla productos, movimientos y disponibilidad en cada sede.</p>
+                                <ul>
+                                    <li>Stock por sucursal</li>
+                                    <li>Ingresos y salidas de productos</li>
+                                    <li>Control más ordenado del abastecimiento</li>
+                                </ul>
+                            </article>
+
+                            <article class="module-card">
+                                <div class="module-icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                        <rect x="3" y="5" width="18" height="14" rx="3" stroke="currentColor" stroke-width="2"/>
+                                        <path d="M3 10H21" stroke="currentColor" stroke-width="2"/>
+                                        <path d="M8 15H10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    </svg>
+                                </div>
+                                <h3>Pagos, caja y reportes</h3>
+                                <p>Una vista simple para controlar ingresos, movimientos y decisiones.</p>
+                                <ul>
+                                    <li>Registro de pagos por método</li>
+                                    <li>Caja diaria y cierres</li>
+                                    <li>Reportes para control operativo</li>
+                                </ul>
+                            </article>
+                        </div>
+                    </div>
+
+                    <aside class="modules-side">
+                        <h3>Un sistema base que se adapta a tu negocio.</h3>
+                        <p>
+                            Rumika está pensado para crecer contigo. No necesitas usar todo desde el primer día: cada
+                            sucursal puede activar sus módulos según su forma de trabajo.
+                        </p>
+
+                        <div class="modules-points">
+                            <div class="modules-point">Configuración modular por tipo de negocio</div>
+                            <div class="modules-point">Separación operativa por sucursal</div>
+                            <div class="modules-point">Escalable para nuevos procesos y áreas</div>
+                            <div class="modules-point">Ideal para negocios que quieren orden real</div>
+                        </div>
+                    </aside>
+                </div>
+            </section>
+
+            <section class="section reveal">
+                <div class="section-head">
+                    <span class="section-kicker">QUIÉNES SOMOS</span>
+                    <h2 class="section-title">
+                        Rumika es una solución creada para facilitar la operación y mejorar el control de cada sede.
                     </h2>
                 </div>
 
-                <div class="cards-grid">
-                    <div class="card">
-                        <div class="card-icon">A</div>
-                        <h3>Agenda y citas</h3>
-                        <p>
-                            Registra citas, estados, horarios, servicios, profesionales y atención por sucursal.
-                        </p>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-icon">C</div>
-                        <h3>Clientes e historial</h3>
-                        <p>
-                            Consulta datos del cliente, visitas anteriores, tratamientos, observaciones y pagos.
-                        </p>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-icon">I</div>
-                        <h3>Inventario</h3>
-                        <p>
-                            Controla productos, stock, movimientos, sucursales, alertas y disponibilidad.
-                        </p>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-icon">P</div>
-                        <h3>Pagos y caja</h3>
-                        <p>
-                            Organiza ingresos, métodos de pago, cierres de caja, comprobantes y reportes.
-                        </p>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-icon">R</div>
-                        <h3>Reportes</h3>
-                        <p>
-                            Visualiza información clave para tomar decisiones por día, mes, sucursal o servicio.
-                        </p>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-icon">U</div>
-                        <h3>Usuarios y roles</h3>
-                        <p>
-                            Define permisos para administradores, recepción, profesionales y personal interno.
-                        </p>
-                    </div>
-                </div>
-            </section>
-
-            <section class="section" id="nosotros">
                 <div class="about-box">
                     <div>
-                        <h2>
-                            Creado por DigitBol para negocios que necesitan orden, velocidad y control.
-                        </h2>
-
+                        <h3>Creado por DigitBol como una base sólida, moderna y lista para crecer.</h3>
                         <p>
-                            Somos un equipo enfocado en crear soluciones digitales útiles, simples y adaptables.
-                            Rumika nace como una base SaaS para que distintos negocios puedan administrar su operación
-                            sin depender de hojas de cálculo, mensajes perdidos o procesos desordenados.
+                            Rumika nace como una plataforma pensada para negocios que necesitan trabajar con más orden,
+                            claridad y estructura. La idea es evitar procesos dispersos y ofrecer una herramienta
+                            limpia, práctica y adaptable.
                         </p>
-
                         <p>
-                            La idea es clara: que cada empresa tenga una herramienta moderna, escalable y lista para
-                            crecer.
+                            Más que una simple interfaz, Rumika busca ser una base profesional para administrar la
+                            operación de distintos rubros de atención.
                         </p>
                     </div>
 
-                    <div class="about-points">
-                        <div class="about-point">Sistema modular y escalable</div>
-                        <div class="about-point">Diseñado para múltiples sucursales</div>
-                        <div class="about-point">Preparado para crecer por rubro</div>
-                        <div class="about-point">Un sistema más de DigitBol</div>
+                    <div class="digitbol-box">
+                        <img src="{{ asset('digitbol-logo.jpg') }}" alt="DigitBol" class="digitbol-logo">
+                        <span>Un sistema más de</span>
+                        <strong>DigitBol</strong>
+                        <span>Desarrollo de soluciones y sistemas a medida.</span>
                     </div>
                 </div>
             </section>
 
-            <section class="section" id="faq">
-                <div class="section-header">
-                    <div class="section-kicker">Preguntas frecuentes</div>
+            <section class="section reveal">
+                <div class="section-head">
+                    <span class="section-kicker">PREGUNTAS FRECUENTES</span>
                     <h2 class="section-title">
-                        Respuestas rápidas antes de comenzar.
+                        Lo más importante, explicado de forma rápida.
                     </h2>
+                    <p class="section-text">
+                        Ahora las respuestas se muestran solo al hacer clic, con un diseño más limpio.
+                    </p>
                 </div>
 
-                <div class="faq">
+                <div class="faq-wrap">
                     <div class="faq-item">
-                        <h3>¿Rumika sirve solo para spas?</h3>
-                        <p>
-                            No. Rumika está pensado para spas, clínicas, centros de belleza, barberías,
-                            dentistas y cualquier negocio que necesite agenda, clientes, inventario y control por
-                            sucursal.
-                        </p>
+                        <button class="faq-question" type="button">
+                            <span>¿Rumika sirve solo para spas?</span>
+                            <span class="faq-icon">+</span>
+                        </button>
+                        <div class="faq-answer">
+                            <div class="faq-answer-inner">
+                                No. Rumika está pensado para clínicas, spas, centros de belleza, barberías,
+                                dentistas y otros negocios que necesitan organizar agendas, clientes, inventario,
+                                historial y sucursales.
+                            </div>
+                        </div>
                     </div>
 
                     <div class="faq-item">
-                        <h3>¿Puedo activar solo algunos módulos?</h3>
-                        <p>
-                            Sí. Cada empresa o sucursal puede trabajar con los módulos que realmente necesita.
-                            Por ejemplo, una sucursal puede usar agenda e historial, mientras otra también activa
-                            inventario y caja.
-                        </p>
+                        <button class="faq-question" type="button">
+                            <span>¿Cada sucursal puede manejar sus propios módulos?</span>
+                            <span class="faq-icon">+</span>
+                        </button>
+                        <div class="faq-answer">
+                            <div class="faq-answer-inner">
+                                Sí. Una de las ventajas de Rumika es que cada sucursal puede activar solo los módulos
+                                que necesita, según el tipo de negocio o su nivel de operación.
+                            </div>
+                        </div>
                     </div>
 
                     <div class="faq-item">
-                        <h3>¿Se puede usar con varias sucursales?</h3>
-                        <p>
-                            Sí. Rumika está preparado para separar información por sucursal y permitir una
-                            administración más ordenada.
-                        </p>
+                        <button class="faq-question" type="button">
+                            <span>¿Puedo comenzar con pocas funciones e ir creciendo?</span>
+                            <span class="faq-icon">+</span>
+                        </button>
+                        <div class="faq-answer">
+                            <div class="faq-answer-inner">
+                                Sí. Rumika está planteado como una base escalable. Puedes iniciar con agenda y clientes,
+                                y después sumar inventario, caja, reportes u otras áreas cuando lo necesites.
+                            </div>
+                        </div>
                     </div>
 
                     <div class="faq-item">
-                        <h3>¿Puedo hablar con un representante?</h3>
-                        <p>
-                            Sí. Puedes escribir por WhatsApp desde el botón flotante o usar el asistente virtual para
-                            resolver dudas iniciales.
-                        </p>
+                        <button class="faq-question" type="button">
+                            <span>¿Es útil para negocios con varias sedes?</span>
+                            <span class="faq-icon">+</span>
+                        </button>
+                        <div class="faq-answer">
+                            <div class="faq-answer-inner">
+                                Sí. Rumika fue pensado para trabajar por sucursales y facilitar la organización de cada
+                                una sin perder el control general de la empresa.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <button class="faq-question" type="button">
+                            <span>¿Cómo puedo pedir información o comunicarme?</span>
+                            <span class="faq-icon">+</span>
+                        </button>
+                        <div class="faq-answer">
+                            <div class="faq-answer-inner">
+                                Puedes comunicarte directamente por WhatsApp mediante el botón flotante para recibir más
+                                información o conversar con un representante.
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
 
-            <section class="cta">
+            <section class="cta reveal">
                 <div class="cta-box">
                     <div>
-                        <h2>Empieza a ordenar tu negocio con Rumika.</h2>
+                        <h3>Empieza con una base más ordenada para tu negocio.</h3>
                         <p>
-                            Registra tu empresa, activa los módulos necesarios y administra tu operación desde una
-                            plataforma moderna.
+                            Registra tu empresa, organiza tus sucursales y activa solo los módulos que realmente
+                            necesitas para operar con mayor claridad y control.
                         </p>
                     </div>
 
-                    <div class="hero-actions">
+                    <div class="cta-actions">
                         @auth
                             <a href="{{ route('dashboard') }}" class="btn btn-primary">
                                 Entrar al sistema
@@ -1233,142 +1524,57 @@
         </main>
 
         <footer class="footer">
-            <div>© {{ date('Y') }} Rumika SaaS. Todos los derechos reservados.</div>
-            <div>Creado por <strong>DigitBol</strong></div>
+            <div class="footer-box">
+                <div>© {{ date('Y') }} Rumika SaaS. Todos los derechos reservados.</div>
+                <div>Creado por <strong>DigitBol</strong></div>
+            </div>
         </footer>
     </div>
 
-    <div class="float-actions">
-        <button type="button" class="float-btn bot-btn" onclick="toggleChat()"
-            aria-label="Abrir asistente virtual">
-            <svg width="27" height="27" viewBox="0 0 24 24" fill="none">
-                <path d="M12 3V5" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                <rect x="4" y="6" width="16" height="12" rx="4" stroke="currentColor"
-                    stroke-width="2" />
-                <path d="M8.5 11.5H8.51" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
-                <path d="M15.5 11.5H15.51" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
-                <path d="M9 15C10.6 16 13.4 16 15 15" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" />
-            </svg>
-        </button>
-
-        <a class="float-btn whatsapp-btn"
-            href="https://wa.me/59177348087?text=Hola%2C%20quiero%20comunicarme%20con%20un%20representante%20de%20Rumika."
-            target="_blank" rel="noopener" aria-label="Contactar por WhatsApp">
-            <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
-                <path fill="currentColor"
-                    d="M16.02 4C9.4 4 4.02 9.28 4.02 15.78c0 2.08.56 4.1 1.62 5.88L4 28l6.52-1.68a12.2 12.2 0 0 0 5.5 1.32C22.64 27.64 28 22.36 28 15.86C28.02 9.36 22.64 4 16.02 4Zm0 21.62c-1.78 0-3.52-.46-5.04-1.34l-.36-.22l-3.86 1l1.02-3.68l-.24-.38a9.66 9.66 0 0 1-1.5-5.18c0-5.38 4.48-9.76 9.98-9.76S26 10.44 26 15.82c0 5.4-4.48 9.8-9.98 9.8Zm5.48-7.32c-.3-.14-1.78-.86-2.06-.96c-.28-.1-.48-.14-.68.14c-.2.3-.78.96-.96 1.16c-.18.2-.36.22-.66.08c-.3-.14-1.26-.46-2.4-1.46c-.88-.78-1.48-1.74-1.66-2.04c-.18-.3-.02-.46.14-.6c.14-.14.3-.36.46-.54c.16-.18.2-.3.3-.5c.1-.2.06-.38-.02-.54c-.08-.14-.68-1.62-.94-2.22c-.24-.58-.5-.5-.68-.52h-.58c-.2 0-.52.08-.8.38c-.28.3-1.04 1-1.04 2.44s1.06 2.84 1.2 3.04c.14.2 2.08 3.12 5.04 4.38c.7.3 1.26.48 1.68.62c.7.22 1.34.18 1.84.12c.56-.08 1.78-.72 2.04-1.42c.26-.7.26-1.3.18-1.42c-.08-.14-.28-.22-.58-.36Z" />
-            </svg>
-        </a>
-    </div>
-
-    <div class="chat-modal" id="chatModal">
-        <div class="chat-header">
-            <div class="chat-user">
-                <div class="chat-avatar">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                        <path d="M12 3V5" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                        <rect x="4" y="6" width="16" height="12" rx="4" stroke="currentColor"
-                            stroke-width="2" />
-                        <path d="M8.5 11.5H8.51" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
-                        <path d="M15.5 11.5H15.51" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
-                    </svg>
-                </div>
-
-                <div>
-                    <strong>Asistente Rumika</strong>
-                    <span>Consulta sobre módulos, planes o funcionamiento</span>
-                </div>
-            </div>
-
-            <button type="button" class="chat-close" onclick="toggleChat()">×</button>
-        </div>
-
-        <div class="chat-messages" id="chatMessages">
-            <div class="message bot">
-                Hola, soy el asistente de Rumika. Puedo ayudarte con información sobre agenda, clientes,
-                inventario, sucursales, módulos y contacto con un representante.
-            </div>
-        </div>
-
-        <form class="chat-form" onsubmit="sendBotMessage(event)">
-            <input type="text" id="chatInput" placeholder="Escribe tu consulta..." autocomplete="off">
-            <button type="submit">➜</button>
-        </form>
-    </div>
+    <a
+        href="https://wa.me/59177348087?text=Hola%2C%20quiero%20m%C3%A1s%20informaci%C3%B3n%20sobre%20Rumika."
+        target="_blank"
+        rel="noopener"
+        class="whatsapp-float"
+        aria-label="Contactar por WhatsApp"
+    >
+        <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+            <path fill="currentColor"
+                d="M16.02 4C9.4 4 4.02 9.28 4.02 15.78c0 2.08.56 4.1 1.62 5.88L4 28l6.52-1.68a12.2 12.2 0 0 0 5.5 1.32C22.64 27.64 28 22.36 28 15.86C28.02 9.36 22.64 4 16.02 4Zm0 21.62c-1.78 0-3.52-.46-5.04-1.34l-.36-.22l-3.86 1l1.02-3.68l-.24-.38a9.66 9.66 0 0 1-1.5-5.18c0-5.38 4.48-9.76 9.98-9.76S26 10.44 26 15.82c0 5.4-4.48 9.8-9.98 9.8Zm5.48-7.32c-.3-.14-1.78-.86-2.06-.96c-.28-.1-.48-.14-.68.14c-.2.3-.78.96-.96 1.16c-.18.2-.36.22-.66.08c-.3-.14-1.26-.46-2.4-1.46c-.88-.78-1.48-1.74-1.66-2.04c-.18-.3-.02-.46.14-.6c.14-.14.3-.36.46-.54c.16-.18.2-.3.3-.5c.1-.2.06-.38-.02-.54c-.08-.14-.68-1.62-.94-2.22c-.24-.58-.5-.5-.68-.52h-.58c-.2 0-.52.08-.8.38c-.28.3-1.04 1-1.04 2.44s1.06 2.84 1.2 3.04c.14.2 2.08 3.12 5.04 4.38c.7.3 1.26.48 1.68.62c.7.22 1.34.18 1.84.12c.56-.08 1.78-.72 2.04-1.42c.26-.7.26-1.3.18-1.42c-.08-.14-.28-.22-.58-.36Z"/>
+        </svg>
+    </a>
 
     <script>
-        const chatModal = document.getElementById('chatModal');
-        const chatMessages = document.getElementById('chatMessages');
-        const chatInput = document.getElementById('chatInput');
+        document.querySelectorAll('.faq-item').forEach((item) => {
+            const button = item.querySelector('.faq-question');
+            const answer = item.querySelector('.faq-answer');
 
-        function toggleChat() {
-            chatModal.classList.toggle('active');
+            button.addEventListener('click', () => {
+                const isActive = item.classList.contains('active');
 
-            if (chatModal.classList.contains('active')) {
-                setTimeout(() => chatInput.focus(), 150);
-            }
-        }
-
-        function addMessage(text, type = 'bot') {
-            const message = document.createElement('div');
-            message.className = `message ${type}`;
-            message.textContent = text;
-
-            chatMessages.appendChild(message);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        async function sendBotMessage(event) {
-            event.preventDefault();
-
-            const question = chatInput.value.trim();
-
-            if (!question) {
-                return;
-            }
-
-            addMessage(question, 'user');
-            chatInput.value = '';
-
-            const loadingMessage = document.createElement('div');
-            loadingMessage.className = 'message bot';
-            loadingMessage.textContent = 'Escribiendo...';
-            chatMessages.appendChild(loadingMessage);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-
-            try {
-                const response = await fetch('{{ route('rumika.bot') }}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute(
-                            'content')
-                    },
-                    body: JSON.stringify({
-                        message: question
-                    })
+                document.querySelectorAll('.faq-item').forEach((otherItem) => {
+                    otherItem.classList.remove('active');
+                    otherItem.querySelector('.faq-answer').style.maxHeight = null;
                 });
 
-                const data = await response.json();
-
-
-
-                loadingMessage.remove();
-
-                if (data.ok) {
-                    addMessage(data.answer, 'bot');
-                } else {
-                    addMessage(
-                        'No pude responder en este momento. Por favor intenta nuevamente o comunícate por WhatsApp.',
-                        'bot');
+                if (!isActive) {
+                    item.classList.add('active');
+                    answer.style.maxHeight = answer.scrollHeight + 'px';
                 }
-            } catch (error) {
-                loadingMessage.remove();
-                addMessage('No pude conectarme con el asistente. Puedes escribirnos directamente por WhatsApp.', 'bot');
-            }
-        }
+            });
+        });
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, {
+            threshold: 0.12
+        });
+
+        document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
     </script>
 </body>
 
