@@ -181,9 +181,30 @@ new #[Layout('layouts.guest')] class extends Component
             </p>
         @endif
 
-        <div class="rm-login-foot">
-            <span>Un sistema más de</span>
-            <strong>DigitBol</strong>
+        <div class="rm-digitbol-card">
+            <div class="rm-digitbol-top">
+                <img src="{{ asset('digitbol-logo.jpg') }}" alt="DigitBol" class="rm-digitbol-logo">
+
+                <div class="rm-digitbol-copy">
+                    <span class="rm-digitbol-label">Desarrollado por</span>
+                    <h3>DigitBol</h3>
+                    <p>
+                        Creamos sistemas web, plataformas SaaS y soluciones a medida para empresas que buscan trabajar con más orden, velocidad y control.
+                    </p>
+                </div>
+            </div>
+
+            <a
+                href="https://wa.me/59177348087?text=Hola%2C%20quiero%20informaci%C3%B3n%20sobre%20DigitBol%20y%20sus%20sistemas."
+                target="_blank"
+                rel="noopener"
+                class="rm-digitbol-whatsapp"
+            >
+                <svg width="18" height="18" viewBox="0 0 32 32" fill="none">
+                    <path fill="currentColor" d="M16.02 4C9.4 4 4.02 9.28 4.02 15.78c0 2.08.56 4.1 1.62 5.88L4 28l6.52-1.68a12.2 12.2 0 0 0 5.5 1.32C22.64 27.64 28 22.36 28 15.86C28.02 9.36 22.64 4 16.02 4Zm0 21.62c-1.78 0-3.52-.46-5.04-1.34l-.36-.22l-3.86 1l1.02-3.68l-.24-.38a9.66 9.66 0 0 1-1.5-5.18c0-5.38 4.48-9.76 9.98-9.76S26 10.44 26 15.82c0 5.4-4.48 9.8-9.98 9.8Zm5.48-7.32c-.3-.14-1.78-.86-2.06-.96c-.28-.1-.48-.14-.68.14c-.2.3-.78.96-.96 1.16c-.18.2-.36.22-.66.08c-.3-.14-1.26-.46-2.4-1.46c-.88-.78-1.48-1.74-1.66-2.04c-.18-.3-.02-.46.14-.6c.14-.14.3-.36.46-.54c.16-.18.2-.3.3-.5c.1-.2.06-.38-.02-.54c-.08-.14-.68-1.62-.94-2.22c-.24-.58-.5-.5-.68-.52h-.58c-.2 0-.52.08-.8.38c-.28.3-1.04 1-1.04 2.44s1.06 2.84 1.2 3.04c.14.2 2.08 3.12 5.04 4.38c.7.3 1.26.48 1.68.62c.7.22 1.34.18 1.84.12c.56-.08 1.78-.72 2.04-1.42c.26-.7.26-1.3.18-1.42c-.08-.14-.28-.22-.58-.36Z"/>
+                </svg>
+                Hablar con DigitBol
+            </a>
         </div>
     </div>
 
@@ -574,19 +595,83 @@ new #[Layout('layouts.guest')] class extends Component
             text-decoration: none;
         }
 
-        .rm-login-foot {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            color: #98a2b3;
-            font-size: 12.5px;
-            font-weight: 700;
+        .rm-digitbol-card {
+            padding: 18px;
+            border-radius: 22px;
+            background: linear-gradient(135deg, #ffffff 0%, #f7fbfd 100%);
+            border: 1px solid #dbe3ee;
+            box-shadow: 0 16px 34px rgba(15, 23, 42, .06);
+            display: grid;
+            gap: 16px;
         }
 
-        .rm-login-foot strong {
+        .rm-digitbol-top {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .rm-digitbol-logo {
+            width: 72px;
+            height: 72px;
+            object-fit: contain;
+            border-radius: 16px;
+            background: #ffffff;
+            padding: 6px;
+            border: 1px solid #e6edf5;
+            flex: 0 0 auto;
+        }
+
+        .rm-digitbol-copy {
+            min-width: 0;
+        }
+
+        .rm-digitbol-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 800;
             color: #1d4f91;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+
+        .rm-digitbol-copy h3 {
+            margin: 0;
+            font-size: 22px;
+            line-height: 1;
+            letter-spacing: -0.04em;
+            color: #0f172a;
             font-weight: 900;
+        }
+
+        .rm-digitbol-copy p {
+            margin: 8px 0 0;
+            font-size: 14px;
+            line-height: 1.65;
+            color: #667085;
+        }
+
+        .rm-digitbol-whatsapp {
+            min-height: 48px;
+            border-radius: 16px;
+            background: #25D366;
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 0 18px;
+            font-size: 14px;
+            font-weight: 900;
+            text-decoration: none;
+            box-shadow: 0 14px 28px rgba(37, 211, 102, .20);
+            transition: transform .18s ease, box-shadow .18s ease;
+        }
+
+        .rm-digitbol-whatsapp:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 18px 34px rgba(37, 211, 102, .28);
         }
 
         @keyframes rmSpin {
@@ -655,12 +740,29 @@ new #[Layout('layouts.guest')] class extends Component
             .rm-forgot {
                 font-size: 13.5px;
             }
+
+            .rm-digitbol-top {
+                align-items: flex-start;
+            }
+
+            .rm-digitbol-logo {
+                width: 62px;
+                height: 62px;
+            }
+
+            .rm-digitbol-copy h3 {
+                font-size: 20px;
+            }
         }
 
         @media (max-width: 380px) {
             .rm-login-options {
                 flex-direction: column;
                 align-items: flex-start;
+            }
+
+            .rm-digitbol-top {
+                flex-direction: column;
             }
         }
     </style>
