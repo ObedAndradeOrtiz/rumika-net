@@ -372,10 +372,9 @@ class QuickCashbox extends Component
                     $branch->id
                 )
                 ->whereBetween(
-                    'paid_at',
+                    'created_at',
                     [$start, $end]
                 );
-
             $expenses = $company
                 ->expenses()
                 ->with([
@@ -870,8 +869,8 @@ class QuickCashbox extends Component
         return $session->company->treatmentPayments()
             ->with(['client', 'splits', 'items'])
             ->where('branch_id', $session->branch_id)
-            ->whereBetween('paid_at', [$start, $end])
-            ->latest('paid_at')
+            ->whereBetween('created_at', [$start, $end])
+            ->latest('created_at')
             ->get();
     }
 
