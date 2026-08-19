@@ -1,3 +1,70 @@
+@if ($showAttendanceModal)
+    <div
+        class="rm-modal-backdrop"
+        wire:click="$set('showAttendanceModal', false)"
+    ></div>
+
+    <section
+        class="rm-modal-panel rm-modal-panel-sm"
+        role="dialog"
+        aria-modal="true"
+    >
+        <div class="rm-modal-title">
+            <div>
+                <span>Asistencia</span>
+                <h2>¿Quién atendió al cliente?</h2>
+            </div>
+
+            <button
+                type="button"
+                wire:click="$set('showAttendanceModal', false)"
+            >
+                x
+            </button>
+        </div>
+
+        <form
+            wire:submit="confirmAttendance"
+            class="rm-form-stack"
+        >
+            <label class="rm-field">
+                <span>Atendido por</span>
+
+                <select wire:model="attendanceUserId">
+                    <option value="">Seleccionar profesional</option>
+
+                    @foreach ($staffUsers as $staff)
+                        <option value="{{ $staff->id }}">
+                            {{ $staff->name }}
+                        </option>
+                    @endforeach
+                </select>
+
+                @error('attendanceUserId')
+                    <small>{{ $message }}</small>
+                @enderror
+            </label>
+
+            <div class="rm-form-actions">
+                <button
+                    class="rm-button rm-button-outline"
+                    type="button"
+                    wire:click="$set('showAttendanceModal', false)"
+                >
+                    Cancelar
+                </button>
+
+                <button
+                    class="rm-button rm-button-primary"
+                    type="submit"
+                >
+                    Confirmar asistencia
+                </button>
+            </div>
+        </form>
+    </section>
+@endif
+
 @if ($showAppointmentModal)
     <div class="rm-modal-backdrop" wire:click="$set('showAppointmentModal', false)"></div>
     <section class="rm-modal-panel rm-modal-panel-xl" role="dialog" aria-modal="true">

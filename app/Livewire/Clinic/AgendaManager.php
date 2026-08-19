@@ -87,6 +87,10 @@ class AgendaManager extends Component
     public array $addServiceIds = [];
     public string $historyTab = 'appointments';
 
+    public bool $showAttendanceModal = false;
+    public ?int $attendanceAppointmentId = null;
+    public ?int $attendanceUserId = null;
+
     public function mount(): void
     {
         $this->selectedDate = now()->format('Y-m-d');
@@ -229,20 +233,60 @@ class AgendaManager extends Component
 
     public function markAttended(int $appointmentId): void
     {
-        $appointment = $this->appointmentQuery()->whereKey($appointmentId)->firstOrFail();
+        $appointment = $this->appointmentQuery()
+            ->whereKey($appointmentId)
+            ->firstOrFail();
 
-        if (! $appointment->attended) {
-            $appointment->update([
-                'attended' => true,
-                'status' => 'attended',
-            ]);
+        $this->attendanceAppointmentId = $appointment->id;
+        $this->attendanceUserId = $appointment->attended_by_user_id;
+
+        $this->showAttendanceModal = true;
+    }
+
+    public function confirmAttendance(): void
+    {
+        $company = $this->company();
+
+        $userIds = $company->users()
+            ->pluck('users.id')
+            ->all();
+
+        $this->validate([
+            'attendanceAppointmentId' => ['required', 'integer'],
+            'attendanceUserId' => ['required', Rule::in($userIds)],
+        ]);
+
+        $appointment = $this->appointmentQuery()
+            ->whereKey($this->attendanceAppointmentId)
+            ->firstOrFail();
+
+        $wasAlreadyAttended = (bool) $appointment->attended;
+
+        $appointment->update([
+            'attended' => true,
+            'status' => 'attended',
+            'attended_by_user_id' => $this->attendanceUserId,
+        ]);
+
+        /*
+     * Solo incrementamos la sesión la primera vez.
+     * Así evitamos sumar dos veces si cambias quién atendió.
+     */
+        if (! $wasAlreadyAttended) {
             $appointment->treatmentPlan?->increment('completed_sessions');
         }
+        $this->showAttendanceModal = false;
+        $this->attendanceAppointmentId = null;
+        $this->attendanceUserId = null;
+
+        $this->resetErrorBag('attendanceUserId');
     }
 
     public function markNoShow(int $appointmentId): void
     {
-        $appointment = $this->appointmentQuery()->whereKey($appointmentId)->firstOrFail();
+        $appointment = $this->appointmentQuery()
+            ->whereKey($appointmentId)
+            ->firstOrFail();
 
         if ($appointment->locked_by_payment) {
             return;
@@ -251,6 +295,7 @@ class AgendaManager extends Component
         $appointment->update([
             'attended' => false,
             'status' => 'no_show',
+            'attended_by_user_id' => null,
         ]);
     }
 
@@ -785,7 +830,7 @@ class AgendaManager extends Component
                     'quantity' => $quantity,
                     'unit_cost' => $batch->unit_cost,
                     'total_cost' => $quantity * (float) $batch->unit_cost,
-                   'moved_at' => $appointment->scheduled_at,
+                    'moved_at' => $appointment->scheduled_at,
                     'reference' => 'PAY-' . $payment->id,
                     'reason' => 'Venta de producto en caja clinica',
                 ]);
@@ -1047,7 +1092,14 @@ class AgendaManager extends Component
         $day = Carbon::parse($this->selectedDate);
 
         $appointments = $company->appointments()
-            ->with(['client', 'services', 'payments.splits', 'payments.items', 'treatmentPlan'])
+            ->with([
+                'client',
+                'services',
+                'payments.splits',
+                'payments.items',
+                'treatmentPlan',
+                'attendedBy',
+            ])
             ->where('branch_id', $branch->id)
             ->whereBetween('scheduled_at', [$day->copy()->startOfDay(), $day->copy()->endOfDay()])
             ->when(trim($this->appointmentSearch) !== '', function ($query) {
@@ -1140,7 +1192,7 @@ class AgendaManager extends Component
             'invoice_requested' => (bool) ($data['invoiceRequested'] ?? false),
             'reference' => $data['paymentReference'] ?: null,
             'notes' => $data['paymentNotes'] ?: null,
-           'paid_at' => $appointment->scheduled_at,
+            'paid_at' => $appointment->scheduled_at,
         ]);
 
         if ($method === 'mixed') {
