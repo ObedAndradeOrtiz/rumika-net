@@ -175,7 +175,7 @@ class AgendaManager extends Component
                 ]);
 
             $services = $company->services()->whereIn('id', $validated['serviceIds'])->get();
-            $totalAmount = $services->sum(fn (Service $service) => (float) $service->price);
+            $totalAmount = $services->sum(fn(Service $service) => (float) $service->price);
             $plan = null;
 
             if ($validated['createTreatmentPlan']) {
@@ -195,7 +195,7 @@ class AgendaManager extends Component
                 'branch_id' => $branch->id,
                 'client_id' => $client->id,
                 'treatment_plan_id' => $plan?->id,
-                'scheduled_at' => Carbon::parse($validated['scheduledDate'].' '.$validated['scheduledTime']),
+                'scheduled_at' => Carbon::parse($validated['scheduledDate'] . ' ' . $validated['scheduledTime']),
                 'duration_minutes' => $validated['durationMinutes'],
                 'status' => 'scheduled',
                 'clinical_notes' => $validated['appointmentNotes'] ?: null,
@@ -278,7 +278,7 @@ class AgendaManager extends Component
         $paymentIds = $appointment->payments()->pluck('id')->all();
         $hasExternalChargePayments = ClientCharge::query()
             ->where('appointment_id', $appointment->id)
-            ->whereHas('payments', fn ($query) => $paymentIds
+            ->whereHas('payments', fn($query) => $paymentIds
                 ? $query->whereNotIn('treatment_payment_id', $paymentIds)
                 : $query)
             ->exists();
@@ -320,13 +320,13 @@ class AgendaManager extends Component
         $appointment = $this->appointmentQuery()->whereKey($appointmentId)->with(['services', 'payments'])->firstOrFail();
         $this->paymentAppointmentId = $appointment->id;
         $this->editingPaymentId = null;
-        $this->paymentServiceLineIds = $appointment->services->pluck('id')->map(fn ($id) => (string) $id)->all();
+        $this->paymentServiceLineIds = $appointment->services->pluck('id')->map(fn($id) => (string) $id)->all();
         $this->paymentServiceLinePrices = $appointment->services
-            ->mapWithKeys(fn ($service) => [(string) $service->id => (string) $service->price])
+            ->mapWithKeys(fn($service) => [(string) $service->id => (string) $service->price])
             ->all();
         $this->paymentServiceLinePayments = $appointment->services
-            ->reject(fn ($service) => $this->existingChargeForAppointmentService($service->id)?->balance_amount > 0)
-            ->mapWithKeys(fn ($service) => [(string) $service->id => (string) $service->price])
+            ->reject(fn($service) => $this->existingChargeForAppointmentService($service->id)?->balance_amount > 0)
+            ->mapWithKeys(fn($service) => [(string) $service->id => (string) $service->price])
             ->all();
         $serviceDue = array_sum(array_map('floatval', $this->paymentServiceLinePayments));
         $this->paymentAmount = (string) $serviceDue;
@@ -358,18 +358,18 @@ class AgendaManager extends Component
             ->where('appointment_service_id', '!=', null)
             ->pluck('appointment_service_id')
             ->filter()
-            ->map(fn ($id) => (string) $id)
+            ->map(fn($id) => (string) $id)
             ->values()
             ->all();
         $this->paymentServiceLinePrices = $payment->items
             ->where('type', 'service')
             ->where('appointment_service_id', '!=', null)
-            ->mapWithKeys(fn ($item) => [(string) $item->appointment_service_id => (string) ($item->charged_total ?: $item->unit_price)])
+            ->mapWithKeys(fn($item) => [(string) $item->appointment_service_id => (string) ($item->charged_total ?: $item->unit_price)])
             ->all();
         $this->paymentServiceLinePayments = $payment->items
             ->where('type', 'service')
             ->where('appointment_service_id', '!=', null)
-            ->mapWithKeys(fn ($item) => [(string) $item->appointment_service_id => (string) $item->total])
+            ->mapWithKeys(fn($item) => [(string) $item->appointment_service_id => (string) $item->total])
             ->all();
         $this->paymentCashAmount = (string) ($payment->splits->firstWhere('method', 'cash')?->amount ?? '');
         $this->paymentQrAmount = (string) ($payment->splits->firstWhere('method', 'qr')?->amount ?? '');
@@ -380,7 +380,7 @@ class AgendaManager extends Component
         $this->extraPaymentSplits = $payment->splits
             ->whereNotIn('id', $usedSplitIds)
             ->values()
-            ->map(fn ($split) => [
+            ->map(fn($split) => [
                 'method' => $split->method,
                 'amount' => (string) $split->amount,
                 'reference' => $split->reference ?? '',
@@ -399,7 +399,7 @@ class AgendaManager extends Component
         $this->paymentProductLines = $payment->items
             ->where('type', 'product')
             ->values()
-            ->map(fn ($item) => [
+            ->map(fn($item) => [
                 'client_charge_id' => (string) ($item->client_charge_id ?? ''),
                 'batch_id' => (string) ($item->inventory_product_batch_id ?? ''),
                 'locked_name' => $item->inventory_product_batch_id ? '' : $item->name,
@@ -412,16 +412,16 @@ class AgendaManager extends Component
         $existingProductChargeIds = collect($this->paymentProductLines)
             ->pluck('client_charge_id')
             ->filter()
-            ->map(fn ($id) => (int) $id)
+            ->map(fn($id) => (int) $id)
             ->all();
         $appointmentProductDebtLines = $this->company()->clientCharges()
             ->where('appointment_id', $payment->appointment_id)
             ->where('client_id', $payment->client_id)
             ->where('type', 'product')
             ->whereIn('status', ['pending', 'partial'])
-            ->when($existingProductChargeIds, fn ($query) => $query->whereNotIn('id', $existingProductChargeIds))
+            ->when($existingProductChargeIds, fn($query) => $query->whereNotIn('id', $existingProductChargeIds))
             ->get()
-            ->map(fn (ClientCharge $charge) => [
+            ->map(fn(ClientCharge $charge) => [
                 'client_charge_id' => (string) $charge->id,
                 'batch_id' => (string) ($charge->inventory_product_batch_id ?? ''),
                 'locked_name' => $charge->inventory_product_batch_id ? '' : $charge->name,
@@ -550,9 +550,9 @@ class AgendaManager extends Component
         $cash = (float) ($validated['paymentCashAmount'] ?: 0);
         $qr = (float) ($validated['paymentQrAmount'] ?: 0);
         $extraSplits = collect($validated['extraPaymentSplits'] ?? [])
-            ->filter(fn ($split) => (float) ($split['amount'] ?? 0) > 0)
+            ->filter(fn($split) => (float) ($split['amount'] ?? 0) > 0)
             ->values();
-        $amount = $cash + $qr + $extraSplits->sum(fn ($split) => (float) $split['amount']);
+        $amount = $cash + $qr + $extraSplits->sum(fn($split) => (float) $split['amount']);
 
         if ($amount <= 0) {
             $this->addError('paymentCashAmount', 'Ingresa al menos un monto en efectivo o QR.');
@@ -560,7 +560,7 @@ class AgendaManager extends Component
             return;
         }
 
-        $selectedServiceIds = collect($validated['paymentServiceLineIds'] ?? [])->map(fn ($id) => (int) $id)->all();
+        $selectedServiceIds = collect($validated['paymentServiceLineIds'] ?? [])->map(fn($id) => (int) $id)->all();
         $serviceLines = $appointment->services()->whereIn('id', $selectedServiceIds)->get();
         $serviceLineCharges = $serviceLines->mapWithKeys(function ($serviceLine) use ($validated) {
             $chargedTotal = round((float) (($validated['paymentServiceLinePrices'][(string) $serviceLine->id] ?? '') !== ''
@@ -581,15 +581,15 @@ class AgendaManager extends Component
             $paid = (float) ($validated['paymentServiceLinePayments'][(string) $serviceLine->id] ?? $chargedTotal);
 
             if ($paid > $chargedTotal) {
-                $this->addError('paymentServiceLinePayments.'.$serviceLine->id, 'El pago de '.$serviceLine->name.' no puede superar Bs '.number_format($chargedTotal, 2).'.');
+                $this->addError('paymentServiceLinePayments.' . $serviceLine->id, 'El pago de ' . $serviceLine->name . ' no puede superar Bs ' . number_format($chargedTotal, 2) . '.');
 
                 return;
             }
         }
         $productSoldByUserId = ($validated['paymentProductSoldByUserId'] ?? null) ?: null;
         $productLines = $this->normalizedPaymentProductLines($validated['paymentProductLines'] ?? [], $company, $branch, $productSoldByUserId ? (int) $productSoldByUserId : null);
-        $productTotal = $productLines->sum(fn (array $line) => $line['quantity'] * $line['unit_price']);
-        $productPaidTotal = $productLines->sum(fn (array $line) => $line['paid_amount']);
+        $productTotal = $productLines->sum(fn(array $line) => $line['quantity'] * $line['unit_price']);
+        $productPaidTotal = $productLines->sum(fn(array $line) => $line['paid_amount']);
         $pendingPayments = $this->normalizedPendingChargePayments($validated['pendingChargePayments'] ?? [], $company, $branch, $appointment->client_id);
         $pendingPaidTotal = $pendingPayments->sum('amount');
         $chargeTotal = round($serviceTotal + $productTotal, 2);
@@ -597,7 +597,7 @@ class AgendaManager extends Component
         $submittedProductChargeIds = collect($validated['paymentProductLines'] ?? [])
             ->pluck('client_charge_id')
             ->filter()
-            ->map(fn ($id) => (int) $id)
+            ->map(fn($id) => (int) $id)
             ->all();
 
         if (($chargeTotal + $pendingPaidTotal) <= 0) {
@@ -613,7 +613,7 @@ class AgendaManager extends Component
         }
 
         if (abs(round($amount, 2) - $payNowTotal) > 0.009) {
-            $this->addError('paymentCashAmount', 'El cobro debe sumar Bs '.number_format($payNowTotal, 2).' segun lo que paga ahora.');
+            $this->addError('paymentCashAmount', 'El cobro debe sumar Bs ' . number_format($payNowTotal, 2) . ' segun lo que paga ahora.');
 
             return;
         }
@@ -623,17 +623,17 @@ class AgendaManager extends Component
             $needed = $lines->sum('quantity');
             $available = (float) $batch->current_quantity + $this->editingPaymentBatchQuantity((int) $batchId);
 
-            $hasShortageReason = $lines->contains(fn (array $line) => trim((string) $line['stock_shortage_reason']) !== '');
+            $hasShortageReason = $lines->contains(fn(array $line) => trim((string) $line['stock_shortage_reason']) !== '');
 
             if ($available < $needed && ! $hasShortageReason) {
-                $this->addError('paymentProductLines', 'Indica el motivo del stock pendiente para '.$batch->product->name.'. Disponible: '.number_format($available, 2).'.');
+                $this->addError('paymentProductLines', 'Indica el motivo del stock pendiente para ' . $batch->product->name . '. Disponible: ' . number_format($available, 2) . '.');
 
                 return;
             }
         }
         $stockShortageReasons = $productLines
             ->groupBy('batch_id')
-            ->map(fn ($lines) => (string) ($lines->first(fn (array $line) => trim((string) $line['stock_shortage_reason']) !== '')['stock_shortage_reason'] ?? ''))
+            ->map(fn($lines) => (string) ($lines->first(fn(array $line) => trim((string) $line['stock_shortage_reason']) !== '')['stock_shortage_reason'] ?? ''))
             ->all();
 
         $paymentId = DB::transaction(function () use ($appointment, $validated, $cash, $qr, $extraSplits, $amount, $selectedServiceIds, $serviceLineCharges, $productLines, $pendingPayments, $stockShortageReasons, $submittedProductChargeIds) {
@@ -645,7 +645,7 @@ class AgendaManager extends Component
                     'client_id' => $appointment->client_id,
                     'appointment_id' => $appointment->id,
                     'treatment_plan_id' => $appointment->treatment_plan_id,
-                    'paid_at' => now(),
+                    'paid_at' => $appointment->scheduled_at,
                 ]);
 
             if ($payment->exists) {
@@ -656,7 +656,7 @@ class AgendaManager extends Component
                 }
                 $payment->splits()->delete();
                 $payment->items()->delete();
-                InventoryMovement::query()->where('company_id', $appointment->company_id)->where('reference', 'PAY-'.$payment->id)->delete();
+                InventoryMovement::query()->where('company_id', $appointment->company_id)->where('reference', 'PAY-' . $payment->id)->delete();
                 ClientCharge::query()
                     ->whereIn('id', $submittedProductChargeIds)
                     ->where('appointment_id', $appointment->id)
@@ -708,7 +708,7 @@ class AgendaManager extends Component
                     'total_amount' => $chargedTotal,
                     'paid_amount' => 0,
                     'balance_amount' => $chargedTotal,
-                    'charged_at' => now(),
+                    'charged_at' => $appointment->scheduled_at,
                 ]);
                 $this->applyChargePayment($charge, $payment, $paidAmount);
 
@@ -758,7 +758,7 @@ class AgendaManager extends Component
                     'total_amount' => $chargedTotal,
                     'paid_amount' => 0,
                     'balance_amount' => $chargedTotal,
-                    'charged_at' => now(),
+                    'charged_at' => $appointment->scheduled_at,
                 ]);
                 $this->applyChargePayment($charge, $payment, $paidAmount);
 
@@ -785,8 +785,8 @@ class AgendaManager extends Component
                     'quantity' => $quantity,
                     'unit_cost' => $batch->unit_cost,
                     'total_cost' => $quantity * (float) $batch->unit_cost,
-                    'moved_at' => now(),
-                    'reference' => 'PAY-'.$payment->id,
+                   'moved_at' => $appointment->scheduled_at,
+                    'reference' => 'PAY-' . $payment->id,
                     'reason' => 'Venta de producto en caja clinica',
                 ]);
 
@@ -802,7 +802,7 @@ class AgendaManager extends Component
                         'unit_cost' => $batch->unit_cost,
                         'total_cost' => $missingQuantity * (float) $batch->unit_cost,
                         'moved_at' => now(),
-                        'reference' => 'PAY-'.$payment->id,
+                        'reference' => 'PAY-' . $payment->id,
                         'reason' => ($stockShortageReasons[$line['batch_id']] ?? '') ?: 'Venta con stock pendiente',
                     ]);
                 }
@@ -825,7 +825,7 @@ class AgendaManager extends Component
                     'inventory_product_batch_id' => $charge->inventory_product_batch_id,
                     'sold_by_user_id' => $charge->sold_by_user_id,
                     'type' => $charge->type,
-                    'name' => 'Abono '.$charge->name,
+                    'name' => 'Abono ' . $charge->name,
                     'quantity' => $charge->quantity,
                     'unit_price' => $charge->unit_price,
                     'charged_total' => $charge->total_amount,
@@ -900,7 +900,7 @@ class AgendaManager extends Component
         $this->rescheduleServiceIds = $appointment->services
             ->pluck('service_id')
             ->filter()
-            ->map(fn ($id) => (string) $id)
+            ->map(fn($id) => (string) $id)
             ->values()
             ->all();
         $this->showRescheduleModal = true;
@@ -928,7 +928,7 @@ class AgendaManager extends Component
                 'client_id' => $appointment->client_id,
                 'treatment_plan_id' => $appointment->treatment_plan_id,
                 'rescheduled_from_id' => $appointment->id,
-                'scheduled_at' => Carbon::parse($validated['rescheduleDate'].' '.$validated['rescheduleTime']),
+                'scheduled_at' => Carbon::parse($validated['rescheduleDate'] . ' ' . $validated['rescheduleTime']),
                 'duration_minutes' => $appointment->duration_minutes,
                 'status' => 'scheduled',
                 'clinical_notes' => $appointment->clinical_notes,
@@ -1051,7 +1051,7 @@ class AgendaManager extends Component
             ->where('branch_id', $branch->id)
             ->whereBetween('scheduled_at', [$day->copy()->startOfDay(), $day->copy()->endOfDay()])
             ->when(trim($this->appointmentSearch) !== '', function ($query) {
-                $search = '%'.trim($this->appointmentSearch).'%';
+                $search = '%' . trim($this->appointmentSearch) . '%';
 
                 $query->where(function ($query) use ($search) {
                     $query->whereHas('client', function ($query) use ($search) {
@@ -1072,22 +1072,22 @@ class AgendaManager extends Component
 
         $historyProductItems = $historyClient
             ? TreatmentPaymentItem::query()
-                ->with(['payment', 'product', 'batch', 'soldBy'])
-                ->where('type', 'product')
-                ->whereHas('payment', fn ($query) => $query
-                    ->where('company_id', $company->id)
-                    ->where('client_id', $historyClient->id))
-                ->latest()
-                ->get()
+            ->with(['payment', 'product', 'batch', 'soldBy'])
+            ->where('type', 'product')
+            ->whereHas('payment', fn($query) => $query
+                ->where('company_id', $company->id)
+                ->where('client_id', $historyClient->id))
+            ->latest()
+            ->get()
             : collect();
 
         $historyPendingCharges = $historyClient
             ? $company->clientCharges()
-                ->with('soldBy')
-                ->where('client_id', $historyClient->id)
-                ->whereIn('status', ['pending', 'partial'])
-                ->orderBy('charged_at')
-                ->get()
+            ->with('soldBy')
+            ->where('client_id', $historyClient->id)
+            ->whereIn('status', ['pending', 'partial'])
+            ->orderBy('charged_at')
+            ->get()
             : collect();
 
         return view('livewire.clinic.agenda-manager', [
@@ -1108,11 +1108,11 @@ class AgendaManager extends Component
                 : collect(),
             'paymentTickets' => $this->editingPaymentId
                 ? $company->cashboxTickets()
-                    ->where('branch_id', $branch->id)
-                    ->where('treatment_payment_id', $this->editingPaymentId)
-                    ->where('type', 'payment')
-                    ->latest()
-                    ->get()
+                ->where('branch_id', $branch->id)
+                ->where('treatment_payment_id', $this->editingPaymentId)
+                ->where('type', 'payment')
+                ->latest()
+                ->get()
                 : collect(),
             'historyClient' => $historyClient,
             'historyProductItems' => $historyProductItems,
@@ -1140,7 +1140,7 @@ class AgendaManager extends Component
             'invoice_requested' => (bool) ($data['invoiceRequested'] ?? false),
             'reference' => $data['paymentReference'] ?: null,
             'notes' => $data['paymentNotes'] ?: null,
-            'paid_at' => now(),
+           'paid_at' => $appointment->scheduled_at,
         ]);
 
         if ($method === 'mixed') {
@@ -1185,7 +1185,7 @@ class AgendaManager extends Component
                 'total_amount' => $chargedTotal,
                 'paid_amount' => 0,
                 'balance_amount' => $chargedTotal,
-                'charged_at' => now(),
+                'charged_at' => $appointment->scheduled_at,
             ]);
             $this->applyChargePayment($charge, $payment, $paidAmount);
 
@@ -1224,7 +1224,7 @@ class AgendaManager extends Component
             'branch_id' => $branch->id,
             'treatment_payment_id' => $payment->id,
             'type' => 'payment',
-            'ticket_number' => 'PAY-'.$company->id.'-'.$branch->id.'-'.now()->format('YmdHis').'-'.random_int(100, 999),
+            'ticket_number' => 'PAY-' . $company->id . '-' . $branch->id . '-' . now()->format('YmdHis') . '-' . random_int(100, 999),
             'title' => 'Ticket de cobro',
             'payload' => $payload,
             'status' => 'generated',
@@ -1291,7 +1291,7 @@ class AgendaManager extends Component
 
         InventoryMovement::query()
             ->where('company_id', $companyId)
-            ->where('reference', 'PAY-'.$payment->id)
+            ->where('reference', 'PAY-' . $payment->id)
             ->delete();
 
         $payment->splits()->delete();
@@ -1302,7 +1302,7 @@ class AgendaManager extends Component
     private function normalizedPaymentProductLines(array $lines, Company $company, Branch $branch, ?int $soldByUserId)
     {
         return collect($lines)
-            ->filter(fn (array $line) => ! empty($line['batch_id']) && (float) ($line['quantity'] ?? 0) > 0)
+            ->filter(fn(array $line) => ! empty($line['batch_id']) && (float) ($line['quantity'] ?? 0) > 0)
             ->map(function (array $line) use ($company, $branch, $soldByUserId) {
                 $batch = $company->inventoryBatches()
                     ->with('product')
@@ -1316,7 +1316,7 @@ class AgendaManager extends Component
 
                 if ($paidAmount > $chargedTotal) {
                     throw ValidationException::withMessages([
-                        'paymentProductLines' => 'El pago de '.$batch->product->name.' no puede superar Bs '.number_format($chargedTotal, 2).'.',
+                        'paymentProductLines' => 'El pago de ' . $batch->product->name . ' no puede superar Bs ' . number_format($chargedTotal, 2) . '.',
                     ]);
                 }
 
@@ -1336,7 +1336,7 @@ class AgendaManager extends Component
     private function normalizedPendingChargePayments(array $payments, Company $company, Branch $branch, int $clientId)
     {
         return collect($payments)
-            ->filter(fn ($amount) => (float) $amount > 0)
+            ->filter(fn($amount) => (float) $amount > 0)
             ->map(function ($amount, $chargeId) use ($company, $branch, $clientId) {
                 $charge = $company->clientCharges()
                     ->where('branch_id', $branch->id)
@@ -1348,7 +1348,7 @@ class AgendaManager extends Component
 
                 if ($payAmount > (float) $charge->balance_amount) {
                     throw ValidationException::withMessages([
-                        'pendingChargePayments.'.$chargeId => 'El abono de '.$charge->name.' no puede superar Bs '.number_format((float) $charge->balance_amount, 2).'.',
+                        'pendingChargePayments.' . $chargeId => 'El abono de ' . $charge->name . ' no puede superar Bs ' . number_format((float) $charge->balance_amount, 2) . '.',
                     ]);
                 }
 
@@ -1416,7 +1416,7 @@ class AgendaManager extends Component
         $selectedBatchIds = collect($this->paymentProductLines)
             ->pluck('batch_id')
             ->filter()
-            ->map(fn ($id) => (int) $id)
+            ->map(fn($id) => (int) $id)
             ->all();
 
         $this->ensureCatalogBatchesForBranch($company, $branch);
@@ -1426,17 +1426,17 @@ class AgendaManager extends Component
             ->where('branch_id', $branch->id)
             ->where(function ($query) use ($selectedBatchIds) {
                 $query->where('status', 'available')
-                    ->when($selectedBatchIds, fn ($selectedQuery) => $selectedQuery->orWhereIn('id', $selectedBatchIds));
+                    ->when($selectedBatchIds, fn($selectedQuery) => $selectedQuery->orWhereIn('id', $selectedBatchIds));
             })
-            ->when($selectedBatchIds, fn ($query) => $query->orderByRaw('CASE WHEN id IN ('.implode(',', array_fill(0, count($selectedBatchIds), '?')).') THEN 0 ELSE 1 END', $selectedBatchIds))
-            ->when($search !== '', fn ($query) => $query->where(function ($nested) use ($search, $selectedBatchIds) {
+            ->when($selectedBatchIds, fn($query) => $query->orderByRaw('CASE WHEN id IN (' . implode(',', array_fill(0, count($selectedBatchIds), '?')) . ') THEN 0 ELSE 1 END', $selectedBatchIds))
+            ->when($search !== '', fn($query) => $query->where(function ($nested) use ($search, $selectedBatchIds) {
                 $nested->where('lot_code', 'like', "%{$search}%")
-                    ->orWhereHas('product', fn ($productQuery) => $productQuery
+                    ->orWhereHas('product', fn($productQuery) => $productQuery
                         ->where('name', 'like', "%{$search}%")
                         ->orWhere('code', 'like', "%{$search}%")
-                        ->orWhereHas('brand', fn ($brandQuery) => $brandQuery->where('name', 'like', "%{$search}%"))
-                        ->orWhereHas('useArea', fn ($areaQuery) => $areaQuery->where('name', 'like', "%{$search}%")))
-                    ->when($selectedBatchIds, fn ($selectedQuery) => $selectedQuery->orWhereIn('id', $selectedBatchIds));
+                        ->orWhereHas('brand', fn($brandQuery) => $brandQuery->where('name', 'like', "%{$search}%"))
+                        ->orWhereHas('useArea', fn($areaQuery) => $areaQuery->where('name', 'like', "%{$search}%")))
+                    ->when($selectedBatchIds, fn($selectedQuery) => $selectedQuery->orWhereIn('id', $selectedBatchIds));
             }))
             ->orderByDesc('current_quantity')
             ->orderByRaw('expires_at IS NULL, expires_at ASC')
@@ -1454,7 +1454,7 @@ class AgendaManager extends Component
 
         $company->inventoryProducts()
             ->where('status', 'active')
-            ->when($existingProductIds, fn ($query) => $query->whereNotIn('id', $existingProductIds))
+            ->when($existingProductIds, fn($query) => $query->whereNotIn('id', $existingProductIds))
             ->select(['id', 'company_id', 'purchase_cost'])
             ->chunkById(100, function ($products) use ($company, $branch) {
                 foreach ($products as $product) {
@@ -1462,7 +1462,7 @@ class AgendaManager extends Component
                         [
                             'branch_id' => $branch->id,
                             'inventory_product_id' => $product->id,
-                            'lot_code' => 'CATALOGO-'.$branch->id.'-'.$product->id,
+                            'lot_code' => 'CATALOGO-' . $branch->id . '-' . $product->id,
                         ],
                         [
                             'company_id' => $company->id,
@@ -1483,7 +1483,7 @@ class AgendaManager extends Component
 
         if ($this->paymentAppointmentId && $this->paymentServiceLineIds) {
             $appointment = $company->appointments()->whereKey($this->paymentAppointmentId)->first();
-            $serviceLineIds = collect($this->paymentServiceLineIds)->map(fn ($id) => (int) $id)->all();
+            $serviceLineIds = collect($this->paymentServiceLineIds)->map(fn($id) => (int) $id)->all();
             $serviceTotal = $appointment
                 ? (float) $appointment->services()->whereIn('id', $serviceLineIds)->get()->sum(function ($serviceLine) {
                     return (float) (($this->paymentServiceLinePrices[(string) $serviceLine->id] ?? '') !== ''
@@ -1494,7 +1494,7 @@ class AgendaManager extends Component
         }
 
         $productTotal = collect($this->paymentProductLines)
-            ->filter(fn (array $line) => ! empty($line['batch_id']) && (float) ($line['quantity'] ?? 0) > 0)
+            ->filter(fn(array $line) => ! empty($line['batch_id']) && (float) ($line['quantity'] ?? 0) > 0)
             ->sum(function (array $line) use ($company, $branch) {
                 $batch = $company->inventoryBatches()
                     ->where('branch_id', $branch->id)
@@ -1514,12 +1514,12 @@ class AgendaManager extends Component
         return [
             'services' => round($serviceTotal, 2),
             'products' => round($productTotal, 2),
-            'pending' => round(collect($this->pendingChargePayments)->sum(fn ($amount) => (float) $amount), 2),
+            'pending' => round(collect($this->pendingChargePayments)->sum(fn($amount) => (float) $amount), 2),
             'total' => round($serviceTotal + $productTotal, 2),
             'pay_now' => round(
-                collect($this->paymentServiceLinePayments)->sum(fn ($amount) => (float) $amount)
-                + collect($this->paymentProductLines)->sum(fn (array $line) => (float) ($line['paid_amount'] ?? 0))
-                + collect($this->pendingChargePayments)->sum(fn ($amount) => (float) $amount),
+                collect($this->paymentServiceLinePayments)->sum(fn($amount) => (float) $amount)
+                    + collect($this->paymentProductLines)->sum(fn(array $line) => (float) ($line['paid_amount'] ?? 0))
+                    + collect($this->pendingChargePayments)->sum(fn($amount) => (float) $amount),
                 2
             ),
         ];
@@ -1540,7 +1540,7 @@ class AgendaManager extends Component
     private function pendingChargeInputs(int $clientId, ?int $exceptPaymentId = null): array
     {
         return $this->pendingCharges($clientId, $exceptPaymentId)
-            ->mapWithKeys(fn (ClientCharge $charge) => [(string) $charge->id => ''])
+            ->mapWithKeys(fn(ClientCharge $charge) => [(string) $charge->id => ''])
             ->all();
     }
 
@@ -1562,7 +1562,7 @@ class AgendaManager extends Component
                 'status' => 'in_process',
             ],
             [
-                'name' => 'Inventario '.$branch->name.' '.now()->format('Y-m'),
+                'name' => 'Inventario ' . $branch->name . ' ' . now()->format('Y-m'),
                 'opened_at' => now(),
             ],
         );
@@ -1689,7 +1689,7 @@ class AgendaManager extends Component
         $search = trim($this->clientSearch);
 
         return $company->clients()
-            ->when($search !== '', fn ($query) => $query->where(fn ($nested) => $nested
+            ->when($search !== '', fn($query) => $query->where(fn($nested) => $nested
                 ->where('full_name', 'like', "%{$search}%")
                 ->orWhere('identity_number', 'like', "%{$search}%")
                 ->orWhere('phone', 'like', "%{$search}%")))
@@ -1706,7 +1706,7 @@ class AgendaManager extends Component
             ->where(function ($query) use ($branch) {
                 $query->whereNull('branch_id')->orWhere('branch_id', $branch->id);
             })
-            ->when($search !== '', fn ($query) => $query->where(fn ($nested) => $nested
+            ->when($search !== '', fn($query) => $query->where(fn($nested) => $nested
                 ->where('name', 'like', "%{$search}%")
                 ->orWhere('description', 'like', "%{$search}%")))
             ->orderBy('name')
@@ -1722,7 +1722,7 @@ class AgendaManager extends Component
             ->where(function ($query) use ($branch) {
                 $query->whereNull('branch_id')->orWhere('branch_id', $branch->id);
             })
-            ->when($search !== '', fn ($query) => $query->where(fn ($nested) => $nested
+            ->when($search !== '', fn($query) => $query->where(fn($nested) => $nested
                 ->where('name', 'like', "%{$search}%")
                 ->orWhere('description', 'like', "%{$search}%")))
             ->orderBy('name')
