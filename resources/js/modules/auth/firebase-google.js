@@ -4,6 +4,25 @@ import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 
 const googleButtons = document.querySelectorAll('[data-firebase-google]');
 
+const firebaseAuthMessage = (error) => {
+    const messages = {
+        'auth/unauthorized-domain': 'Este dominio no esta autorizado en Firebase. Agrega rumika.guislaincorp.com y www.rumika.guislaincorp.com en Authentication > Settings > Authorized domains.',
+        'auth/operation-not-allowed': 'El proveedor Google no esta habilitado en Firebase Authentication.',
+        'auth/popup-blocked': 'El navegador bloqueo la ventana de Google. Permite ventanas emergentes para este sitio.',
+        'auth/popup-closed-by-user': 'Se cerro la ventana de Google antes de terminar el ingreso.',
+        'auth/cancelled-popup-request': 'Ya hay una ventana de Google abierta. Cierra la anterior e intenta de nuevo.',
+        'auth/network-request-failed': 'No se pudo conectar con Firebase. Revisa internet o bloqueo del navegador.',
+        'auth/invalid-api-key': 'La API key de Firebase no es valida en este entorno.',
+        'auth/auth-domain-config-required': 'Falta configurar FIREBASE_AUTH_DOMAIN para el login con Google.',
+    };
+
+    return messages[error.code]
+        || error.response?.data?.message
+        || Object.values(error.response?.data?.errors || {})?.flat()?.[0]
+        || error.message
+        || 'No se pudo iniciar sesion con Google. Intenta de nuevo.';
+};
+
 if (googleButtons.length) {
     const firebaseConfig = {
         apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -55,9 +74,7 @@ if (googleButtons.length) {
 
                 window.location.href = response.data.redirect || '/dashboard';
             } catch (error) {
-                const message = error.response?.data?.message
-                    || Object.values(error.response?.data?.errors || {})?.flat()?.[0]
-                    || 'No se pudo iniciar sesion con Google. Intenta de nuevo.';
+                const message = firebaseAuthMessage(error);
 
                 if (errorTarget) {
                     errorTarget.hidden = false;
