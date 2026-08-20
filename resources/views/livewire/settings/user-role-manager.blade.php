@@ -11,8 +11,23 @@
         </div>
     </div>
 
-    <div class="rm-settings-grid rm-users-layout">
+    <div class="rm-tab-switcher rm-access-tabs" role="tablist" aria-label="Usuarios y roles">
         @if ($canViewUsers)
+            <button class="{{ $accessTab === 'users' ? 'is-active' : '' }}" type="button" wire:click="setAccessTab('users')">
+                Usuarios
+                <span>{{ $users->count() }}</span>
+            </button>
+        @endif
+        @if ($canViewRoles)
+            <button class="{{ $accessTab === 'roles' ? 'is-active' : '' }}" type="button" wire:click="setAccessTab('roles')">
+                Roles
+                <span>{{ $roles->count() }}</span>
+            </button>
+        @endif
+    </div>
+
+    <div class="rm-access-tab-panel">
+        @if ($canViewUsers && $accessTab === 'users')
         <section class="rm-panel">
             <div class="rm-panel-title">
                 <div>
@@ -96,7 +111,7 @@
         </section>
         @endif
 
-        @if ($canViewRoles)
+        @if ($canViewRoles && $accessTab === 'roles')
         <section class="rm-panel" id="roles">
             <div class="rm-panel-title">
                 <div>

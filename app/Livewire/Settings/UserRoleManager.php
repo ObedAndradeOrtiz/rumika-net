@@ -19,6 +19,8 @@ class UserRoleManager extends Component
 {
     use WithFileUploads;
 
+    public string $accessTab = 'users';
+
     public string $userSearch = '';
 
     public string $userBranchFilter = '';
@@ -75,6 +77,23 @@ class UserRoleManager extends Component
         $this->userBranchIds = $company->branches()->pluck('id')->map(fn ($id) => (string) $id)->all();
         $this->rolePermissions = RumikaPermissions::onlyView();
         $this->rolePermissionChecks = $this->permissionChecksFromPermissions($this->rolePermissions);
+    }
+
+    public function setAccessTab(string $tab): void
+    {
+        if (! in_array($tab, ['users', 'roles'], true)) {
+            return;
+        }
+
+        if ($tab === 'users') {
+            $this->authorizePermission('usuarios');
+        }
+
+        if ($tab === 'roles') {
+            $this->authorizePermission('roles');
+        }
+
+        $this->accessTab = $tab;
     }
 
     public function createUser(): void
@@ -336,6 +355,17 @@ class UserRoleManager extends Component
     public function render()
     {
         $company = $this->company();
+        $canViewUsers = $this->can('usuarios');
+        $canViewRoles = $this->can('roles');
+
+        if ($this->accessTab === 'users' && ! $canViewUsers && $canViewRoles) {
+            $this->accessTab = 'roles';
+        }
+
+        if ($this->accessTab === 'roles' && ! $canViewRoles && $canViewUsers) {
+            $this->accessTab = 'users';
+        }
+
         $search = trim($this->userSearch);
         $usersQuery = $company->users()
             ->with('branches.businessType')
@@ -363,11 +393,11 @@ class UserRoleManager extends Component
                 ->get(),
             'modules' => RumikaPermissions::modules(),
             'actionLabels' => RumikaPermissions::actionLabels(),
-            'canViewUsers' => $this->can('usuarios'),
+            'canViewUsers' => $canViewUsers,
             'canCreateUsers' => $this->can('usuarios', 'create'),
             'canEditUsers' => $this->can('usuarios', 'edit'),
             'canDeleteUsers' => $this->can('usuarios', 'delete'),
-            'canViewRoles' => $this->can('roles'),
+            'canViewRoles' => $canViewRoles,
             'canCreateRoles' => $this->can('roles', 'create'),
             'canEditRoles' => $this->can('roles', 'edit'),
             'canDeleteRoles' => $this->can('roles', 'delete'),

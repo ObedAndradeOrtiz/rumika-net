@@ -1810,6 +1810,20 @@
     grid-column: 1 / -1;
 }
 
+.rm-access-tabs {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.rm-access-tabs button {
+    min-height: 58px;
+}
+
+.rm-access-tab-panel {
+    display: grid;
+    gap: 18px;
+    min-width: 0;
+}
+
 .rm-media-preview {
     align-items: center;
     background: #e9f6f4;
