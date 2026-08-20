@@ -91,6 +91,13 @@ class AgendaManager extends Component
     public ?int $attendanceAppointmentId = null;
     public ?int $attendanceUserId = null;
 
+    public bool $showNoShowModal = false;
+    public ?int $noShowAppointmentId = null;
+    public string $noShowReason = '';
+    public bool $noShowReschedule = false;
+    public string $noShowRescheduleDate = '';
+    public string $noShowRescheduleTime = '09:00';
+
     public function mount(): void
     {
         $this->selectedDate = now()->format('Y-m-d');
@@ -292,11 +299,131 @@ class AgendaManager extends Component
             return;
         }
 
-        $appointment->update([
-            'attended' => false,
-            'status' => 'no_show',
-            'attended_by_user_id' => null,
+        $this->noShowAppointmentId = $appointment->id;
+        $this->noShowReason = '';
+        $this->noShowReschedule = false;
+
+        $this->noShowRescheduleDate = $appointment->scheduled_at
+            ->copy()
+            ->addDay()
+            ->format('Y-m-d');
+
+        $this->noShowRescheduleTime = $appointment->scheduled_at->format('H:i');
+
+        $this->resetErrorBag();
+
+        $this->showNoShowModal = true;
+    }
+
+    public function confirmNoShow(): void
+    {
+        $validated = $this->validate([
+            'noShowAppointmentId' => ['required', 'integer'],
+            'noShowReason' => ['required', 'string', 'min:3', 'max:500'],
+            'noShowReschedule' => ['boolean'],
+            'noShowRescheduleDate' => [
+                Rule::requiredIf($this->noShowReschedule),
+                'nullable',
+                'date',
+            ],
+            'noShowRescheduleTime' => [
+                Rule::requiredIf($this->noShowReschedule),
+                'nullable',
+                'date_format:H:i',
+            ],
         ]);
+
+        $appointment = $this->appointmentQuery()
+            ->whereKey($this->noShowAppointmentId)
+            ->with('services')
+            ->firstOrFail();
+
+        if ($appointment->locked_by_payment) {
+            $this->showNoShowModal = false;
+
+            return;
+        }
+
+        DB::transaction(function () use ($appointment, $validated) {
+
+            /*
+         * Guardamos la observación en la ficha de la cita.
+         */
+            $existingNotes = trim((string) $appointment->clinical_notes);
+
+            $noShowNote = 'No asistió: ' . trim($validated['noShowReason']);
+
+            $clinicalNotes = $existingNotes !== ''
+                ? $existingNotes . "\n" . $noShowNote
+                : $noShowNote;
+
+            /*
+         * La cita original queda registrada como NO ASISTIÓ.
+         */
+            $appointment->update([
+                'attended' => false,
+                'status' => 'no_show',
+                'attended_by_user_id' => null,
+                'reschedule_reason' => trim($validated['noShowReason']),
+                'clinical_notes' => $clinicalNotes,
+            ]);
+
+            /*
+         * Si además quiere reagendar,
+         * creamos una nueva cita vinculada a la anterior.
+         */
+            if ($validated['noShowReschedule']) {
+
+                $newAppointment = Appointment::query()->create([
+                    'company_id' => $appointment->company_id,
+                    'branch_id' => $appointment->branch_id,
+                    'client_id' => $appointment->client_id,
+                    'treatment_plan_id' => $appointment->treatment_plan_id,
+                    'rescheduled_from_id' => $appointment->id,
+
+                    'scheduled_at' => Carbon::parse(
+                        $validated['noShowRescheduleDate']
+                            . ' '
+                            . $validated['noShowRescheduleTime']
+                    ),
+
+                    'duration_minutes' => $appointment->duration_minutes,
+                    'status' => 'scheduled',
+
+                    'clinical_notes' => 'Reagendada después de inasistencia. Motivo: '
+                        . trim($validated['noShowReason']),
+
+                    'reschedule_reason' => trim($validated['noShowReason']),
+                ]);
+
+                /*
+             * Copiamos los mismos tratamientos/servicios.
+             */
+                foreach ($appointment->services as $serviceLine) {
+                    $newAppointment->services()->create([
+                        'service_id' => $serviceLine->service_id,
+                        'name' => $serviceLine->name,
+                        'price' => $serviceLine->price,
+                        'duration_minutes' => $serviceLine->duration_minutes,
+                        'status' => 'pending',
+                    ]);
+                }
+            }
+        });
+
+        $this->showNoShowModal = false;
+
+        $this->reset([
+            'noShowAppointmentId',
+            'noShowReason',
+            'noShowReschedule',
+            'noShowRescheduleDate',
+            'noShowRescheduleTime',
+        ]);
+
+        $this->noShowRescheduleTime = '09:00';
+
+        $this->resetErrorBag();
     }
 
     public function confirmDeleteAppointment(int $appointmentId): void

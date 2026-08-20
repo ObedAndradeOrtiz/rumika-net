@@ -86,12 +86,19 @@
                                 <span class="rm-attendance-chip is-no-show">
                                     × No asistió
                                 </span>
+
+                                @if ($appointment->reschedule_reason)
+                                    <span class="rm-attendance-reason">
+                                        {{ $appointment->reschedule_reason }}
+                                    </span>
+                                @endif
                             @else
                                 <span class="rm-attendance-chip">
                                     Pendiente
                                 </span>
                             @endif
-                            <span>Pagado Bs {{ number_format((float) $appointment->payments->sum('amount'), 2) }}</span>
+                            <span>Pagado Bs
+                                {{ number_format((float) $appointment->payments->sum('amount'), 2) }}</span>
                             @if ($appointment->reschedule_reason)
                                 <span>Motivo: {{ $appointment->reschedule_reason }}</span>
                             @endif

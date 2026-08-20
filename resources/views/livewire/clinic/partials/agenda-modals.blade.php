@@ -1,3 +1,120 @@
+@if ($showNoShowModal)
+    <div
+        class="rm-modal-backdrop"
+        wire:click="$set('showNoShowModal', false)"
+    ></div>
+
+    <section
+        class="rm-modal-panel rm-modal-panel-sm"
+        role="dialog"
+        aria-modal="true"
+    >
+        <div class="rm-modal-title">
+            <div>
+                <span>Asistencia</span>
+                <h2>Registrar inasistencia</h2>
+            </div>
+
+            <button
+                type="button"
+                wire:click="$set('showNoShowModal', false)"
+            >
+                x
+            </button>
+        </div>
+
+        <form
+            wire:submit="confirmNoShow"
+            class="rm-form-stack"
+        >
+            <p class="rm-modal-subtitle">
+                Indica por qué el cliente no asistió. Esta información
+                quedará registrada en su historial.
+            </p>
+
+            <label class="rm-field">
+                <span>¿Por qué no asistió?</span>
+
+                <textarea
+                    wire:model="noShowReason"
+                    rows="3"
+                    placeholder="Ej. Cliente avisó que tuvo un inconveniente personal..."
+                ></textarea>
+
+                @error('noShowReason')
+                    <small>{{ $message }}</small>
+                @enderror
+            </label>
+
+            <label class="rm-check-option">
+                <input
+                    wire:model.live="noShowReschedule"
+                    type="checkbox"
+                >
+
+                <span>Reagendar esta cita</span>
+
+                <small>
+                    Se creará automáticamente una nueva cita
+                </small>
+            </label>
+
+            @if ($noShowReschedule)
+                <div class="rm-form-row">
+
+                    <label class="rm-field">
+                        <span>Nueva fecha</span>
+
+                        <input
+                            wire:model="noShowRescheduleDate"
+                            type="date"
+                        >
+
+                        @error('noShowRescheduleDate')
+                            <small>{{ $message }}</small>
+                        @enderror
+                    </label>
+
+                    <label class="rm-field">
+                        <span>Nueva hora</span>
+
+                        <input
+                            wire:model="noShowRescheduleTime"
+                            type="time"
+                        >
+
+                        @error('noShowRescheduleTime')
+                            <small>{{ $message }}</small>
+                        @enderror
+                    </label>
+
+                </div>
+            @endif
+
+            <div class="rm-form-actions">
+
+                <button
+                    class="rm-button rm-button-outline"
+                    type="button"
+                    wire:click="$set('showNoShowModal', false)"
+                >
+                    Cancelar
+                </button>
+
+                <button
+                    class="rm-button rm-button-primary"
+                    type="submit"
+                >
+                    {{ $noShowReschedule
+                        ? 'Guardar y reagendar'
+                        : 'Registrar inasistencia'
+                    }}
+                </button>
+
+            </div>
+        </form>
+    </section>
+@endif
 @if ($showAttendanceModal)
     <div
         class="rm-modal-backdrop"
