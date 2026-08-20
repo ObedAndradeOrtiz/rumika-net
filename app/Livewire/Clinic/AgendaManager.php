@@ -683,6 +683,8 @@ class AgendaManager extends Component
 
     public function savePayment(): void
     {
+        $this->normalizePaymentAmountInputs();
+
         $appointment = $this->appointmentQuery()->whereKey($this->paymentAppointmentId)->with(['services', 'company', 'branch', 'client', 'treatmentPlan'])->firstOrFail();
         $company = $appointment->company;
         $branch = $appointment->branch;
@@ -1511,6 +1513,45 @@ class AgendaManager extends Component
                 ];
             })
             ->values();
+    }
+
+    private function normalizePaymentAmountInputs(): void
+    {
+        $this->paymentCashAmount = $this->normalizeDecimalInput($this->paymentCashAmount);
+        $this->paymentQrAmount = $this->normalizeDecimalInput($this->paymentQrAmount);
+
+        foreach ($this->paymentServiceLinePrices as $key => $amount) {
+            $this->paymentServiceLinePrices[$key] = $this->normalizeDecimalInput($amount);
+        }
+
+        foreach ($this->paymentServiceLinePayments as $key => $amount) {
+            $this->paymentServiceLinePayments[$key] = $this->normalizeDecimalInput($amount);
+        }
+
+        foreach ($this->pendingChargePayments as $key => $amount) {
+            $this->pendingChargePayments[$key] = $this->normalizeDecimalInput($amount);
+        }
+
+        foreach ($this->extraPaymentSplits as $index => $split) {
+            $this->extraPaymentSplits[$index]['amount'] = $this->normalizeDecimalInput($split['amount'] ?? '');
+        }
+
+        foreach ($this->paymentProductLines as $index => $line) {
+            $this->paymentProductLines[$index]['quantity'] = $this->normalizeDecimalInput($line['quantity'] ?? '');
+            $this->paymentProductLines[$index]['unit_price'] = $this->normalizeDecimalInput($line['unit_price'] ?? '');
+            $this->paymentProductLines[$index]['paid_amount'] = $this->normalizeDecimalInput($line['paid_amount'] ?? '');
+        }
+    }
+
+    private function normalizeDecimalInput(mixed $value): string
+    {
+        $value = trim((string) $value);
+
+        if ($value === '') {
+            return '';
+        }
+
+        return str_replace(',', '.', $value);
     }
 
     private function normalizedPendingChargePayments(array $payments, Company $company, Branch $branch, int $clientId)

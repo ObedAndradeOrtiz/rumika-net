@@ -448,6 +448,7 @@
 .rm-payment-product-list {
     display: grid;
     gap: 10px;
+    min-width: 0;
 }
 
 .rm-payment-service-list {
@@ -703,8 +704,19 @@
     border-radius: 16px;
     display: grid;
     gap: 10px;
-    grid-template-columns: 150px 150px minmax(180px, 1fr) auto;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    min-width: 0;
     padding: 12px;
+}
+
+.rm-payment-split-row .rm-field,
+.rm-payment-split-row .rm-button {
+    min-width: 0;
+}
+
+.rm-payment-split-row .rm-field:nth-child(3),
+.rm-payment-split-row .rm-button {
+    grid-column: 1 / -1;
 }
 
 .rm-payment-total-box {

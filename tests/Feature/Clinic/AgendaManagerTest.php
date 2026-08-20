@@ -1021,6 +1021,84 @@ class AgendaManagerTest extends TestCase
         ]);
     }
 
+    public function test_pending_client_debt_accepts_qr_cash_and_decimal_commas(): void
+    {
+        [$admin, $company, $branch] = $this->companyContext('rumika-deuda-mixta');
+        $client = Client::create([
+            'company_id' => $company->id,
+            'branch_id' => $branch->id,
+            'full_name' => 'Cliente Deuda Mixta',
+        ]);
+        $service = Service::create([
+            'company_id' => $company->id,
+            'branch_id' => $branch->id,
+            'name' => 'Control facial',
+            'price' => 0,
+            'duration_minutes' => 30,
+        ]);
+        $appointment = Appointment::create([
+            'company_id' => $company->id,
+            'branch_id' => $branch->id,
+            'client_id' => $client->id,
+            'scheduled_at' => '2026-08-15 11:00:00',
+            'duration_minutes' => 30,
+            'status' => 'scheduled',
+        ]);
+        AppointmentService::create([
+            'appointment_id' => $appointment->id,
+            'service_id' => $service->id,
+            'name' => $service->name,
+            'price' => 0,
+        ]);
+        $charge = ClientCharge::create([
+            'company_id' => $company->id,
+            'branch_id' => $branch->id,
+            'client_id' => $client->id,
+            'type' => 'service',
+            'name' => 'Tratamiento pendiente',
+            'quantity' => 1,
+            'unit_price' => 100,
+            'total_amount' => 100,
+            'paid_amount' => 0,
+            'balance_amount' => 100,
+            'status' => 'pending',
+            'charged_at' => '2026-08-01 10:00:00',
+        ]);
+
+        $this->actingAs($admin);
+        session(['active_branch_id' => $branch->id]);
+
+        Livewire::test(AgendaManager::class)
+            ->call('openPayment', $appointment->id)
+            ->set('paymentServiceLineIds', [])
+            ->set('paymentServiceLinePayments', [])
+            ->set('pendingChargePayments', [(string) $charge->id => '75,50'])
+            ->set('paymentQrAmount', '50,50')
+            ->set('extraPaymentSplits', [[
+                'method' => 'cash',
+                'amount' => '25,00',
+                'reference' => 'Abono caja',
+            ]])
+            ->call('savePayment')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('client_charges', [
+            'id' => $charge->id,
+            'paid_amount' => '75.50',
+            'balance_amount' => '24.50',
+            'status' => 'partial',
+        ]);
+        $this->assertDatabaseHas('treatment_payment_splits', [
+            'method' => 'qr',
+            'amount' => '50.50',
+        ]);
+        $this->assertDatabaseHas('treatment_payment_splits', [
+            'method' => 'cash',
+            'amount' => '25.00',
+            'reference' => 'Abono caja',
+        ]);
+    }
+
     public function test_appointment_modal_filters_clients_services_and_creates_mixed_initial_payment(): void
     {
         [$admin, $company, $branch] = $this->companyContext('rumika-demo');
