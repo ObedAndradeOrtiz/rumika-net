@@ -82,6 +82,7 @@ class RumikaAccess
             'inventory.operations' => 'inventario_operaciones',
             'finance.expenses' => 'gastos',
             'finance.summary' => 'resumen_financiero',
+            'statistics.index' => 'estadisticas',
             'settings.commerce' => 'sucursales',
             'settings.services' => 'servicios',
             'settings.records' => 'registros',

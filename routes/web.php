@@ -86,6 +86,10 @@ Route::view('finanzas/resumen', 'finance.summary')
     ->middleware(['auth', 'verified', 'rumika.onboarding', 'rumika.permission:resumen_financiero'])
     ->name('finance.summary');
 
+Route::view('estadisticas', 'statistics.index')
+    ->middleware(['auth', 'verified', 'rumika.onboarding', 'rumika.permission:estadisticas'])
+    ->name('statistics.index');
+
 Route::get('configuracion-inicial', CompanySetup::class)
     ->middleware(['auth', 'verified'])
     ->name('onboarding.company');

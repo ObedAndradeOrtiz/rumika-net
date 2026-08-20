@@ -9,6 +9,15 @@
             <span>Sucursal activa</span>
             <strong>{{ $branch->businessType?->name ?? 'Negocio' }}</strong>
         </div>
+        <div class="rm-dashboard-attendance-card">
+            <div class="rm-stat-ring" style="--value: {{ $attendanceRateToday }};">
+                <span>{{ $attendanceRateToday }}%</span>
+            </div>
+            <div>
+                <strong>{{ $attendedToday }}/{{ $appointmentsToday->count() }}</strong>
+                <span>Asistidos de hoy</span>
+            </div>
+        </div>
     </div>
 
     <section class="rm-dashboard-kpis" aria-label="Resumen por sucursal">

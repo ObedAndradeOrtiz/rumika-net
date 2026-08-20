@@ -47,6 +47,11 @@ class RumikaPermissions
                 'group' => 'Gestion financiera',
                 'actions' => ['view'],
             ],
+            'estadisticas' => [
+                'label' => 'Estadisticas',
+                'group' => 'Gestion financiera',
+                'actions' => ['view'],
+            ],
             'sucursales' => [
                 'label' => 'Sucursales',
                 'group' => 'Gestion administrativa',

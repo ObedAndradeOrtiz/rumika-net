@@ -15,6 +15,7 @@
     $sidebarCanSeeCashbox = $canAccess('caja');
     $sidebarCanSeeExpenses = $canAccess('gastos');
     $sidebarCanSeeFinancialSummary = $canAccess('resumen_financiero');
+    $sidebarCanSeeStatistics = $canAccess('estadisticas');
     $sidebarCanSeeCommerce = $canAccess('sucursales');
     $sidebarCanSeeServices = $canAccess('servicios');
     $sidebarCanSeeRecords = $canAccess('registros');
@@ -119,9 +120,9 @@
         </details>
         @endif
 
-        @if ($sidebarCanSeeCashbox || $sidebarCanSeeExpenses || $sidebarCanSeeFinancialSummary)
+        @if ($sidebarCanSeeCashbox || $sidebarCanSeeExpenses || $sidebarCanSeeFinancialSummary || $sidebarCanSeeStatistics)
         <details class="rm-menu-group"
-            {{ in_array($active, ['expenses', 'cashbox', 'finance-summary'], true) ? 'open' : '' }}>
+            {{ in_array($active, ['expenses', 'cashbox', 'finance-summary', 'statistics'], true) ? 'open' : '' }}>
             <summary>
                 <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     stroke-width="2.2">
@@ -155,6 +156,13 @@
                         href="{{ route('finance.summary') }}">
                         <i aria-hidden="true"></i>
                         <span data-sidebar-label>Resumen</span>
+                    </a>
+                @endif
+                @if ($sidebarCanSeeStatistics)
+                    <a class="rm-side-link rm-side-sub-link {{ $active === 'statistics' ? 'is-active' : '' }}"
+                        href="{{ route('statistics.index') }}">
+                        <i aria-hidden="true"></i>
+                        <span data-sidebar-label>Estadisticas</span>
                     </a>
                 @endif
             </div>
@@ -349,9 +357,9 @@
             </details>
             @endif
 
-            @if ($sidebarCanSeeCashbox || $sidebarCanSeeExpenses || $sidebarCanSeeFinancialSummary)
+            @if ($sidebarCanSeeCashbox || $sidebarCanSeeExpenses || $sidebarCanSeeFinancialSummary || $sidebarCanSeeStatistics)
             <details class="rm-mobile-menu-group"
-                {{ in_array($active, ['expenses', 'cashbox', 'finance-summary'], true) ? 'open' : '' }}>
+                {{ in_array($active, ['expenses', 'cashbox', 'finance-summary', 'statistics'], true) ? 'open' : '' }}>
                 <summary>
                     <span>Gestion financiera</span>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -371,6 +379,13 @@
                             href="{{ route('finance.summary') }}">
                             <i aria-hidden="true"></i>
                             <span data-sidebar-label>Resumen</span>
+                        </a>
+                    @endif
+                    @if ($sidebarCanSeeStatistics)
+                        <a class="rm-side-link rm-side-sub-link {{ $active === 'statistics' ? 'is-active' : '' }}"
+                            href="{{ route('statistics.index') }}">
+                            <i aria-hidden="true"></i>
+                            <span data-sidebar-label>Estadisticas</span>
                         </a>
                     @endif
                 </div>

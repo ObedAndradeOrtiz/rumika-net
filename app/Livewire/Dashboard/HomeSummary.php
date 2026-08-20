@@ -25,6 +25,10 @@ class HomeSummary extends Component
             ->whereBetween('scheduled_at', $dayRange)
             ->orderBy('scheduled_at')
             ->get();
+        $attendedToday = $appointmentsToday->where('attended', true)->count();
+        $attendanceRateToday = $appointmentsToday->count() > 0
+            ? round(($attendedToday / $appointmentsToday->count()) * 100)
+            : 0;
 
         $cashbox = $this->cashboxTotals($company, $branch, $dayRange);
         $monthExpenses = (float) $company->expenses()
@@ -52,6 +56,8 @@ class HomeSummary extends Component
         return view('livewire.dashboard.home-summary', [
             'branch' => $branch,
             'appointmentsToday' => $appointmentsToday,
+            'attendedToday' => $attendedToday,
+            'attendanceRateToday' => $attendanceRateToday,
             'cashbox' => $cashbox,
             'newClientsToday' => $newClientsToday,
             'lowStockProducts' => $lowStockProducts,
