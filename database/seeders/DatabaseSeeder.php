@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\BusinessType;
 use App\Models\Branch;
 use App\Models\Company;
+use App\Models\CompanyPlan;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -18,6 +19,20 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $plans = [
+            ['name' => 'Free', 'slug' => 'free', 'description' => 'Plan inicial para probar Rumika.', 'monthly_price' => 0, 'currency' => 'USD', 'sort_order' => 1],
+            ['name' => 'Basico', 'slug' => 'basico', 'description' => 'Operaciones esenciales para negocios pequenos.', 'monthly_price' => 30, 'currency' => 'USD', 'sort_order' => 2],
+            ['name' => 'Plus', 'slug' => 'plus', 'description' => 'Gestion completa para equipos en crecimiento.', 'monthly_price' => 60, 'currency' => 'USD', 'sort_order' => 3],
+            ['name' => 'Empresa', 'slug' => 'empresa', 'description' => 'Control avanzado para varias sucursales.', 'monthly_price' => 90, 'currency' => 'USD', 'sort_order' => 4],
+        ];
+
+        foreach ($plans as $plan) {
+            CompanyPlan::query()->updateOrCreate(
+                ['slug' => $plan['slug']],
+                [...$plan, 'is_active' => true],
+            );
+        }
+
         $businessTypes = [
             [
                 'name' => 'Clinica',
@@ -72,6 +87,7 @@ class DatabaseSeeder extends Seeder
             [
                 'name' => 'Negocio Externo',
                 'status' => 'trial',
+                'company_plan_id' => CompanyPlan::query()->where('slug', 'free')->value('id'),
             ],
         );
 

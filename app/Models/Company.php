@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Model;
 
@@ -13,9 +14,15 @@ class Company extends Model
         'legal_name',
         'slug',
         'logo_path',
+        'company_plan_id',
         'timezone',
         'status',
     ];
+
+    public function plan(): BelongsTo
+    {
+        return $this->belongsTo(CompanyPlan::class, 'company_plan_id');
+    }
 
     public function branches(): HasMany
     {

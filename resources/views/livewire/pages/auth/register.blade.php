@@ -3,6 +3,7 @@
 use App\Models\User;
 use App\Models\Branch;
 use App\Models\Company;
+use App\Models\CompanyPlan;
 use App\Models\BusinessType;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
@@ -20,9 +21,11 @@ new #[Layout('layouts.guest')] class extends Component
     public string $company_name = '';
     public string $branch_name = '';
     public string $business_type_id = '';
+    public string $company_plan_id = '';
     public string $password = '';
     public string $password_confirmation = '';
     public array $businessTypes = [];
+    public array $companyPlans = [];
 
     public function mount(): void
     {
@@ -31,6 +34,15 @@ new #[Layout('layouts.guest')] class extends Component
             ->orderBy('name')
             ->get(['id', 'name', 'description'])
             ->toArray();
+
+        $this->companyPlans = CompanyPlan::query()
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->get(['id', 'name', 'slug', 'description', 'monthly_price', 'currency'])
+            ->toArray();
+
+        $this->company_plan_id = (string) (CompanyPlan::query()->where('slug', 'free')->value('id')
+            ?? CompanyPlan::query()->orderBy('sort_order')->value('id'));
     }
 
     public function register(): void
@@ -41,6 +53,7 @@ new #[Layout('layouts.guest')] class extends Component
             'company_name' => ['required', 'string', 'max:255'],
             'branch_name' => ['required', 'string', 'max:255'],
             'business_type_id' => ['required', 'integer', 'exists:business_types,id'],
+            'company_plan_id' => ['required', 'integer', 'exists:company_plans,id'],
             'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
         ]);
 
@@ -56,6 +69,7 @@ new #[Layout('layouts.guest')] class extends Component
             $company = Company::create([
                 'name' => $validated['company_name'],
                 'slug' => Str::slug($validated['company_name']) . '-' . Str::lower(Str::random(5)),
+                'company_plan_id' => $validated['company_plan_id'],
             ]);
 
             Branch::create([
@@ -105,15 +119,15 @@ new #[Layout('layouts.guest')] class extends Component
         </p>
     </div>
 
-    <button type="button" class="rm-google-button" disabled aria-disabled="true">
+    <div class="rm-google-error" data-google-error hidden></div>
+
+    <button type="button" class="rm-google-button" data-firebase-google data-auth-url="{{ route('auth.firebase.google') }}">
         <span class="rm-google-icon">G</span>
 
         <span class="rm-google-text">
-            <strong>Registrar con Google</strong>
-            <small>Disponible pronto</small>
+            <strong data-google-label>Registrar con Google</strong>
+            <small>Crea tu cuenta en el plan Free</small>
         </span>
-
-        <span class="rm-google-pill">Pronto</span>
     </button>
 
     <div class="rm-divider">
@@ -204,6 +218,32 @@ new #[Layout('layouts.guest')] class extends Component
             </div>
 
             <x-input-error :messages="$errors->get('company_name')" class="rm-error" />
+        </div>
+
+        <div class="rm-field">
+            <label class="rm-label">Plan inicial</label>
+
+            <div class="rm-plan-grid">
+                @foreach ($companyPlans as $plan)
+                    <label class="rm-plan-option">
+                        <input
+                            wire:model="company_plan_id"
+                            type="radio"
+                            name="company_plan_id"
+                            value="{{ $plan['id'] }}"
+                        >
+
+                        <span>
+                            <strong>{{ $plan['name'] }}</strong>
+                            <small>
+                                {{ (float) $plan['monthly_price'] > 0 ? '$' . number_format((float) $plan['monthly_price'], 0) . '/mes' : 'Gratis' }}
+                            </small>
+                        </span>
+                    </label>
+                @endforeach
+            </div>
+
+            <x-input-error :messages="$errors->get('company_plan_id')" class="rm-error" />
         </div>
 
         <div class="rm-register-grid">

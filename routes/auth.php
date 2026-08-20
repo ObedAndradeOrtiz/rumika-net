@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\VerifyEmailController;
+use App\Http\Controllers\Auth\FirebaseGoogleAuthController;
 use App\Livewire\Actions\Logout;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
@@ -36,3 +37,7 @@ Route::middleware('auth')->group(function () {
         return redirect('/login');
     })->name('logout');
 });
+
+Route::post('auth/firebase/google', [FirebaseGoogleAuthController::class, 'store'])
+    ->middleware('guest')
+    ->name('auth.firebase.google');

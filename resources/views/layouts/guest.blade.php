@@ -357,9 +357,25 @@
             align-items: center;
             gap: 13px;
             color: #101828;
-            cursor: not-allowed;
-            opacity: .84;
+            cursor: pointer;
             box-shadow: 0 12px 32px rgba(15, 23, 42, .05);
+            transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease, opacity .18s ease;
+        }
+
+        .rm-google-button:hover {
+            border-color: #bfd2e5;
+            box-shadow: 0 16px 34px rgba(15, 23, 42, .08);
+            transform: translateY(-1px);
+        }
+
+        .rm-google-button:disabled {
+            cursor: wait;
+            opacity: .72;
+            transform: none;
+        }
+
+        .rm-google-button.is-loading {
+            background: #f8fafc;
         }
 
         .rm-google-icon {
@@ -400,6 +416,67 @@
             color: #98a2b3;
             font-size: 11px;
             font-weight: 900;
+        }
+
+        .rm-google-error {
+            border: 1px solid #fecaca;
+            border-radius: 18px;
+            background: #fff1f2;
+            color: #b91c1c;
+            font-size: 13px;
+            font-weight: 800;
+            line-height: 1.45;
+            padding: 12px 14px;
+        }
+
+        .rm-google-error[hidden] {
+            display: none;
+        }
+
+        .rm-plan-grid {
+            display: grid;
+            gap: 10px;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+
+        .rm-plan-option {
+            cursor: pointer;
+            display: block;
+            min-width: 0;
+        }
+
+        .rm-plan-option input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .rm-plan-option span {
+            border: 1px solid #dbe3ee;
+            border-radius: 18px;
+            display: grid;
+            gap: 5px;
+            min-height: 78px;
+            padding: 13px;
+            transition: border-color .18s ease, background .18s ease, box-shadow .18s ease;
+        }
+
+        .rm-plan-option strong {
+            color: #101828;
+            font-size: 14px;
+            font-weight: 950;
+        }
+
+        .rm-plan-option small {
+            color: #667085;
+            font-size: 12px;
+            font-weight: 900;
+        }
+
+        .rm-plan-option input:checked + span {
+            background: #e7f7f5;
+            border-color: #94d8cf;
+            box-shadow: 0 12px 26px rgba(15, 143, 127, .12);
         }
 
         .rm-divider {
@@ -770,6 +847,10 @@
             .rm-input-box,
             .rm-submit-button {
                 min-height: 56px;
+            }
+
+            .rm-plan-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
             }
 
             .rm-login-options {

@@ -50,15 +50,15 @@ new #[Layout('layouts.guest')] class extends Component
         :status="session('status')"
     />
 
-    <button type="button" class="rm-google-button" disabled aria-disabled="true">
+    <div class="rm-google-error" data-google-error hidden></div>
+
+    <button type="button" class="rm-google-button" data-firebase-google data-auth-url="{{ route('auth.firebase.google') }}">
         <span class="rm-google-icon">G</span>
 
         <span class="rm-google-text">
-            <strong>Continuar con Google</strong>
-            <small>Disponible pronto</small>
+            <strong data-google-label>Continuar con Google</strong>
+            <small>Acceso rápido con tu cuenta</small>
         </span>
-
-        <span class="rm-google-pill">Pronto</span>
     </button>
 
     <div class="rm-divider">
