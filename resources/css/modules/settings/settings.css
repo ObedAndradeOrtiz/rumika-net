@@ -2546,6 +2546,77 @@
         grid-template-columns: 1fr;
     }
 
+    .rm-cashbox-record-row {
+        align-items: stretch;
+        grid-template-columns: 1fr !important;
+        overflow: hidden;
+        padding: 12px;
+        width: 100%;
+    }
+
+    .rm-cashbox-record-row .rm-cashbox-record-icon {
+        border-radius: 16px;
+        height: 48px;
+        justify-self: start;
+        min-width: 92px;
+        width: auto;
+    }
+
+    .rm-cashbox-record-row .rm-row-main {
+        min-width: 0;
+    }
+
+    .rm-cashbox-record-row .rm-row-main strong {
+        display: block;
+        font-size: 16px;
+        line-height: 1.25;
+        overflow-wrap: anywhere;
+    }
+
+    .rm-cashbox-record-row .rm-row-main > span {
+        display: block;
+        font-size: 13px;
+        line-height: 1.35;
+        margin-top: 4px;
+        overflow-wrap: anywhere;
+    }
+
+    .rm-cashbox-record-row .rm-commerce-meta {
+        display: grid;
+        gap: 7px;
+        grid-template-columns: 1fr;
+        width: 100%;
+    }
+
+    .rm-cashbox-record-row .rm-commerce-meta span {
+        border-radius: 14px;
+        display: block;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .rm-cashbox-record-row .rm-commerce-actions {
+        display: grid;
+        gap: 8px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        justify-content: stretch;
+        width: 100%;
+    }
+
+    .rm-cashbox-record-row .rm-commerce-actions .rm-button,
+    .rm-cashbox-record-row .rm-commerce-actions a {
+        justify-content: center;
+        min-height: 44px;
+        padding-inline: 8px;
+        width: 100%;
+    }
+
+    .rm-cashbox-record-row .rm-commerce-actions .rm-button-danger {
+        grid-column: 1 / -1;
+    }
+
     .rm-catalog-panel .rm-movement-row {
         gap: 12px;
         grid-template-columns: 44px minmax(0, 1fr);
