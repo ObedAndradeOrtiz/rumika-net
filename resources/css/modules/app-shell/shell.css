@@ -324,6 +324,10 @@
     z-index: 10;
 }
 
+.rm-topbar:has(.rm-branch-modal) {
+    z-index: 80;
+}
+
 .rm-branch-switcher {
     align-items: center;
     display: flex;
@@ -1222,11 +1226,12 @@
     }
 
     .rm-branch-modal {
+        bottom: max(10px, env(safe-area-inset-bottom));
         display: grid;
         grid-template-rows: auto minmax(0, 1fr);
-        max-height: calc(100dvh - 18px);
+        max-height: calc(100dvh - max(18px, env(safe-area-inset-bottom) + 18px));
         overflow: hidden;
-        padding: 18px;
+        padding: 18px 18px max(24px, env(safe-area-inset-bottom) + 18px);
     }
 
     .rm-branch-modal .rm-modal-title {
@@ -1240,7 +1245,7 @@
     .rm-branch-modal .rm-branch-choice-list {
         overflow-y: auto;
         overscroll-behavior: contain;
-        padding: 2px 2px 12px;
+        padding: 2px 2px 96px;
     }
 
     .rm-branch-choice {
