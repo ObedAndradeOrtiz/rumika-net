@@ -67,7 +67,10 @@ class InventoryManagerTest extends TestCase
             ->call('saveMovement')
             ->assertHasNoErrors();
 
-        $batch = InventoryProductBatch::query()->where('inventory_product_id', $products[0]->id)->firstOrFail();
+        $batch = InventoryProductBatch::query()
+            ->where('inventory_product_id', $products[0]->id)
+            ->orderByDesc('current_quantity')
+            ->firstOrFail();
 
         $this->assertSame('25.00', $batch->current_quantity);
         $this->assertNotEmpty($batch->lot_code);
@@ -181,9 +184,10 @@ class InventoryManagerTest extends TestCase
             'inventory_product_id' => $product->id,
             'current_quantity' => 36,
         ]);
-        $this->assertDatabaseMissing('inventory_product_batches', [
+        $this->assertDatabaseHas('inventory_product_batches', [
             'branch_id' => $secondBranch->id,
             'inventory_product_id' => $product->id,
+            'current_quantity' => 0,
         ]);
 
         Livewire::withQueryParams(['page' => 1])
@@ -196,6 +200,46 @@ class InventoryManagerTest extends TestCase
             ->assertSee('Mascarilla facial hidratante')
             ->assertSee('Stock 0.00 unidad')
             ->assertDontSee('Stock 36.00 unidad');
+    }
+
+    public function test_movement_batches_hide_empty_duplicates_and_keep_one_emergency_batch(): void
+    {
+        [$admin, $company, $branch] = $this->companyContext('rumika-lotes-cero');
+        $productWithStock = InventoryProduct::create([
+            'company_id' => $company->id,
+            'code' => 'CRE-STOCK',
+            'name' => 'Crema con stock',
+            'unit_name' => 'unidad',
+            'units_per_package' => 1,
+            'purchase_cost' => 10,
+            'minimum_stock' => 1,
+        ]);
+        $productWithoutStock = InventoryProduct::create([
+            'company_id' => $company->id,
+            'code' => 'CRE-CERO',
+            'name' => 'Crema sin stock',
+            'unit_name' => 'unidad',
+            'units_per_package' => 1,
+            'purchase_cost' => 10,
+            'minimum_stock' => 1,
+        ]);
+
+        InventoryProductBatch::create(['company_id' => $company->id, 'branch_id' => $branch->id, 'inventory_product_id' => $productWithStock->id, 'lot_code' => 'LOTE-POSITIVO', 'initial_quantity' => 5, 'current_quantity' => 5, 'unit_cost' => 10, 'status' => 'available']);
+        InventoryProductBatch::create(['company_id' => $company->id, 'branch_id' => $branch->id, 'inventory_product_id' => $productWithStock->id, 'lot_code' => 'LOTE-CERO-OCULTO', 'initial_quantity' => 0, 'current_quantity' => 0, 'unit_cost' => 10, 'status' => 'available']);
+        InventoryProductBatch::create(['company_id' => $company->id, 'branch_id' => $branch->id, 'inventory_product_id' => $productWithoutStock->id, 'lot_code' => 'LOTE-CERO-UNO', 'initial_quantity' => 0, 'current_quantity' => 0, 'unit_cost' => 10, 'status' => 'available']);
+        InventoryProductBatch::create(['company_id' => $company->id, 'branch_id' => $branch->id, 'inventory_product_id' => $productWithoutStock->id, 'lot_code' => 'LOTE-CERO-DOS', 'initial_quantity' => 0, 'current_quantity' => 0, 'unit_cost' => 10, 'status' => 'available']);
+
+        $this->actingAs($admin);
+        session(['active_branch_id' => $branch->id]);
+
+        Livewire::test(InventoryManager::class, ['screen' => 'operations'])
+            ->call('openMovement', 'waste')
+            ->set('movementProductId', $productWithStock->id)
+            ->assertSee('LOTE-POSITIVO')
+            ->assertDontSee('LOTE-CERO-OCULTO')
+            ->set('movementProductId', $productWithoutStock->id)
+            ->assertSee('LOTE-CERO-UNO')
+            ->assertDontSee('LOTE-CERO-DOS');
     }
 
     public function test_use_areas_can_be_edited_and_only_deleted_when_unused(): void
@@ -301,7 +345,10 @@ class InventoryManagerTest extends TestCase
             ->call('saveMovement')
             ->assertHasNoErrors();
 
-        $batch = InventoryProductBatch::query()->where('inventory_product_id', $product->id)->firstOrFail();
+        $batch = InventoryProductBatch::query()
+            ->where('inventory_product_id', $product->id)
+            ->orderByDesc('current_quantity')
+            ->firstOrFail();
 
         Livewire::test(InventoryManager::class, ['screen' => 'operations'])
             ->set('movementType', 'cabinet')
@@ -403,7 +450,9 @@ class InventoryManagerTest extends TestCase
             ->where('inventory_product_id', $product->id)
             ->firstOrFail();
 
-        $batch = InventoryProductBatch::where('inventory_product_id', $product->id)->firstOrFail();
+        $batch = InventoryProductBatch::where('inventory_product_id', $product->id)
+            ->orderByDesc('current_quantity')
+            ->firstOrFail();
 
         Livewire::test(InventoryManager::class)
             ->call('openCountDetails', $count->id)

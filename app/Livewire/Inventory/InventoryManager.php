@@ -451,6 +451,7 @@ class InventoryManager extends Component
                 $this->movementProductId,
                 fn ($query) => $query->where('inventory_product_id', $this->movementProductId)
             )
+            ->where(fn ($query) => $this->onlyStockedOrSingleEmergencyBatch($query, $branch))
             ->pluck('id')
             ->all();
 
@@ -1105,7 +1106,8 @@ class InventoryManager extends Component
                 fn ($query) => $query->where('inventory_product_id', $this->movementProductId),
                 fn ($query) => $query->whereRaw('1 = 0')
             )
-            ->where('current_quantity', '>', 0)
+            ->where(fn ($query) => $this->onlyStockedOrSingleEmergencyBatch($query, $branch))
+            ->orderByDesc('current_quantity')
             ->orderByRaw('expires_at IS NULL, expires_at ASC')
             ->get();
 
@@ -1308,6 +1310,29 @@ class InventoryManager extends Component
             ->where('branch_id', $branch->id)
             ->where('inventory_product_id', $productId)
             ->sum('current_quantity'), 2);
+    }
+
+    private function onlyStockedOrSingleEmergencyBatch($query, Branch $branch): void
+    {
+        $query->where('current_quantity', '>', 0)
+            ->orWhereIn('id', function ($subquery) use ($branch) {
+                $subquery
+                    ->selectRaw('MIN(zero_batches.id)')
+                    ->from('inventory_product_batches as zero_batches')
+                    ->where('zero_batches.branch_id', $branch->id)
+                    ->where('zero_batches.status', 'available')
+                    ->where('zero_batches.current_quantity', '<=', 0)
+                    ->whereNotExists(function ($exists) {
+                        $exists
+                            ->selectRaw('1')
+                            ->from('inventory_product_batches as positive_batches')
+                            ->whereColumn('positive_batches.branch_id', 'zero_batches.branch_id')
+                            ->whereColumn('positive_batches.inventory_product_id', 'zero_batches.inventory_product_id')
+                            ->where('positive_batches.status', 'available')
+                            ->where('positive_batches.current_quantity', '>', 0);
+                    })
+                    ->groupBy('zero_batches.inventory_product_id');
+            });
     }
 
     private function createCatalogBatchesForProduct(Company $company, InventoryProduct $product): void

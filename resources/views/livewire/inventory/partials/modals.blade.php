@@ -122,7 +122,7 @@
                     @error('movementBatchId')<small>{{ $message }}</small>@enderror
 
                     @if ($movementProductId && $movementBatches->isEmpty())
-                        <small>Este producto no tiene lotes disponibles con stock en esta sucursal.</small>
+                <small>Este producto no tiene lotes disponibles para operar en esta sucursal.</small>
                     @endif
                 </label>
             @endif

@@ -1608,6 +1608,7 @@ class AgendaManager extends Component
                 $query->where('status', 'available')
                     ->when($selectedBatchIds, fn($selectedQuery) => $selectedQuery->orWhereIn('id', $selectedBatchIds));
             })
+            ->where(fn ($query) => $this->onlyStockedOrSingleEmergencyBatch($query, $branch, $selectedBatchIds))
             ->when($selectedBatchIds, fn($query) => $query->orderByRaw('CASE WHEN id IN (' . implode(',', array_fill(0, count($selectedBatchIds), '?')) . ') THEN 0 ELSE 1 END', $selectedBatchIds))
             ->when($search !== '', fn($query) => $query->where(function ($nested) use ($search, $selectedBatchIds) {
                 $nested->where('lot_code', 'like', "%{$search}%")
@@ -1622,6 +1623,30 @@ class AgendaManager extends Component
             ->orderByRaw('expires_at IS NULL, expires_at ASC')
             ->limit($search === '' ? 12 : 25)
             ->get();
+    }
+
+    private function onlyStockedOrSingleEmergencyBatch($query, Branch $branch, array $selectedBatchIds = []): void
+    {
+        $query->where('current_quantity', '>', 0)
+            ->when($selectedBatchIds, fn ($selectedQuery) => $selectedQuery->orWhereIn('id', $selectedBatchIds))
+            ->orWhereIn('id', function ($subquery) use ($branch) {
+                $subquery
+                    ->selectRaw('MIN(zero_batches.id)')
+                    ->from('inventory_product_batches as zero_batches')
+                    ->where('zero_batches.branch_id', $branch->id)
+                    ->where('zero_batches.status', 'available')
+                    ->where('zero_batches.current_quantity', '<=', 0)
+                    ->whereNotExists(function ($exists) {
+                        $exists
+                            ->selectRaw('1')
+                            ->from('inventory_product_batches as positive_batches')
+                            ->whereColumn('positive_batches.branch_id', 'zero_batches.branch_id')
+                            ->whereColumn('positive_batches.inventory_product_id', 'zero_batches.inventory_product_id')
+                            ->where('positive_batches.status', 'available')
+                            ->where('positive_batches.current_quantity', '>', 0);
+                    })
+                    ->groupBy('zero_batches.inventory_product_id');
+            });
     }
 
     private function ensureCatalogBatchesForBranch(Company $company, Branch $branch): void

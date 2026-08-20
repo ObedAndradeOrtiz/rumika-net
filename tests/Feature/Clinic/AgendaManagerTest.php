@@ -157,6 +157,61 @@ class AgendaManagerTest extends TestCase
         $this->assertSame('scheduled', $appointment->refresh()->status);
     }
 
+    public function test_product_sale_picker_hides_empty_duplicate_batches_and_keeps_one_emergency_batch(): void
+    {
+        [$admin, $company, $branch] = $this->companyContext('rumika-agenda-lotes');
+        $client = Client::create([
+            'company_id' => $company->id,
+            'full_name' => 'Cliente Producto',
+        ]);
+        $appointment = Appointment::create([
+            'company_id' => $company->id,
+            'branch_id' => $branch->id,
+            'client_id' => $client->id,
+            'scheduled_at' => '2026-08-15 10:00:00',
+            'duration_minutes' => 60,
+            'status' => 'scheduled',
+        ]);
+        $appointment->services()->create([
+            'name' => 'Consulta',
+            'price' => 0,
+        ]);
+        $productWithStock = InventoryProduct::create([
+            'company_id' => $company->id,
+            'code' => 'SER-STOCK',
+            'name' => 'Serum con stock',
+            'unit_name' => 'unidad',
+            'units_per_package' => 1,
+            'purchase_cost' => 10,
+            'minimum_stock' => 1,
+        ]);
+        $productWithoutStock = InventoryProduct::create([
+            'company_id' => $company->id,
+            'code' => 'SER-CERO',
+            'name' => 'Serum sin stock',
+            'unit_name' => 'unidad',
+            'units_per_package' => 1,
+            'purchase_cost' => 10,
+            'minimum_stock' => 1,
+        ]);
+
+        InventoryProductBatch::create(['company_id' => $company->id, 'branch_id' => $branch->id, 'inventory_product_id' => $productWithStock->id, 'lot_code' => 'VENTA-POSITIVO', 'initial_quantity' => 4, 'current_quantity' => 4, 'unit_cost' => 10, 'status' => 'available']);
+        InventoryProductBatch::create(['company_id' => $company->id, 'branch_id' => $branch->id, 'inventory_product_id' => $productWithStock->id, 'lot_code' => 'VENTA-CERO-OCULTO', 'initial_quantity' => 0, 'current_quantity' => 0, 'unit_cost' => 10, 'status' => 'available']);
+        InventoryProductBatch::create(['company_id' => $company->id, 'branch_id' => $branch->id, 'inventory_product_id' => $productWithoutStock->id, 'lot_code' => 'VENTA-CERO-UNO', 'initial_quantity' => 0, 'current_quantity' => 0, 'unit_cost' => 10, 'status' => 'available']);
+        InventoryProductBatch::create(['company_id' => $company->id, 'branch_id' => $branch->id, 'inventory_product_id' => $productWithoutStock->id, 'lot_code' => 'VENTA-CERO-DOS', 'initial_quantity' => 0, 'current_quantity' => 0, 'unit_cost' => 10, 'status' => 'available']);
+
+        $this->actingAs($admin);
+        session(['active_branch_id' => $branch->id]);
+
+        Livewire::test(AgendaManager::class)
+            ->call('openPayment', $appointment->id)
+            ->call('addPaymentProductLine')
+            ->assertSee('VENTA-POSITIVO')
+            ->assertDontSee('VENTA-CERO-OCULTO')
+            ->assertSee('VENTA-CERO-UNO')
+            ->assertDontSee('VENTA-CERO-DOS');
+    }
+
     public function test_appointment_actions_are_limited_to_the_active_branch(): void
     {
         [$admin, $company, $branch] = $this->companyContext('rumika-branch-agenda');
