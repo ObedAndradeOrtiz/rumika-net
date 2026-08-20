@@ -992,6 +992,16 @@
     min-width: 0;
 }
 
+.rm-inventory-subtabs {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-bottom: 14px;
+}
+
+.rm-inventory-subpanel {
+    box-shadow: none;
+    min-width: 0;
+}
+
 .rm-inventory-detail-modal {
     max-width: none;
     width: min(86vw, 1320px);

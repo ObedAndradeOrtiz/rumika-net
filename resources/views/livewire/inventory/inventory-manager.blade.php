@@ -110,17 +110,33 @@
                     <h2>Proveedores, marcas y areas</h2>
                 </div>
                 <div class="rm-action-row">
-                    <button class="rm-button rm-button-outline" type="button" wire:click="createUseArea">Nueva area</button>
-                    <button class="rm-button rm-button-outline" type="button" wire:click="createBrand">Nueva marca</button>
-                    <button class="rm-button rm-button-primary" type="button" wire:click="createSupplier">Nuevo proveedor</button>
+                    @if ($supplierTab === 'areas')
+                        <button class="rm-button rm-button-primary" type="button" wire:click="createUseArea">Nueva area</button>
+                    @elseif ($supplierTab === 'brands')
+                        <button class="rm-button rm-button-primary" type="button" wire:click="createBrand">Nueva marca</button>
+                    @else
+                        <button class="rm-button rm-button-primary" type="button" wire:click="createSupplier">Nuevo proveedor</button>
+                    @endif
                 </div>
             </div>
 
-            <div class="rm-settings-grid">
-                <section class="rm-panel rm-nested-panel">
-                    <div class="rm-panel-title">
-                        <div><h2>Proveedores</h2></div>
-                    </div>
+            <div class="rm-tab-switcher rm-inventory-subtabs" role="tablist" aria-label="Catalogos de inventario">
+                <button class="{{ $supplierTab === 'suppliers' ? 'is-active' : '' }}" type="button" wire:click="setSupplierTab('suppliers')">
+                    Proveedores
+                    <span>{{ $suppliers->count() }}</span>
+                </button>
+                <button class="{{ $supplierTab === 'brands' ? 'is-active' : '' }}" type="button" wire:click="setSupplierTab('brands')">
+                    Marcas
+                    <span>{{ $brands->count() }}</span>
+                </button>
+                <button class="{{ $supplierTab === 'areas' ? 'is-active' : '' }}" type="button" wire:click="setSupplierTab('areas')">
+                    Areas de uso
+                    <span>{{ $useAreas->count() }}</span>
+                </button>
+            </div>
+
+            <section class="rm-panel rm-nested-panel rm-inventory-subpanel">
+                @if ($supplierTab === 'suppliers')
                     <div class="rm-commerce-list">
                         @forelse ($suppliers as $supplier)
                             <article class="rm-commerce-row">
@@ -138,12 +154,7 @@
                             <div class="rm-empty-state"><strong>Sin proveedores</strong><span>Registra proveedores para relacionarlos con productos y marcas.</span></div>
                         @endforelse
                     </div>
-                </section>
-
-                <section class="rm-panel rm-nested-panel">
-                    <div class="rm-panel-title">
-                        <div><h2>Marcas</h2></div>
-                    </div>
+                @elseif ($supplierTab === 'brands')
                     <div class="rm-commerce-list">
                         @forelse ($brands as $brand)
                             <article class="rm-commerce-row">
@@ -160,12 +171,7 @@
                             <div class="rm-empty-state"><strong>Sin marcas</strong><span>Las marcas pueden asociarse a un proveedor.</span></div>
                         @endforelse
                     </div>
-                </section>
-
-                <section class="rm-panel rm-nested-panel">
-                    <div class="rm-panel-title">
-                        <div><h2>Areas de uso</h2></div>
-                    </div>
+                @else
                     <div class="rm-commerce-list">
                         @forelse ($useAreas as $area)
                             <article class="rm-commerce-row">
@@ -186,8 +192,8 @@
                             <div class="rm-empty-state"><strong>Sin areas de uso</strong><span>Crea areas como venta, gabinete, limpieza o consumo interno.</span></div>
                         @endforelse
                     </div>
-                </section>
-            </div>
+                @endif
+            </section>
         @endif
 
         @if (in_array($activeTab, ['movements', 'waste'], true))

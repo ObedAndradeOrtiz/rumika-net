@@ -33,6 +33,7 @@ class InventoryManager extends Component
     public string $screen = 'catalog';
 
     public string $activeTab = 'products';
+    public string $supplierTab = 'suppliers';
     public string $search = '';
     public string $brandFilter = '';
     public string $useAreaFilter = '';
@@ -133,6 +134,15 @@ class InventoryManager extends Component
 
         $this->activeTab = $tab;
         $this->resetPage();
+    }
+
+    public function setSupplierTab(string $tab): void
+    {
+        if (! in_array($tab, ['suppliers', 'brands', 'areas'], true)) {
+            return;
+        }
+
+        $this->supplierTab = $tab;
     }
 
     public function updatedSearch(): void
