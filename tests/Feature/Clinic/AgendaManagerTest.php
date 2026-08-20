@@ -76,6 +76,9 @@ class AgendaManagerTest extends TestCase
 
         Livewire::test(AgendaManager::class)
             ->call('markAttended', $appointment->id)
+            ->assertSet('showAttendanceModal', true)
+            ->set('attendanceUserId', $admin->id)
+            ->call('confirmAttendance')
             ->call('openReschedule', $appointment->id)
             ->set('rescheduleDate', '2026-08-08')
             ->set('rescheduleTime', '10:30')
@@ -196,6 +199,9 @@ class AgendaManagerTest extends TestCase
 
         Livewire::test(AgendaManager::class)
             ->call('markAttended', $otherAppointment->id)
+            ->assertSet('showAttendanceModal', true)
+            ->set('attendanceUserId', $admin->id)
+            ->call('confirmAttendance')
             ->assertHasNoErrors();
 
         $this->assertTrue($otherAppointment->refresh()->attended);
@@ -582,6 +588,9 @@ class AgendaManagerTest extends TestCase
 
         Livewire::test(AgendaManager::class)
             ->call('markAttended', $appointment->id)
+            ->assertSet('showAttendanceModal', true)
+            ->set('attendanceUserId', $admin->id)
+            ->call('confirmAttendance')
             ->call('openPayment', $appointment->id)
             ->set('paymentCashAmount', '120')
             ->set('paymentServiceLineIds', [(string) $appointment->services->first()->id])

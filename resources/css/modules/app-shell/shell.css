@@ -396,6 +396,7 @@
 .rm-branch-choice-list {
     display: grid;
     gap: 10px;
+    min-height: 0;
 }
 
 .rm-branch-choice {
@@ -1174,7 +1175,95 @@
     }
 
     .rm-topbar {
+        gap: 10px;
         min-height: 74px;
+        padding: 10px 14px;
+    }
+
+    .rm-branch-switcher {
+        flex: 1 1 auto;
+        max-width: calc(100vw - 92px);
+    }
+
+    .rm-branch-switcher-main {
+        flex: 1 1 auto;
+    }
+
+    .rm-branch-switcher-button {
+        min-width: 0;
+    }
+
+    .rm-branch-switcher-button .rm-avatar {
+        height: 44px;
+        width: 44px;
+    }
+
+    .rm-branch-switcher-button > div {
+        min-width: 0;
+    }
+
+    .rm-branch-switcher strong,
+    .rm-branch-switcher span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .rm-branch-switcher strong {
+        font-size: 15px;
+    }
+
+    .rm-branch-switcher span {
+        font-size: 12px;
+    }
+
+    .rm-branch-company-edit {
+        display: none;
+    }
+
+    .rm-branch-modal {
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr);
+        max-height: calc(100dvh - 18px);
+        overflow: hidden;
+        padding: 18px;
+    }
+
+    .rm-branch-modal .rm-modal-title {
+        margin-bottom: 14px;
+    }
+
+    .rm-branch-modal .rm-modal-title h2 {
+        font-size: 21px;
+    }
+
+    .rm-branch-modal .rm-branch-choice-list {
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        padding: 2px 2px 12px;
+    }
+
+    .rm-branch-choice {
+        border-radius: 16px;
+        grid-template-columns: 46px minmax(0, 1fr) 28px;
+        min-height: 74px;
+        padding: 12px;
+    }
+
+    .rm-branch-choice strong,
+    .rm-branch-choice small {
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .rm-branch-choice strong {
+        white-space: nowrap;
+    }
+
+    .rm-branch-choice small {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
     }
 
     .rm-workspace {

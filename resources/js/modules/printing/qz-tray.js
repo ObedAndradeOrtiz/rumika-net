@@ -296,14 +296,10 @@ window.RumikaQz = {
                 ? rawTicket
                 : ticketTextFrom(paper);
 
-            const rawTicket = button.dataset.ticket
-                ? atob(button.dataset.ticket)
-                : '';
-
             await qz.print(config, [{
                 type: 'raw',
                 format: 'plain',
-                data: rawTicket || ticketTextFrom(paper),
+                data: printData,
             }]);
         } catch (error) {
             window.alert(
@@ -326,6 +322,5 @@ window.addEventListener('rumika-auto-print-ticket', () => {
         button.click();
     }, 350);
 });
-
 
 

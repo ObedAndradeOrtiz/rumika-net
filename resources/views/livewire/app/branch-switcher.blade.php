@@ -21,7 +21,7 @@
 
     @if ($showBranchModal)
         <div class="rm-modal-backdrop" wire:click="close"></div>
-        <section class="rm-modal-panel rm-modal-panel-wide" role="dialog" aria-modal="true" aria-labelledby="branch-modal-title">
+        <section class="rm-modal-panel rm-modal-panel-wide rm-branch-modal" role="dialog" aria-modal="true" aria-labelledby="branch-modal-title">
             <div class="rm-modal-title">
                 <div>
                     <span>Trabajo actual</span>

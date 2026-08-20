@@ -2141,6 +2141,8 @@
 
     .rm-appointment-headline strong {
         flex: 1 1 auto;
+        min-width: 0;
+        overflow-wrap: anywhere;
     }
 
     .rm-appointment-phone {
@@ -2239,6 +2241,10 @@
     .rm-panel-title .rm-agenda-actions .rm-button-primary {
         min-height: 48px;
         width: 48px;
+    }
+
+    .rm-agenda-toolbar .rm-action-row {
+        width: 100%;
     }
 
     .rm-permission-matrix {
