@@ -2260,85 +2260,134 @@
 
     .rm-appointment-row {
         grid-template-columns: minmax(0, 1fr) !important;
-        padding: 14px;
+        gap: 10px;
+        padding: 12px;
     }
 
     .rm-appointment-headline {
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 12px;
+        align-items: start;
+        display: grid;
+        gap: 6px 10px;
+        grid-template-columns: 76px minmax(0, 1fr);
     }
 
     .rm-appointment-headline .rm-commerce-icon {
-        border-radius: 14px;
+        align-self: start;
+        border-radius: 16px;
         display: inline-grid;
-        flex: 0 0 72px;
-        height: 44px;
+        flex: 0 0 auto;
+        font-size: 15px;
+        height: 52px;
         place-items: center;
         text-align: center;
-        width: 72px;
+        width: 76px;
     }
 
     .rm-appointment-time-editor {
+        grid-column: 1 / -1;
         grid-template-columns: minmax(86px, 1fr) 34px 34px;
         width: 100%;
     }
 
     .rm-appointment-headline strong {
-        flex: 1 1 auto;
+        align-self: center;
+        display: block;
+        font-size: 16px;
+        line-height: 1.2;
         min-width: 0;
-        overflow-wrap: anywhere;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     .rm-appointment-phone {
-        max-width: 100%;
+        grid-column: 2;
+        justify-self: start;
+        max-width: min(100%, 180px);
+        padding: 6px 10px;
     }
 
     .rm-service-scroll {
+        gap: 6px;
+        margin-top: 10px;
+    }
+
+    .rm-service-scroll span {
+        font-size: 10px;
+        max-width: 230px;
+        padding: 6px 9px;
+    }
+
+    .rm-service-pill small,
+    .rm-service-pill button {
+        font-size: 10px;
+        padding: 3px 7px;
+    }
+
+    .rm-appointment-row .rm-commerce-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
         margin-top: 8px;
+    }
+
+    .rm-appointment-row .rm-commerce-meta span {
+        flex: 0 1 auto;
+        max-width: 100%;
+        padding: 6px 9px;
+        white-space: normal;
     }
 
     .rm-appointment-row .rm-commerce-actions {
         display: grid;
-        gap: 10px;
+        gap: 8px;
         grid-template-columns: 1fr;
-        margin-top: 4px;
+        margin-top: 0;
         width: 100%;
     }
 
     .rm-appointment-row .rm-attendance-actions {
+        align-items: start;
         display: grid;
-        gap: 10px;
+        gap: 8px;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         width: 100%;
     }
 
     .rm-appointment-row .rm-attendance-actions button {
-        min-height: 44px;
+        border-radius: 14px;
+        justify-content: center;
+        line-height: 1.1;
+        min-height: 40px;
         padding: 0 8px;
         width: 100%;
     }
 
     .rm-appointment-row .rm-attendance-actions .rm-locked-payment-button {
         grid-column: 1 / -1;
+        min-height: 40px;
     }
 
     .rm-appointment-row .rm-icon-actions {
+        align-items: start;
         display: grid;
-        gap: 10px;
+        gap: 8px;
         grid-template-columns: repeat(4, minmax(0, 1fr));
         width: 100%;
     }
 
     .rm-appointment-row .rm-icon-actions .rm-icon-button {
-        aspect-ratio: auto;
-        min-height: 44px;
+        aspect-ratio: 1;
+        justify-self: stretch;
+        min-height: 42px;
         width: 100%;
     }
 
     .rm-appointment-row .rm-icon-actions .rm-icon-button.is-history {
+        aspect-ratio: auto;
         grid-column: 1 / -1;
         gap: 8px;
+        min-height: 42px;
     }
 
     .rm-appointment-row .rm-icon-actions .rm-icon-button.is-history span {
@@ -2553,6 +2602,23 @@
         grid-template-columns: 1fr;
     }
 
+    .rm-catalog-panel .rm-appointment-row {
+        align-items: start;
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    .rm-catalog-panel .rm-appointment-row .rm-commerce-meta {
+        display: flex;
+        flex-wrap: wrap;
+        grid-template-columns: none;
+    }
+
+    .rm-catalog-panel .rm-appointment-row .rm-commerce-meta span {
+        display: inline-flex;
+        max-width: 100%;
+        width: auto;
+    }
+
     .rm-cashbox-record-row {
         align-items: stretch;
         grid-template-columns: 1fr !important;
@@ -2668,8 +2734,10 @@
     }
 
     .rm-appointment-row .rm-icon-actions .rm-icon-button.is-delete {
+        aspect-ratio: auto;
         grid-column: 1 / -1;
         gap: 8px;
+        min-height: 42px;
     }
 
     .rm-appointment-row .rm-icon-actions .rm-icon-button.is-delete span {
