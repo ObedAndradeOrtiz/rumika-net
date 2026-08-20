@@ -23,17 +23,27 @@
                     @endforeach
                 </select>
             </label>
+            <label class="rm-field">
+                <span>Año</span>
+                <select wire:model.live="year">
+                    @foreach ($yearOptions as $yearOption)
+                        <option value="{{ $yearOption }}">{{ $yearOption }}</option>
+                    @endforeach
+                </select>
+            </label>
         </div>
     </section>
 
     <section class="rm-stat-grid">
         <article class="rm-stat-circle-card">
-            <div class="rm-stat-ring" style="--value: {{ $attendance['rate'] }};">
-                <span>{{ $attendance['rate'] }}%</span>
-            </div>
-            <div>
-                <strong>Asistencia</strong>
-                <span>{{ $dateLabel }}</span>
+            <div class="rm-stat-circle-main">
+                <div class="rm-stat-ring" style="--value: {{ $attendance['rate'] }};">
+                    <span>{{ $attendance['rate'] }}%</span>
+                </div>
+                <div class="rm-stat-circle-copy">
+                    <strong>Asistencia</strong>
+                    <span>{{ $dateLabel }}</span>
+                </div>
             </div>
             <div class="rm-stat-mini-grid">
                 <span><strong>{{ $attendance['scheduled'] }}</strong>Agendados</span>
@@ -65,6 +75,7 @@
             <div>
                 <small>Efectivo Bs {{ number_format((float) $finance['cash'], 2) }}</small>
                 <small>QR Bs {{ number_format((float) $finance['qr'], 2) }}</small>
+                <small>Ticket prom. Bs {{ number_format((float) $finance['average_ticket'], 2) }}</small>
             </div>
         </article>
     </section>
@@ -98,6 +109,86 @@
             @empty
                 <div class="rm-empty-state"><strong>Sin datos</strong><span>No hay movimientos en el rango seleccionado.</span></div>
             @endforelse
+        </div>
+    </section>
+
+    <div class="rm-stat-sales-grid">
+        <section class="rm-panel">
+            <div class="rm-panel-title">
+                <div>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 11h-6M19 8v6"/></svg>
+                    <h2>Vendedores de productos</h2>
+                </div>
+                <span>{{ $topSellers->count() }}</span>
+            </div>
+            <div class="rm-stat-rank-list">
+                @forelse ($topSellers as $seller)
+                    <article>
+                        <div>
+                            <strong>{{ $seller['name'] }}</strong>
+                            <small>{{ number_format((float) $seller['quantity'], 2) }} producto(s) en {{ $seller['count'] }} venta(s)</small>
+                        </div>
+                        <span>Bs {{ number_format((float) $seller['total'], 2) }}</span>
+                    </article>
+                @empty
+                    <div class="rm-dashboard-empty">Sin ventas de productos en este rango.</div>
+                @endforelse
+            </div>
+        </section>
+
+        <section class="rm-panel">
+            <div class="rm-panel-title">
+                <div>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/></svg>
+                    <h2>Productos mas vendidos</h2>
+                </div>
+                <span>{{ $topProducts->count() }}</span>
+            </div>
+            <div class="rm-stat-rank-list">
+                @forelse ($topProducts as $product)
+                    <article>
+                        <div>
+                            <strong>{{ $product['name'] }}</strong>
+                            <small>{{ number_format((float) $product['quantity'], 2) }} unidad(es)</small>
+                        </div>
+                        <span>Bs {{ number_format((float) $product['total'], 2) }}</span>
+                    </article>
+                @empty
+                    <div class="rm-dashboard-empty">Sin productos vendidos en este rango.</div>
+                @endforelse
+            </div>
+        </section>
+    </div>
+
+    <section class="rm-panel">
+        <div class="rm-panel-title">
+            <div>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 2 5-6"/><path d="M18 7h3v3"/></svg>
+                <h2>Panel anual {{ $year }}</h2>
+            </div>
+            <span>12 meses</span>
+        </div>
+        <div class="rm-stat-table rm-stat-annual-table">
+            <div class="rm-stat-table-head">
+                <span>Mes</span>
+                <span>Servicios</span>
+                <span>Productos</span>
+                <span>Ingresos</span>
+                <span>Gastos</span>
+                <span>Neto</span>
+                <span>Asistencia</span>
+            </div>
+            @foreach ($annualRows as $row)
+                <article class="rm-stat-table-row">
+                    <span><strong>{{ $row['month'] }}</strong></span>
+                    <span>Bs {{ number_format((float) $row['services'], 2) }}</span>
+                    <span>Bs {{ number_format((float) $row['products'], 2) }}</span>
+                    <span>Bs {{ number_format((float) $row['income'], 2) }}</span>
+                    <span>Bs {{ number_format((float) $row['expenses'], 2) }}</span>
+                    <span>Bs {{ number_format((float) $row['net'], 2) }}</span>
+                    <span>{{ $row['attended'] }}/{{ $row['scheduled'] }}</span>
+                </article>
+            @endforeach
         </div>
     </section>
 

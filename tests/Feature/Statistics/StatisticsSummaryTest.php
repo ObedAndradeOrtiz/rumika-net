@@ -25,6 +25,7 @@ class StatisticsSummaryTest extends TestCase
     public function test_statistics_summary_shows_attendance_income_and_expenses(): void
     {
         $user = User::factory()->create();
+        $seller = User::factory()->create(['name' => 'Vendedora Principal']);
         $company = Company::create(['name' => 'Rumika Stats', 'slug' => 'rumika-stats']);
         $type = BusinessType::create(['name' => 'Clinica', 'slug' => 'clinica']);
         $branch = $company->branches()->create([
@@ -34,7 +35,9 @@ class StatisticsSummaryTest extends TestCase
             'status' => 'active',
         ]);
         $company->users()->attach($user->id, ['role' => 'owner', 'joined_at' => now()]);
+        $company->users()->attach($seller->id, ['role' => 'staff', 'joined_at' => now()]);
         $branch->users()->attach($user->id, ['assigned_at' => now()]);
+        $branch->users()->attach($seller->id, ['assigned_at' => now()]);
         $client = Client::create([
             'company_id' => $company->id,
             'branch_id' => $branch->id,
@@ -91,6 +94,7 @@ class StatisticsSummaryTest extends TestCase
         ]);
         TreatmentPaymentItem::create([
             'treatment_payment_id' => $payment->id,
+            'sold_by_user_id' => $seller->id,
             'type' => 'product',
             'name' => 'Crema',
             'quantity' => 1,
@@ -136,6 +140,10 @@ class StatisticsSummaryTest extends TestCase
             ->assertSee('Bs 130.00')
             ->assertSee('Bs 20.00')
             ->assertSee('Sucursal Centro')
-            ->assertSee('Limpieza facial');
+            ->assertSee('Limpieza facial')
+            ->assertSee('Vendedora Principal')
+            ->assertSee('Crema')
+            ->assertSee('Panel anual 2026')
+            ->assertSee('Agosto');
     }
 }

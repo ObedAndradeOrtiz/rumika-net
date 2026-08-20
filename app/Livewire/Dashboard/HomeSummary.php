@@ -17,6 +17,7 @@ class HomeSummary extends Component
         $branch = $this->activeBranch($company);
         $today = now();
         $dayRange = [$today->copy()->startOfDay(), $today->copy()->endOfDay()];
+        $weekRange = [$today->copy()->startOfWeek(), $today->copy()->endOfWeek()];
         $monthRange = [$today->copy()->startOfMonth(), $today->copy()->endOfMonth()];
 
         $appointmentsToday = $company->appointments()
@@ -58,6 +59,7 @@ class HomeSummary extends Component
             'appointmentsToday' => $appointmentsToday,
             'attendedToday' => $attendedToday,
             'attendanceRateToday' => $attendanceRateToday,
+            'weeklyBranchAttendance' => $this->weeklyBranchAttendance($company, $weekRange),
             'cashbox' => $cashbox,
             'newClientsToday' => $newClientsToday,
             'lowStockProducts' => $lowStockProducts,
@@ -126,6 +128,32 @@ class HomeSummary extends Component
             ->orderBy('expires_at')
             ->limit(5)
             ->get();
+    }
+
+    private function weeklyBranchAttendance(Company $company, array $weekRange)
+    {
+        return $company->branches()
+            ->with('businessType')
+            ->orderBy('name')
+            ->get()
+            ->map(function (Branch $branch) use ($company, $weekRange) {
+                $appointments = $company->appointments()
+                    ->where('branch_id', $branch->id)
+                    ->whereBetween('scheduled_at', $weekRange)
+                    ->get();
+                $scheduled = $appointments->count();
+                $attended = $appointments->where('attended', true)->count();
+
+                return [
+                    'name' => $branch->name,
+                    'type' => $branch->businessType?->name ?? 'Negocio',
+                    'scheduled' => $scheduled,
+                    'attended' => $attended,
+                    'rate' => $scheduled > 0 ? round(($attended / $scheduled) * 100) : 0,
+                ];
+            })
+            ->filter(fn ($row) => $row['scheduled'] > 0)
+            ->values();
     }
 
     private function company(): Company

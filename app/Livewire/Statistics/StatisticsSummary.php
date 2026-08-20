@@ -13,6 +13,7 @@ class StatisticsSummary extends Component
     public string $dateFrom = '';
     public string $dateTo = '';
     public string $branchFilter = '';
+    public string $year = '';
 
     public function mount(): void
     {
@@ -20,6 +21,7 @@ class StatisticsSummary extends Component
 
         $this->dateFrom = now()->startOfMonth()->toDateString();
         $this->dateTo = now()->toDateString();
+        $this->year = now()->format('Y');
     }
 
     public function render()
@@ -30,11 +32,15 @@ class StatisticsSummary extends Component
             'dateFrom' => ['required', 'date'],
             'dateTo' => ['required', 'date', 'after_or_equal:dateFrom'],
             'branchFilter' => ['nullable', 'integer'],
+            'year' => ['required', 'integer', 'min:2020', 'max:2100'],
         ]);
 
         $company = $this->company();
         $from = Carbon::parse($this->dateFrom)->startOfDay();
         $to = Carbon::parse($this->dateTo)->endOfDay();
+        $year = (int) $this->year;
+        $yearStart = Carbon::create($year, 1, 1)->startOfYear();
+        $yearEnd = $yearStart->copy()->endOfYear();
         $branches = $company->branches()->with('businessType')->orderBy('name')->get();
         $branchIds = $this->branchFilter !== ''
             ? collect([(int) $this->branchFilter])
@@ -46,7 +52,7 @@ class StatisticsSummary extends Component
             ->whereBetween('scheduled_at', [$from, $to])
             ->get();
         $payments = $company->treatmentPayments()
-            ->with(['branch', 'items', 'splits'])
+            ->with(['branch', 'items.soldBy', 'splits'])
             ->whereIn('branch_id', $branchIds)
             ->whereBetween('paid_at', [$from, $to])
             ->get();
@@ -54,6 +60,19 @@ class StatisticsSummary extends Component
             ->with(['branch', 'type'])
             ->whereIn('branch_id', $branchIds)
             ->whereBetween('spent_at', [$from->toDateString(), $to->toDateString()])
+            ->get();
+        $annualAppointments = $company->appointments()
+            ->whereIn('branch_id', $branchIds)
+            ->whereBetween('scheduled_at', [$yearStart, $yearEnd])
+            ->get();
+        $annualPayments = $company->treatmentPayments()
+            ->with(['items', 'splits'])
+            ->whereIn('branch_id', $branchIds)
+            ->whereBetween('paid_at', [$yearStart, $yearEnd])
+            ->get();
+        $annualExpenses = $company->expenses()
+            ->whereIn('branch_id', $branchIds)
+            ->whereBetween('spent_at', [$yearStart->toDateString(), $yearEnd->toDateString()])
             ->get();
 
         $scheduled = $appointments->count();
@@ -83,10 +102,16 @@ class StatisticsSummary extends Component
                 'net' => $servicesIncome + $productsIncome - $expensesTotal,
                 'cash' => (float) $payments->flatMap->splits->where('method', 'cash')->sum('amount'),
                 'qr' => (float) $payments->flatMap->splits->where('method', 'qr')->sum('amount'),
+                'payments_count' => $payments->count(),
+                'average_ticket' => $payments->count() > 0 ? ($servicesIncome + $productsIncome) / $payments->count() : 0,
             ],
             'branchRows' => $this->branchRows($branches, $appointments, $payments, $expenses),
             'dailyRows' => $this->dailyRows($appointments, $payments, $expenses, $from, $to),
             'topServices' => $this->topServices($appointments),
+            'topSellers' => $this->topSellers($payments),
+            'topProducts' => $this->topProducts($payments),
+            'annualRows' => $this->annualRows($annualAppointments, $annualPayments, $annualExpenses, $year),
+            'yearOptions' => range(now()->year + 1, now()->year - 4),
         ]);
     }
 
@@ -157,6 +182,83 @@ class StatisticsSummary extends Component
             ->sortByDesc('count')
             ->take(8)
             ->values();
+    }
+
+    private function topSellers($payments)
+    {
+        return $payments
+            ->flatMap->items
+            ->where('type', 'product')
+            ->groupBy(fn ($item) => $item->sold_by_user_id ?: 'none')
+            ->map(function ($items) {
+                $first = $items->first();
+
+                return [
+                    'name' => $first->soldBy?->name ?? 'Sin vendedor',
+                    'quantity' => (float) $items->sum('quantity'),
+                    'total' => (float) $items->sum('total'),
+                    'count' => $items->count(),
+                ];
+            })
+            ->sortByDesc('total')
+            ->take(8)
+            ->values();
+    }
+
+    private function topProducts($payments)
+    {
+        return $payments
+            ->flatMap->items
+            ->where('type', 'product')
+            ->groupBy('name')
+            ->map(fn ($items, $name) => [
+                'name' => $name,
+                'quantity' => (float) $items->sum('quantity'),
+                'total' => (float) $items->sum('total'),
+            ])
+            ->sortByDesc('total')
+            ->take(8)
+            ->values();
+    }
+
+    private function annualRows($appointments, $payments, $expenses, int $year)
+    {
+        $months = [
+            1 => 'Enero',
+            2 => 'Febrero',
+            3 => 'Marzo',
+            4 => 'Abril',
+            5 => 'Mayo',
+            6 => 'Junio',
+            7 => 'Julio',
+            8 => 'Agosto',
+            9 => 'Septiembre',
+            10 => 'Octubre',
+            11 => 'Noviembre',
+            12 => 'Diciembre',
+        ];
+
+        return collect(range(1, 12))->map(function ($month) use ($appointments, $payments, $expenses, $months, $year) {
+            $monthStart = Carbon::create($year, $month, 1)->startOfMonth();
+            $monthEnd = $monthStart->copy()->endOfMonth();
+            $monthAppointments = $appointments->filter(fn ($appointment) => $appointment->scheduled_at->between($monthStart, $monthEnd));
+            $monthPayments = $payments->filter(fn ($payment) => $payment->paid_at->between($monthStart, $monthEnd));
+            $monthExpenses = $expenses->filter(fn ($expense) => $expense->spent_at->between($monthStart, $monthEnd));
+            $services = (float) $monthPayments->flatMap->items->where('type', 'service')->sum('total');
+            $products = (float) $monthPayments->flatMap->items->where('type', 'product')->sum('total');
+            $expensesTotal = (float) $monthExpenses->sum('amount');
+
+            return [
+                'month' => $months[$month],
+                'scheduled' => $monthAppointments->count(),
+                'attended' => $monthAppointments->where('attended', true)->count(),
+                'services' => $services,
+                'products' => $products,
+                'income' => $services + $products,
+                'expenses' => $expensesTotal,
+                'net' => $services + $products - $expensesTotal,
+            ];
+        });
     }
 
     private function canView(): bool

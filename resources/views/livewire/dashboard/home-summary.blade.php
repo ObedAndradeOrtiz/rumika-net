@@ -5,10 +5,6 @@
             <h1>{{ $branch->name }}</h1>
             <p>Resumen operativo de hoy y alertas principales del mes.</p>
         </div>
-        <div class="rm-dashboard-branch-pill">
-            <span>Sucursal activa</span>
-            <strong>{{ $branch->businessType?->name ?? 'Negocio' }}</strong>
-        </div>
         <div class="rm-dashboard-attendance-card">
             <div class="rm-stat-ring" style="--value: {{ $attendanceRateToday }};">
                 <span>{{ $attendanceRateToday }}%</span>
@@ -99,6 +95,31 @@
                 <div><span>QR</span><strong>Bs {{ number_format($cashbox['qr'], 2) }}</strong></div>
                 <div><span>Gastos caja</span><strong>Bs {{ number_format($cashbox['expenses'], 2) }}</strong></div>
                 <div class="is-total"><span>Total neto</span><strong>Bs {{ number_format($cashbox['net'], 2) }}</strong></div>
+            </div>
+        </section>
+
+        <section class="rm-panel">
+            <div class="rm-panel-title">
+                <div>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 3v18h18"/><path d="M7 15l3-4 4 3 5-7"/></svg>
+                    <h2>Asistencia semanal</h2>
+                </div>
+                <span>Sucursales</span>
+            </div>
+            <div class="rm-weekly-branch-list">
+                @forelse ($weeklyBranchAttendance as $row)
+                    <article>
+                        <div class="rm-stat-ring rm-stat-ring-small" style="--value: {{ $row['rate'] }};">
+                            <span>{{ $row['rate'] }}%</span>
+                        </div>
+                        <div>
+                            <strong>{{ $row['name'] }}</strong>
+                            <small>{{ $row['type'] }} - {{ $row['attended'] }}/{{ $row['scheduled'] }} asistidos</small>
+                        </div>
+                    </article>
+                @empty
+                    <div class="rm-dashboard-empty">Sin citas esta semana.</div>
+                @endforelse
             </div>
         </section>
 
