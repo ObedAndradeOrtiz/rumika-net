@@ -73,4 +73,9 @@ class Appointment extends Model
     {
         return $this->hasMany(TreatmentPayment::class);
     }
+
+    public function rescheduledAppointments()
+    {
+        return $this->hasMany(Appointment::class, 'rescheduled_from_id');
+    }
 }

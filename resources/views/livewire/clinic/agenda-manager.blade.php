@@ -87,9 +87,15 @@
                                     × No asistió
                                 </span>
 
+                                @if ($appointment->rescheduledAppointments?->isNotEmpty())
+                                    <span class="rm-attendance-chip is-rescheduled">
+                                        ↻ Reagendado
+                                    </span>
+                                @endif
+
                                 @if ($appointment->reschedule_reason)
-                                    <span class="rm-attendance-reason">
-                                        {{ $appointment->reschedule_reason }}
+                                    <span>
+                                        Motivo: {{ $appointment->reschedule_reason }}
                                     </span>
                                 @endif
                             @else

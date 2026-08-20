@@ -1226,6 +1226,7 @@ class AgendaManager extends Component
                 'payments.items',
                 'treatmentPlan',
                 'attendedBy',
+                'rescheduledAppointments',
             ])
             ->where('branch_id', $branch->id)
             ->whereBetween('scheduled_at', [$day->copy()->startOfDay(), $day->copy()->endOfDay()])
