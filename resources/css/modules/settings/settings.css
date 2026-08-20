@@ -2385,9 +2385,16 @@
 
     .rm-appointment-row .rm-icon-actions .rm-icon-button.is-history {
         aspect-ratio: auto;
-        grid-column: 1 / -1;
-        gap: 8px;
+        font-size: 11px;
+        grid-column: span 2;
+        gap: 5px;
         min-height: 42px;
+        padding-inline: 6px;
+        white-space: nowrap;
+    }
+
+    .rm-appointment-row .rm-icon-actions .rm-icon-button.is-history:last-child {
+        grid-column: 1 / -1;
     }
 
     .rm-appointment-row .rm-icon-actions .rm-icon-button.is-history span {
@@ -2735,9 +2742,12 @@
 
     .rm-appointment-row .rm-icon-actions .rm-icon-button.is-delete {
         aspect-ratio: auto;
-        grid-column: 1 / -1;
-        gap: 8px;
+        font-size: 11px;
+        grid-column: span 2;
+        gap: 5px;
         min-height: 42px;
+        padding-inline: 6px;
+        white-space: nowrap;
     }
 
     .rm-appointment-row .rm-icon-actions .rm-icon-button.is-delete span {
