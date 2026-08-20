@@ -959,7 +959,7 @@
 
 .rm-catalog-panel {
     min-width: 0;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .rm-catalog-panel .rm-tab-switcher {
@@ -2406,13 +2406,20 @@
     }
 
     .rm-catalog-panel .rm-tab-switcher {
-        grid-template-columns: 1fr;
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding: 6px;
+        scrollbar-width: thin;
+        -webkit-overflow-scrolling: touch;
     }
 
     .rm-catalog-panel .rm-tab-switcher button {
         justify-content: center;
-        min-height: 46px;
-        width: 100%;
+        min-height: 44px;
+        min-width: max(132px, 42vw);
+        padding-inline: 12px;
+        width: auto;
     }
 
     .rm-tab-switcher-four {
