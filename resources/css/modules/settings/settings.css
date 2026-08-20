@@ -945,6 +945,7 @@
     display: grid;
     gap: 12px;
     grid-template-columns: repeat(2, minmax(180px, 1fr));
+    min-width: 0;
 }
 
 .rm-inventory-open-row {
@@ -954,6 +955,41 @@
     grid-template-columns: minmax(0, 1fr) auto;
     margin-bottom: 14px;
     padding: 14px;
+}
+
+.rm-catalog-panel {
+    min-width: 0;
+    overflow: hidden;
+}
+
+.rm-catalog-panel .rm-tab-switcher {
+    min-width: 0;
+}
+
+.rm-catalog-panel .rm-commerce-row {
+    min-width: 0;
+}
+
+.rm-catalog-panel .rm-row-main {
+    min-width: 0;
+}
+
+.rm-catalog-panel .rm-row-main strong,
+.rm-catalog-panel .rm-row-main > span {
+    overflow-wrap: anywhere;
+}
+
+.rm-catalog-panel .rm-commerce-meta {
+    min-width: 0;
+}
+
+.rm-catalog-panel .rm-commerce-meta span {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+}
+
+.rm-catalog-panel .rm-commerce-actions {
+    min-width: 0;
 }
 
 .rm-inventory-detail-modal {
@@ -1419,6 +1455,10 @@
 }
 
 .rm-commerce-actions .rm-icon-button.is-history span {
+    display: none;
+}
+
+.rm-commerce-actions .rm-icon-button.is-delete span {
     display: none;
 }
 
@@ -2149,6 +2189,10 @@
         text-align: left;
     }
 
+    .rm-finance-summary-row {
+        grid-template-columns: 1fr;
+    }
+
     .rm-form-row,
     .rm-filter-row,
     .rm-inventory-filter-row,
@@ -2337,6 +2381,16 @@
         grid-template-columns: 1fr;
     }
 
+    .rm-catalog-panel .rm-tab-switcher {
+        grid-template-columns: 1fr;
+    }
+
+    .rm-catalog-panel .rm-tab-switcher button {
+        justify-content: center;
+        min-height: 46px;
+        width: 100%;
+    }
+
     .rm-tab-switcher-four {
         grid-template-columns: 1fr;
     }
@@ -2393,6 +2447,47 @@
         grid-template-columns: 1fr;
         min-width: 0;
         width: 100%;
+    }
+
+    .rm-catalog-panel .rm-panel-title {
+        align-items: stretch;
+    }
+
+    .rm-catalog-panel .rm-commerce-list {
+        min-width: 0;
+    }
+
+    .rm-catalog-panel .rm-commerce-row {
+        align-items: stretch;
+        grid-template-columns: 48px minmax(0, 1fr);
+    }
+
+    .rm-catalog-panel .rm-commerce-actions {
+        display: grid;
+        grid-column: 1 / -1;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        justify-content: stretch;
+        width: 100%;
+    }
+
+    .rm-catalog-panel .rm-commerce-actions button {
+        justify-content: center;
+        padding-inline: 8px;
+        width: 100%;
+    }
+
+    .rm-catalog-panel .rm-commerce-meta {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+
+    .rm-appointment-row .rm-icon-actions .rm-icon-button.is-delete {
+        grid-column: 1 / -1;
+        gap: 8px;
+    }
+
+    .rm-appointment-row .rm-icon-actions .rm-icon-button.is-delete span {
+        display: inline;
     }
 
     .rm-inventory-detail-modal {

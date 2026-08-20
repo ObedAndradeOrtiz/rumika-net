@@ -223,6 +223,7 @@
                                         <path d="M19 6l-1 15H6L5 6" />
                                         <path d="M10 11v6M14 11v6" />
                                     </svg>
+                                    <span>Eliminar</span>
                                 </button>
                             @endif
                         </div>

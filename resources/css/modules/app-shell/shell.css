@@ -916,6 +916,7 @@
 .rm-stat-table {
     display: grid;
     gap: 8px;
+    min-width: 0;
 }
 
 .rm-stat-table-head,
@@ -1611,9 +1612,14 @@
         align-items: center;
     }
 
+    .rm-statistics-page .rm-panel {
+        min-width: 0;
+    }
+
     .rm-stat-table {
         overflow-x: auto;
         padding-bottom: 4px;
+        width: 100%;
     }
 
     .rm-stat-table-head,
@@ -1671,8 +1677,32 @@
         padding: 14px;
     }
 
+    .rm-stat-circle-main {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .rm-stat-circle-copy strong {
+        font-size: 21px;
+        white-space: normal;
+    }
+
+    .rm-stat-circle-copy span {
+        display: block;
+        line-height: 1.35;
+    }
+
     .rm-stat-mini-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .rm-stat-mini-grid span {
+        min-width: 0;
+        padding: 8px;
+    }
+
+    .rm-stat-mini-grid strong {
+        font-size: 17px;
     }
 
     .rm-stat-rank-list article {
