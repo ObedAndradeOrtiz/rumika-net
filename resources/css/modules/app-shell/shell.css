@@ -851,7 +851,7 @@
     align-items: center;
     display: grid;
     gap: 14px;
-    grid-template-columns: minmax(0, 1fr) minmax(220px, 1fr);
+    grid-template-columns: 1fr;
 }
 
 .rm-stat-circle-main {
@@ -859,6 +859,7 @@
     display: flex;
     gap: 14px;
     min-width: 0;
+    width: 100%;
 }
 
 .rm-stat-circle-copy {
@@ -866,7 +867,7 @@
 }
 
 .rm-stat-circle-copy strong {
-    overflow-wrap: anywhere;
+    white-space: nowrap;
 }
 
 .rm-stat-circle-card strong,
