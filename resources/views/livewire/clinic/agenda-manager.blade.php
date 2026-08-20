@@ -49,13 +49,38 @@
                 <article class="rm-commerce-row rm-appointment-row">
                     <div class="rm-row-main">
                         <div class="rm-appointment-headline">
-                            <span
-                                class="rm-commerce-icon rm-appointment-time">{{ $appointment->scheduled_at->format('H:i') }}</span>
+                            @if ($editingTimeAppointmentId === $appointment->id)
+                                <div class="rm-appointment-time-editor">
+                                    <input
+                                        type="time"
+                                        wire:model="editingAppointmentTime"
+                                        wire:keydown.enter="saveAppointmentTime"
+                                        wire:keydown.escape="cancelAppointmentTimeEdit"
+                                        aria-label="Cambiar hora de cita"
+                                        autofocus
+                                    >
+                                    <button type="button" wire:click="saveAppointmentTime" aria-label="Guardar hora">✓</button>
+                                    <button type="button" wire:click="cancelAppointmentTimeEdit" aria-label="Cancelar">x</button>
+                                </div>
+                            @else
+                                <button
+                                    class="rm-commerce-icon rm-appointment-time"
+                                    type="button"
+                                    wire:click="editAppointmentTime({{ $appointment->id }})"
+                                    title="Cambiar hora"
+                                    aria-label="Cambiar hora de {{ $appointment->client->full_name }}"
+                                >{{ $appointment->scheduled_at->format('H:i') }}</button>
+                            @endif
                             <strong>{{ $appointment->client->full_name }}</strong>
                             @if ($appointment->client->phone)
                                 <span class="rm-appointment-phone">{{ $appointment->client->phone }}</span>
                             @endif
                         </div>
+                        @error('editingAppointmentTime')
+                            @if ($editingTimeAppointmentId === $appointment->id)
+                                <small class="rm-inline-error">{{ $message }}</small>
+                            @endif
+                        @enderror
                         <div class="rm-service-scroll">
                             @forelse ($appointment->services as $service)
                                 <span

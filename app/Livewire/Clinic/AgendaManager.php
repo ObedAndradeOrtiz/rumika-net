@@ -40,6 +40,7 @@ class AgendaManager extends Component
     public ?int $rescheduleAppointmentId = null;
     public ?int $addServicesAppointmentId = null;
     public ?int $confirmingAppointmentDeleteId = null;
+    public ?int $editingTimeAppointmentId = null;
     public string $appointmentSearch = '';
 
     public string $clientMode = 'existing';
@@ -85,6 +86,7 @@ class AgendaManager extends Component
     public array $rescheduleServiceIds = [];
     public string $addServicesSearch = '';
     public array $addServiceIds = [];
+    public string $editingAppointmentTime = '';
     public string $historyTab = 'appointments';
 
     public bool $showAttendanceModal = false;
@@ -485,6 +487,44 @@ class AgendaManager extends Component
         });
 
         $this->confirmingAppointmentDeleteId = null;
+    }
+
+    public function editAppointmentTime(int $appointmentId): void
+    {
+        $appointment = $this->appointmentQuery()
+            ->whereKey($appointmentId)
+            ->firstOrFail();
+
+        $this->editingTimeAppointmentId = $appointment->id;
+        $this->editingAppointmentTime = $appointment->scheduled_at->format('H:i');
+        $this->resetErrorBag('editingAppointmentTime');
+    }
+
+    public function cancelAppointmentTimeEdit(): void
+    {
+        $this->editingTimeAppointmentId = null;
+        $this->editingAppointmentTime = '';
+        $this->resetErrorBag('editingAppointmentTime');
+    }
+
+    public function saveAppointmentTime(): void
+    {
+        $validated = $this->validate([
+            'editingTimeAppointmentId' => ['required', 'integer'],
+            'editingAppointmentTime' => ['required', 'date_format:H:i'],
+        ]);
+
+        $appointment = $this->appointmentQuery()
+            ->whereKey($validated['editingTimeAppointmentId'])
+            ->firstOrFail();
+
+        $appointment->update([
+            'scheduled_at' => $appointment->scheduled_at
+                ->copy()
+                ->setTimeFromTimeString($validated['editingAppointmentTime']),
+        ]);
+
+        $this->cancelAppointmentTimeEdit();
     }
 
     public function openPayment(int $appointmentId): void

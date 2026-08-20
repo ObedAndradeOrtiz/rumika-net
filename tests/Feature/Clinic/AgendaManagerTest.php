@@ -262,6 +262,36 @@ class AgendaManagerTest extends TestCase
         $this->assertTrue($otherAppointment->refresh()->attended);
     }
 
+    public function test_appointment_time_can_be_updated_inline(): void
+    {
+        [$admin, $company, $branch] = $this->companyContext('rumika-time-edit');
+        $client = Client::create([
+            'company_id' => $company->id,
+            'full_name' => 'Cliente Hora',
+        ]);
+        $appointment = Appointment::create([
+            'company_id' => $company->id,
+            'branch_id' => $branch->id,
+            'client_id' => $client->id,
+            'scheduled_at' => '2026-08-15 10:00:00',
+            'duration_minutes' => 60,
+            'status' => 'scheduled',
+        ]);
+
+        $this->actingAs($admin);
+        session(['active_branch_id' => $branch->id]);
+
+        Livewire::test(AgendaManager::class)
+            ->call('editAppointmentTime', $appointment->id)
+            ->assertSet('editingAppointmentTime', '10:00')
+            ->set('editingAppointmentTime', '14:30')
+            ->call('saveAppointmentTime')
+            ->assertHasNoErrors()
+            ->assertSet('editingTimeAppointmentId', null);
+
+        $this->assertSame('2026-08-15 14:30:00', $appointment->refresh()->scheduled_at->format('Y-m-d H:i:s'));
+    }
+
     public function test_agenda_search_filters_daily_appointments_by_client_and_service(): void
     {
         [$admin, $company, $branch] = $this->companyContext('rumika-agenda-search');
