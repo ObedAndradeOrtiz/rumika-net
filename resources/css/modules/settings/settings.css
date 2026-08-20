@@ -1403,7 +1403,8 @@
 }
 
 .rm-attendance-actions,
-.rm-icon-actions {
+.rm-icon-actions,
+.rm-secondary-actions {
     display: contents;
 }
 
@@ -2376,6 +2377,13 @@
         width: 100%;
     }
 
+    .rm-appointment-row .rm-secondary-actions {
+        display: grid;
+        gap: 8px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        width: 100%;
+    }
+
     .rm-appointment-row .rm-icon-actions .rm-icon-button {
         aspect-ratio: 1;
         justify-self: stretch;
@@ -2383,21 +2391,21 @@
         width: 100%;
     }
 
-    .rm-appointment-row .rm-icon-actions .rm-icon-button.is-history {
+    .rm-appointment-row .rm-secondary-actions .rm-icon-button {
+        width: 100%;
+    }
+
+    .rm-appointment-row .rm-secondary-actions .rm-icon-button.is-history {
         aspect-ratio: auto;
         font-size: 11px;
-        grid-column: span 2;
         gap: 5px;
+        justify-content: center;
         min-height: 42px;
         padding-inline: 6px;
         white-space: nowrap;
     }
 
-    .rm-appointment-row .rm-icon-actions .rm-icon-button.is-history:last-child {
-        grid-column: 1 / -1;
-    }
-
-    .rm-appointment-row .rm-icon-actions .rm-icon-button.is-history span {
+    .rm-appointment-row .rm-secondary-actions .rm-icon-button.is-history span {
         display: inline;
     }
 
@@ -2614,6 +2622,10 @@
         grid-template-columns: minmax(0, 1fr) !important;
     }
 
+    .rm-catalog-panel .rm-appointment-row .rm-commerce-actions {
+        grid-template-columns: 1fr;
+    }
+
     .rm-catalog-panel .rm-appointment-row .rm-commerce-meta {
         display: flex;
         flex-wrap: wrap;
@@ -2740,17 +2752,17 @@
         white-space: nowrap;
     }
 
-    .rm-appointment-row .rm-icon-actions .rm-icon-button.is-delete {
+    .rm-appointment-row .rm-secondary-actions .rm-icon-button.is-delete {
         aspect-ratio: auto;
         font-size: 11px;
-        grid-column: span 2;
         gap: 5px;
+        justify-content: center;
         min-height: 42px;
         padding-inline: 6px;
         white-space: nowrap;
     }
 
-    .rm-appointment-row .rm-icon-actions .rm-icon-button.is-delete span {
+    .rm-appointment-row .rm-secondary-actions .rm-icon-button.is-delete span {
         display: inline;
     }
 

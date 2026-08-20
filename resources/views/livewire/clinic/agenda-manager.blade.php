@@ -202,6 +202,8 @@
                                     <path d="M4 4h16v16H4z" />
                                 </svg>
                             </button>
+                        </div>
+                        <div class="rm-secondary-actions">
                             <button class="rm-icon-button is-history" type="button"
                                 wire:click="openHistory({{ $appointment->client_id }})" aria-label="Ver historial"
                                 title="Ver historial">
