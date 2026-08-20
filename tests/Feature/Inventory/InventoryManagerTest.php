@@ -522,6 +522,49 @@ class InventoryManagerTest extends TestCase
         ]);
     }
 
+    public function test_inventory_movements_export_downloads_excel_workbook_by_date_range(): void
+    {
+        [$admin, $company, $branch] = $this->companyContext('rumika-export');
+        $product = InventoryProduct::create([
+            'company_id' => $company->id,
+            'code' => 'EXP-001',
+            'name' => 'Producto exportable',
+            'unit_name' => 'unidad',
+            'purchase_cost' => 10,
+        ]);
+        $batch = InventoryProductBatch::create([
+            'company_id' => $company->id,
+            'branch_id' => $branch->id,
+            'inventory_product_id' => $product->id,
+            'lot_code' => 'EXP-LOTE',
+            'initial_quantity' => 5,
+            'current_quantity' => 5,
+            'unit_cost' => 10,
+        ]);
+        InventoryMovement::create([
+            'company_id' => $company->id,
+            'branch_id' => $branch->id,
+            'inventory_product_id' => $product->id,
+            'inventory_product_batch_id' => $batch->id,
+            'type' => 'cabinet',
+            'quantity' => 1,
+            'unit_cost' => 10,
+            'total_cost' => 10,
+            'moved_at' => '2026-08-15 10:00:00',
+            'reference' => 'GAB-1',
+            'reason' => 'Uso en gabinete',
+        ]);
+
+        $this->actingAs($admin);
+        session(['active_branch_id' => $branch->id]);
+
+        Livewire::test(InventoryManager::class, ['screen' => 'operations'])
+            ->set('movementExportFrom', '2026-08-01')
+            ->set('movementExportTo', '2026-08-31')
+            ->call('exportMovements')
+            ->assertFileDownloaded('inventario-movimientos-sucursal-centro-20260801-20260831.xls');
+    }
+
     private function companyContext(string $slug): array
     {
         $user = User::factory()->create(['email' => "{$slug}@rumika.test"]);

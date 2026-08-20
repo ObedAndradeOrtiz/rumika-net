@@ -196,7 +196,17 @@
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m3 17 6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>
                     <h2>{{ $activeTab === 'waste' ? 'Historial de desechos' : 'Movimientos del inventario' }}</h2>
                 </div>
-                <button class="rm-button rm-button-outline" type="button" wire:click="exportMovements">Exportar Excel</button>
+                <div class="rm-export-controls">
+                    <label class="rm-field">
+                        <span>Desde</span>
+                        <input type="date" wire:model="movementExportFrom">
+                    </label>
+                    <label class="rm-field">
+                        <span>Hasta</span>
+                        <input type="date" wire:model="movementExportTo">
+                    </label>
+                    <button class="rm-button rm-button-outline" type="button" wire:click="exportMovements">Descargar Excel</button>
+                </div>
             </div>
 
             @if ($screen === 'operations' && $activeTab === 'movements')

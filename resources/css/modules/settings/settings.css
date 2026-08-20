@@ -853,6 +853,18 @@
     font-weight: 800;
 }
 
+.rm-export-controls {
+    align-items: end;
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(2, minmax(135px, 1fr)) auto;
+    min-width: min(100%, 520px);
+}
+
+.rm-export-controls .rm-field {
+    min-width: 0;
+}
+
 .rm-inventory-kpis .rm-kpi {
     min-width: 0;
 }
@@ -2322,6 +2334,12 @@
 
     .rm-payment-split-row {
         grid-template-columns: 1fr;
+    }
+
+    .rm-export-controls {
+        grid-template-columns: 1fr;
+        min-width: 0;
+        width: 100%;
     }
 
     .rm-inventory-detail-modal {

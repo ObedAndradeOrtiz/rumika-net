@@ -14,7 +14,9 @@ use App\Models\InventoryProduct;
 use App\Models\InventoryProductBatch;
 use App\Models\InventorySupplier;
 use App\Models\TreatmentPaymentItem;
+use App\Models\TreatmentPayment;
 use App\Models\InventoryUseArea;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -97,6 +99,8 @@ class InventoryManager extends Component
     public string $movementReceivedAt = '';
     public string $movementReference = '';
     public string $movementReason = '';
+    public string $movementExportFrom = '';
+    public string $movementExportTo = '';
 
     public string $assetName = '';
     public string $assetCategory = '';
@@ -113,6 +117,8 @@ class InventoryManager extends Component
     {
         $this->screen = in_array($screen, ['catalog', 'operations'], true) ? $screen : 'catalog';
         $this->activeTab = $this->screen === 'operations' ? 'movements' : 'products';
+        $this->movementExportFrom = now()->startOfMonth()->format('Y-m-d');
+        $this->movementExportTo = now()->format('Y-m-d');
     }
 
     public function setActiveTab(string $tab): void
@@ -940,37 +946,37 @@ class InventoryManager extends Component
     {
         $company = $this->company();
         $branch = $this->activeBranch();
-        $filename = 'inventario-movimientos-'.$branch->slug.'-'.now()->format('Ymd-His').'.csv';
+        $from = $this->movementExportFrom
+            ? Carbon::parse($this->movementExportFrom)->startOfDay()
+            : now()->startOfMonth();
+        $to = $this->movementExportTo
+            ? Carbon::parse($this->movementExportTo)->endOfDay()
+            : now()->endOfDay();
+        $filename = 'inventario-movimientos-'.$branch->slug.'-'.$from->format('Ymd').'-'.$to->format('Ymd').'.xls';
 
-        return response()->streamDownload(function () use ($company, $branch) {
-            $handle = fopen('php://output', 'w');
-            fputcsv($handle, ['Fecha', 'Producto', 'Codigo', 'Lote', 'Tipo', 'Cantidad', 'Costo unitario', 'Total', 'Sucursal', 'Sucursal relacionada', 'Referencia', 'Motivo']);
-
-            $company->inventoryMovements()
-                ->with(['product', 'batch', 'branch', 'relatedBranch'])
+        return response()->streamDownload(function () use ($company, $branch, $from, $to) {
+            $movements = $company->inventoryMovements()
+                ->with(['product.brand', 'product.useArea', 'batch', 'branch', 'relatedBranch'])
                 ->where('branch_id', $branch->id)
-                ->latest('moved_at')
-                ->chunk(200, function ($movements) use ($handle) {
-                    foreach ($movements as $movement) {
-                        fputcsv($handle, [
-                            $movement->moved_at?->format('Y-m-d H:i'),
-                            $movement->product?->name,
-                            $movement->product?->code,
-                            $movement->batch?->lot_code,
-                            $movement->type,
-                            $movement->quantity,
-                            $movement->unit_cost,
-                            $movement->total_cost,
-                            $movement->branch?->name,
-                            $movement->relatedBranch?->name,
-                            $movement->reference,
-                            $movement->reason,
-                        ]);
-                    }
-                });
+                ->whereBetween('moved_at', [$from, $to])
+                ->orderBy('moved_at')
+                ->get();
 
-            fclose($handle);
-        }, $filename, ['Content-Type' => 'text/csv']);
+            $paymentLookup = $this->movementPaymentLookup($company, $branch, $movements);
+            $headers = ['Fecha', 'Producto', 'Codigo', 'Marca', 'Area', 'Lote', 'Tipo', 'Cantidad', 'Costo unitario', 'Total', 'Sucursal', 'Sucursal relacionada', 'Responsable', 'Atendido por', 'Vendido por', 'Cliente', 'Referencia', 'Motivo'];
+            $sheets = [
+                'Todos' => $movements,
+                'Gabinete' => $movements->where('type', 'cabinet'),
+                'Entradas' => $movements->where('type', 'purchase'),
+                'Salidas' => $movements->where('type', 'stock_out'),
+                'Ventas' => $movements->where('type', 'sale'),
+                'Traspasos' => $movements->whereIn('type', ['transfer', 'transfer_in', 'transfer_out']),
+                'Desechos' => $movements->where('type', 'waste'),
+                'Ajustes' => $movements->whereIn('type', ['adjustment', 'opening_adjustment', 'stock_shortage']),
+            ];
+
+            echo $this->excelWorkbookXml($sheets, $headers, fn (InventoryMovement $movement) => $this->movementExportRow($movement, $paymentLookup));
+        }, $filename, ['Content-Type' => 'application/vnd.ms-excel; charset=UTF-8']);
     }
 
     public function exportCountDetails(string $format): StreamedResponse
@@ -1019,6 +1025,117 @@ class InventoryManager extends Component
 
             fclose($handle);
         }, $baseName.'.csv', ['Content-Type' => 'text/csv']);
+    }
+
+    private function movementPaymentLookup(Company $company, Branch $branch, $movements): array
+    {
+        $paymentIds = $movements
+            ->pluck('reference')
+            ->filter(fn ($reference) => is_string($reference) && str_starts_with($reference, 'PAY-'))
+            ->map(fn ($reference) => (int) str_replace('PAY-', '', $reference))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        if (! $paymentIds) {
+            return [];
+        }
+
+        return $company->treatmentPayments()
+            ->with(['client', 'receivedBy', 'performedBy', 'items.soldBy'])
+            ->where('branch_id', $branch->id)
+            ->whereIn('id', $paymentIds)
+            ->get()
+            ->keyBy('id')
+            ->all();
+    }
+
+    private function movementExportRow(InventoryMovement $movement, array $paymentLookup): array
+    {
+        $payment = $this->paymentForMovement($movement, $paymentLookup);
+        $productItem = $payment
+            ? $payment->items
+                ->where('type', 'product')
+                ->first(fn ($item) => (int) $item->inventory_product_id === (int) $movement->inventory_product_id
+                    && (int) $item->inventory_product_batch_id === (int) $movement->inventory_product_batch_id)
+            : null;
+
+        return [
+            $movement->moved_at?->format('d/m/Y H:i'),
+            $movement->product?->name,
+            $movement->product?->code,
+            $movement->product?->brand?->name ?? 'GENERAL',
+            $movement->product?->useArea?->name ?? 'General',
+            $movement->batch?->lot_code,
+            $this->movementLabel($movement->type),
+            (float) $movement->quantity,
+            (float) $movement->unit_cost,
+            (float) $movement->total_cost,
+            $movement->branch?->name,
+            $movement->relatedBranch?->name,
+            $payment?->receivedBy?->name ?? ($movement->reference ? 'Registro manual' : 'Sin responsable'),
+            $payment?->performedBy?->name ?? '',
+            $productItem?->soldBy?->name ?? '',
+            $payment?->client?->full_name ?? '',
+            $movement->reference,
+            $movement->reason,
+        ];
+    }
+
+    private function paymentForMovement(InventoryMovement $movement, array $paymentLookup): ?TreatmentPayment
+    {
+        if (! is_string($movement->reference) || ! str_starts_with($movement->reference, 'PAY-')) {
+            return null;
+        }
+
+        $paymentId = (int) str_replace('PAY-', '', $movement->reference);
+
+        return $paymentLookup[$paymentId] ?? null;
+    }
+
+    private function excelWorkbookXml(array $sheets, array $headers, callable $rowBuilder): string
+    {
+        $xml = ['<?xml version="1.0" encoding="UTF-8"?>'];
+        $xml[] = '<?mso-application progid="Excel.Sheet"?>';
+        $xml[] = '<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">';
+
+        foreach ($sheets as $name => $rows) {
+            $xml[] = '<Worksheet ss:Name="'.$this->excelEscape($this->excelSheetName($name)).'"><Table>';
+            $xml[] = $this->excelRow($headers);
+
+            foreach ($rows as $row) {
+                $xml[] = $this->excelRow($rowBuilder($row));
+            }
+
+            $xml[] = '</Table></Worksheet>';
+        }
+
+        $xml[] = '</Workbook>';
+
+        return implode("\n", $xml);
+    }
+
+    private function excelRow(array $cells): string
+    {
+        return '<Row>'.collect($cells)
+            ->map(fn ($cell) => '<Cell><Data ss:Type="'.$this->excelCellType($cell).'">'.$this->excelEscape((string) $cell).'</Data></Cell>')
+            ->join('').'</Row>';
+    }
+
+    private function excelCellType(mixed $cell): string
+    {
+        return is_numeric($cell) ? 'Number' : 'String';
+    }
+
+    private function excelSheetName(string $name): string
+    {
+        return mb_substr(str_replace(['\\', '/', '?', '*', '[', ']', ':'], ' ', $name), 0, 31);
+    }
+
+    private function excelEscape(string $value): string
+    {
+        return htmlspecialchars($value, ENT_XML1 | ENT_COMPAT, 'UTF-8');
     }
 
     public function movementTypeLabel(): string
