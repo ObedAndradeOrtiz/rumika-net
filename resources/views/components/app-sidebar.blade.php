@@ -94,7 +94,7 @@
                     <i aria-hidden="true"></i>
                     <span data-sidebar-label>Gastos</span>
                 </a>
-                @if ($sidebarCanSeeFinancialSummary = $sidebarCurrentRole === 'Administrador')
+               @if ($sidebarCurrentRole === 'Administrador')
                     <a class="rm-side-link rm-side-sub-link {{ $active === 'finance-summary' ? 'is-active' : '' }}" href="{{ route('finance.summary') }}">
                         <i aria-hidden="true"></i>
                         <span data-sidebar-label>Resumen</span>
