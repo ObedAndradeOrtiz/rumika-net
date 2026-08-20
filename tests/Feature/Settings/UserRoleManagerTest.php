@@ -92,6 +92,26 @@ class UserRoleManagerTest extends TestCase
         ]);
     }
 
+    public function test_default_reception_and_professional_roles_do_not_receive_extra_views(): void
+    {
+        [$admin] = $this->companyContext();
+
+        $this->actingAs($admin);
+
+        Livewire::test(UserRoleManager::class)
+            ->assertHasNoErrors();
+
+        $reception = Role::where('slug', 'recepcion')->firstOrFail();
+        $professional = Role::where('slug', 'profesional')->firstOrFail();
+
+        $this->assertArrayHasKey('agenda', $reception->permissions);
+        $this->assertArrayHasKey('clientes', $reception->permissions);
+        $this->assertArrayNotHasKey('inventario', $reception->permissions);
+        $this->assertArrayNotHasKey('caja', $reception->permissions);
+        $this->assertArrayNotHasKey('resumen_financiero', $professional->permissions);
+        $this->assertArrayNotHasKey('gastos', $professional->permissions);
+    }
+
     public function test_users_can_be_filtered_and_delete_marks_inactive(): void
     {
         [$admin, $company, $branch] = $this->companyContext();

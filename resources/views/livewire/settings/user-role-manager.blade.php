@@ -12,13 +12,16 @@
     </div>
 
     <div class="rm-settings-grid rm-users-layout">
+        @if ($canViewUsers)
         <section class="rm-panel">
             <div class="rm-panel-title">
                 <div>
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
                     <h2>Usuarios del sistema</h2>
                 </div>
-                <button class="rm-button rm-button-primary" type="button" wire:click="createUser">Nuevo usuario</button>
+                @if ($canCreateUsers)
+                    <button class="rm-button rm-button-primary" type="button" wire:click="createUser">Nuevo usuario</button>
+                @endif
             </div>
 
             @error('userDelete') <div class="rm-inline-error">{{ $message }}</div> @enderror
@@ -80,8 +83,10 @@
                             </div>
                         </div>
                         <div class="rm-commerce-actions">
-                            <button type="button" wire:click="editUser({{ $user->id }})">Editar</button>
-                            @if ($user->id !== auth()->id())
+                            @if ($canEditUsers)
+                                <button type="button" wire:click="editUser({{ $user->id }})">Editar</button>
+                            @endif
+                            @if ($canDeleteUsers && $user->id !== auth()->id())
                                 <button type="button" wire:click="confirmDeleteUser({{ $user->id }})">Deshabilitar</button>
                             @endif
                         </div>
@@ -89,14 +94,18 @@
                 @endforeach
             </div>
         </section>
+        @endif
 
+        @if ($canViewRoles)
         <section class="rm-panel" id="roles">
             <div class="rm-panel-title">
                 <div>
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-5"/></svg>
                     <h2>Roles y permisos</h2>
                 </div>
-                <button class="rm-button rm-button-primary" type="button" wire:click="createRole">Nuevo rol</button>
+                @if ($canCreateRoles)
+                    <button class="rm-button rm-button-primary" type="button" wire:click="createRole">Nuevo rol</button>
+                @endif
             </div>
 
             @error('roleDelete') <div class="rm-inline-error">{{ $message }}</div> @enderror
@@ -112,8 +121,10 @@
                             </div>
                         </div>
                         <div class="rm-role-actions">
-                            <button type="button" wire:click="editRole({{ $role->id }})">Editar</button>
-                            @if (! $role->is_system)
+                            @if ($canEditRoles)
+                                <button type="button" wire:click="editRole({{ $role->id }})">Editar</button>
+                            @endif
+                            @if ($canDeleteRoles && ! $role->is_system)
                                 <button type="button" wire:click="confirmDeleteRole({{ $role->id }})">Eliminar</button>
                             @endif
                         </div>
@@ -121,6 +132,7 @@
                 @endforeach
             </div>
         </section>
+        @endif
     </div>
 
     @if ($showUserModal)

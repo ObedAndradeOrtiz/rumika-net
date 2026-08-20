@@ -23,8 +23,18 @@ class RumikaPermissions
                 'actions' => ['view', 'create', 'edit', 'delete'],
             ],
             'inventario' => [
-                'label' => 'Inventario',
+                'label' => 'Productos y activos',
                 'group' => 'Gestion de inventario',
+                'actions' => ['view', 'create', 'edit', 'delete'],
+            ],
+            'inventario_operaciones' => [
+                'label' => 'Operaciones',
+                'group' => 'Gestion de inventario',
+                'actions' => ['view', 'create', 'edit', 'delete'],
+            ],
+            'caja' => [
+                'label' => 'Caja',
+                'group' => 'Gestion financiera',
                 'actions' => ['view', 'create', 'edit', 'delete'],
             ],
             'gastos' => [
@@ -57,6 +67,11 @@ class RumikaPermissions
                 'group' => 'Gestion administrativa',
                 'actions' => ['view', 'create', 'edit', 'delete'],
             ],
+            'registros' => [
+                'label' => 'Registros',
+                'group' => 'Gestion administrativa',
+                'actions' => ['view', 'edit', 'delete'],
+            ],
         ];
     }
 
@@ -79,14 +94,13 @@ class RumikaPermissions
             ->all();
     }
 
-    public static function onlyView(array $extraModules = []): array
+    public static function onlyView(array $modules = []): array
     {
-        return collect(self::modules())
-            ->mapWithKeys(fn (array $module, string $key) => [
-                $key => in_array($key, $extraModules, true)
-                    ? $module['actions']
-                    : ($key === 'resumen_financiero' ? [] : ['view']),
-            ])
+        $modules = array_values(array_unique(['inicio', ...$modules]));
+
+        return collect($modules)
+            ->filter(fn (string $key) => array_key_exists($key, self::modules()))
+            ->mapWithKeys(fn (string $key) => [$key => ['view']])
             ->all();
     }
 
@@ -109,7 +123,11 @@ class RumikaPermissions
                 'name' => 'Recepcion',
                 'slug' => 'recepcion',
                 'description' => 'Agenda, clientes y atencion diaria.',
-                'permissions' => self::onlyView(['agenda', 'clientes']),
+                'permissions' => [
+                    'inicio' => ['view'],
+                    'agenda' => ['view', 'create', 'edit'],
+                    'clientes' => ['view', 'create', 'edit'],
+                ],
             ],
             [
                 'name' => 'Profesional',
@@ -128,6 +146,7 @@ class RumikaPermissions
                 'permissions' => [
                     'inicio' => ['view'],
                     'clientes' => ['view'],
+                    'caja' => ['view', 'create', 'edit'],
                 ],
             ],
         ];

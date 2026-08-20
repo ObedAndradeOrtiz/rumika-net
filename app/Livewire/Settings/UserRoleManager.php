@@ -5,6 +5,7 @@ namespace App\Livewire\Settings;
 use App\Models\Company;
 use App\Models\Role;
 use App\Models\User;
+use App\Support\RumikaAccess;
 use App\Support\RumikaPermissions;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -75,12 +76,14 @@ class UserRoleManager extends Component
 
     public function createUser(): void
     {
+        $this->authorizePermission('usuarios', 'create');
         $this->resetUserForm();
         $this->showUserModal = true;
     }
 
     public function saveUser(): void
     {
+        $this->authorizePermission('usuarios', $this->editingUserId ? 'edit' : 'create');
         $company = $this->company();
 
         $validated = $this->validate([
@@ -151,6 +154,7 @@ class UserRoleManager extends Component
 
     public function editUser(int $userId): void
     {
+        $this->authorizePermission('usuarios', 'edit');
         $company = $this->company();
         $user = $company->users()
             ->whereKey($userId)
@@ -171,6 +175,7 @@ class UserRoleManager extends Component
 
     public function confirmDeleteUser(int $userId): void
     {
+        $this->authorizePermission('usuarios', 'delete');
         $this->resetErrorBag();
         $this->confirmingUserDeleteId = $userId;
     }
@@ -182,6 +187,7 @@ class UserRoleManager extends Component
 
     public function deleteUser(int $userId): void
     {
+        $this->authorizePermission('usuarios', 'delete');
         if ($userId === Auth::id()) {
             $this->addError('userDelete', 'No puedes eliminar tu propio acceso.');
 
@@ -201,12 +207,14 @@ class UserRoleManager extends Component
 
     public function createRole(): void
     {
+        $this->authorizePermission('roles', 'create');
         $this->resetRoleForm();
         $this->showRoleModal = true;
     }
 
     public function saveRole(): void
     {
+        $this->authorizePermission('roles', $this->editingRoleId ? 'edit' : 'create');
         $company = $this->company();
 
         $validated = $this->validate([
@@ -237,6 +245,7 @@ class UserRoleManager extends Component
 
     public function editRole(int $roleId): void
     {
+        $this->authorizePermission('roles', 'edit');
         $role = $this->company()->roles()->whereKey($roleId)->firstOrFail();
 
         $this->editingRoleId = $role->id;
@@ -249,6 +258,7 @@ class UserRoleManager extends Component
 
     public function confirmDeleteRole(int $roleId): void
     {
+        $this->authorizePermission('roles', 'delete');
         $this->resetErrorBag();
         $this->confirmingRoleDeleteId = $roleId;
     }
@@ -260,6 +270,7 @@ class UserRoleManager extends Component
 
     public function deleteRole(int $roleId): void
     {
+        $this->authorizePermission('roles', 'delete');
         $company = $this->company();
         $role = $company->roles()->whereKey($roleId)->firstOrFail();
 
@@ -345,7 +356,20 @@ class UserRoleManager extends Component
                 ->get(),
             'modules' => RumikaPermissions::modules(),
             'actionLabels' => RumikaPermissions::actionLabels(),
+            'canViewUsers' => $this->can('usuarios'),
+            'canCreateUsers' => $this->can('usuarios', 'create'),
+            'canEditUsers' => $this->can('usuarios', 'edit'),
+            'canDeleteUsers' => $this->can('usuarios', 'delete'),
+            'canViewRoles' => $this->can('roles'),
+            'canCreateRoles' => $this->can('roles', 'create'),
+            'canEditRoles' => $this->can('roles', 'edit'),
+            'canDeleteRoles' => $this->can('roles', 'delete'),
         ]);
+    }
+
+    public function can(string $module, string $action = 'view'): bool
+    {
+        return RumikaAccess::can(Auth::user(), $module, $action, company: $this->company());
     }
 
     private function company(): Company
@@ -358,14 +382,30 @@ class UserRoleManager extends Component
 
     private function ensureSystemRoles(Company $company): void
     {
-        collect(RumikaPermissions::defaults())->each(fn (array $role) => Role::query()->updateOrCreate(
-            ['company_id' => $company->id, 'slug' => $role['slug']],
-            [
-                ...$role,
+        collect(RumikaPermissions::defaults())->each(function (array $role) use ($company) {
+            $existingRole = Role::query()
+                ->where('company_id', $company->id)
+                ->where('slug', $role['slug'])
+                ->first();
+
+            if (! $existingRole) {
+                Role::query()->create([
+                    ...$role,
+                    'company_id' => $company->id,
+                    'scope' => 'company',
+                    'is_system' => true,
+                ]);
+
+                return;
+            }
+
+            $existingRole->update([
+                'name' => $existingRole->name ?: $role['name'],
                 'scope' => 'company',
                 'is_system' => true,
-            ],
-        ));
+                'permissions' => array_replace($role['permissions'], $existingRole->permissions ?? []),
+            ]);
+        });
     }
 
     private function uniqueRoleSlug(Company $company, string $name): string
@@ -401,5 +441,10 @@ class UserRoleManager extends Component
             })
             ->filter()
             ->all();
+    }
+
+    private function authorizePermission(string $module, string $action = 'view'): void
+    {
+        abort_unless($this->can($module, $action), 403);
     }
 }

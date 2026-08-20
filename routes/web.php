@@ -38,51 +38,51 @@ Route::get('/', function () {
 });
 
 Route::view('dashboard', 'dashboard')
-    ->middleware(['auth', 'verified'])
+    ->middleware(['auth', 'verified', 'rumika.permission:inicio'])
     ->name('dashboard');
 
 Route::view('configuracion/comercios', 'settings.commerce')
-    ->middleware(['auth', 'verified'])
+    ->middleware(['auth', 'verified', 'rumika.permission:sucursales'])
     ->name('settings.commerce');
 
 Route::view('configuracion/usuarios', 'settings.users')
-    ->middleware(['auth', 'verified'])
+    ->middleware(['auth', 'verified', 'rumika.permission:usuarios|roles'])
     ->name('settings.users');
 
 Route::view('configuracion/servicios', 'settings.services')
-    ->middleware(['auth', 'verified'])
+    ->middleware(['auth', 'verified', 'rumika.permission:servicios'])
     ->name('settings.services');
 
 Route::view('configuracion/registros', 'settings.records')
-    ->middleware(['auth', 'verified'])
+    ->middleware(['auth', 'verified', 'rumika.permission:registros'])
     ->name('settings.records');
 
 Route::view('agenda', 'clinic.agenda')
-    ->middleware(['auth', 'verified'])
+    ->middleware(['auth', 'verified', 'rumika.permission:agenda'])
     ->name('clinic.agenda');
 
 Route::view('clientes', 'clinic.clients')
-    ->middleware(['auth', 'verified'])
+    ->middleware(['auth', 'verified', 'rumika.permission:clientes'])
     ->name('clinic.clients');
 
 Route::view('caja', 'clinic.cashbox')
-    ->middleware(['auth', 'verified'])
+    ->middleware(['auth', 'verified', 'rumika.permission:caja'])
     ->name('clinic.cashbox');
 
 Route::view('inventario', 'inventory.index')
-    ->middleware(['auth', 'verified'])
+    ->middleware(['auth', 'verified', 'rumika.permission:inventario'])
     ->name('inventory.index');
 
 Route::view('inventario/operaciones', 'inventory.operations')
-    ->middleware(['auth', 'verified'])
+    ->middleware(['auth', 'verified', 'rumika.permission:inventario_operaciones'])
     ->name('inventory.operations');
 
 Route::view('finanzas/gastos', 'finance.expenses')
-    ->middleware(['auth', 'verified'])
+    ->middleware(['auth', 'verified', 'rumika.permission:gastos'])
     ->name('finance.expenses');
 
 Route::view('finanzas/resumen', 'finance.summary')
-    ->middleware(['auth', 'verified'])
+    ->middleware(['auth', 'verified', 'rumika.permission:resumen_financiero'])
     ->name('finance.summary');
 
 Route::view('profile', 'profile')

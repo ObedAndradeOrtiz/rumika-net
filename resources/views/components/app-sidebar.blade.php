@@ -2,53 +2,24 @@
 
 
 @php
-    $sidebarUser = Auth::user();
-    $sidebarActiveBranchId = session('active_branch_id');
-
-    $sidebarCurrentRole = $sidebarActiveBranchId
-        ? $sidebarUser
-            ?->branches()
-            ->where('branches.id', $sidebarActiveBranchId)
-            ->leftJoin('roles', 'roles.id', '=', 'branch_user.role_id')
-            ->value('roles.slug')
-        : null;
-@endphp
-@php
     $sidebarNavUser = Auth::user();
     $sidebarNavCompany = $sidebarNavUser?->companies()->first();
-    $sidebarNavCompanyRole = $sidebarNavCompany
-        ? $sidebarNavUser->companies()->where('companies.id', $sidebarNavCompany->id)->value('company_user.role')
-        : null;
-    $sidebarFinanceRoles = [
-        'owner',
-        'super_admin',
-        'super-administrador',
-        'admin',
-        'administrator',
-        'administrador',
-        'gerente',
-    ];
-    $sidebarCanSeeFinancialSummary = in_array($sidebarNavCompanyRole, $sidebarFinanceRoles, true);
-
-    if (!$sidebarCanSeeFinancialSummary && $sidebarNavCompany) {
-        $sidebarCanSeeFinancialSummary = $sidebarNavUser
-            ?->branches()
-            ->where('branches.company_id', $sidebarNavCompany->id)
-            ->leftJoin('roles', 'roles.id', '=', 'branch_user.role_id')
-            ->select(['roles.slug', 'roles.permissions'])
-            ->get()
-            ->contains(function ($role) use ($sidebarFinanceRoles) {
-                $permissions = is_string($role->permissions)
-                    ? json_decode($role->permissions, true)
-                    : $role->permissions;
-                $summaryPermissions = is_array($permissions) ? $permissions['resumen_financiero'] ?? [] : [];
-                $summaryPermissions = is_string($summaryPermissions) ? [$summaryPermissions] : $summaryPermissions;
-
-                return in_array($role->slug, $sidebarFinanceRoles, true) ||
-                    (is_array($summaryPermissions) &&
-                        (in_array('view', $summaryPermissions, true) || in_array('*', $summaryPermissions, true)));
-            });
-    }
+    $canAccess = fn (string $module, string $action = 'view') => $sidebarNavUser
+        ? \App\Support\RumikaAccess::can($sidebarNavUser, $module, $action, company: $sidebarNavCompany)
+        : false;
+    $sidebarCanSeeHome = $canAccess('inicio');
+    $sidebarCanSeeAgenda = $canAccess('agenda');
+    $sidebarCanSeeClients = $canAccess('clientes');
+    $sidebarCanSeeInventory = $canAccess('inventario');
+    $sidebarCanSeeInventoryOperations = $canAccess('inventario_operaciones');
+    $sidebarCanSeeCashbox = $canAccess('caja');
+    $sidebarCanSeeExpenses = $canAccess('gastos');
+    $sidebarCanSeeFinancialSummary = $canAccess('resumen_financiero');
+    $sidebarCanSeeCommerce = $canAccess('sucursales');
+    $sidebarCanSeeServices = $canAccess('servicios');
+    $sidebarCanSeeRecords = $canAccess('registros');
+    $sidebarCanSeeUsers = $canAccess('usuarios');
+    $sidebarCanSeeRoles = $canAccess('roles');
 @endphp
 
 <aside class="rm-side">
@@ -66,6 +37,7 @@
     </div>
 
     <nav class="rm-side-nav" aria-label="Modulos">
+        @if ($sidebarCanSeeHome)
         <a class="rm-side-link {{ $active === 'home' ? 'is-active' : '' }}" href="{{ route('dashboard') }}">
             <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 stroke-width="2.2">
@@ -75,7 +47,9 @@
             </svg>
             <span data-sidebar-label>Inicio</span>
         </a>
+        @endif
 
+        @if ($sidebarCanSeeAgenda || $sidebarCanSeeClients)
         <details class="rm-menu-group" {{ in_array($active, ['agenda', 'clients'], true) ? 'open' : '' }}>
             <summary>
                 <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -91,19 +65,25 @@
                 </svg>
             </summary>
             <div class="rm-menu-list">
+                @if ($sidebarCanSeeAgenda)
                 <a class="rm-side-link rm-side-sub-link {{ $active === 'agenda' ? 'is-active' : '' }}"
                     href="{{ route('clinic.agenda') }}">
                     <i aria-hidden="true"></i>
                     <span data-sidebar-label>Agenda</span>
                 </a>
+                @endif
+                @if ($sidebarCanSeeClients)
                 <a class="rm-side-link rm-side-sub-link {{ $active === 'clients' ? 'is-active' : '' }}"
                     href="{{ route('clinic.clients') }}">
                     <i aria-hidden="true"></i>
                     <span data-sidebar-label>Clientes</span>
                 </a>
+                @endif
             </div>
         </details>
+        @endif
 
+        @if ($sidebarCanSeeInventory || $sidebarCanSeeInventoryOperations)
         <details class="rm-menu-group"
             {{ in_array($active, ['inventory', 'inventory-operations'], true) ? 'open' : '' }}>
             <summary>
@@ -121,19 +101,25 @@
                 </svg>
             </summary>
             <div class="rm-menu-list">
+                @if ($sidebarCanSeeInventory)
                 <a class="rm-side-link rm-side-sub-link {{ $active === 'inventory' ? 'is-active' : '' }}"
                     href="{{ route('inventory.index') }}">
                     <i aria-hidden="true"></i>
                     <span data-sidebar-label>Productos y activos</span>
                 </a>
+                @endif
+                @if ($sidebarCanSeeInventoryOperations)
                 <a class="rm-side-link rm-side-sub-link {{ $active === 'inventory-operations' ? 'is-active' : '' }}"
                     href="{{ route('inventory.operations') }}">
                     <i aria-hidden="true"></i>
                     <span data-sidebar-label>Operaciones</span>
                 </a>
+                @endif
             </div>
         </details>
+        @endif
 
+        @if ($sidebarCanSeeCashbox || $sidebarCanSeeExpenses || $sidebarCanSeeFinancialSummary)
         <details class="rm-menu-group"
             {{ in_array($active, ['expenses', 'cashbox', 'finance-summary'], true) ? 'open' : '' }}>
             <summary>
@@ -150,16 +136,20 @@
                 </svg>
             </summary>
             <div class="rm-menu-list">
+                @if ($sidebarCanSeeCashbox)
                 <a class="rm-side-link rm-side-sub-link {{ $active === 'cashbox' ? 'is-active' : '' }}"
                     href="{{ route('clinic.cashbox') }}">
                     <i aria-hidden="true"></i>
                     <span data-sidebar-label>Caja</span>
                 </a>
+                @endif
+                @if ($sidebarCanSeeExpenses)
                 <a class="rm-side-link rm-side-sub-link {{ $active === 'expenses' ? 'is-active' : '' }}"
                     href="{{ route('finance.expenses') }}">
                     <i aria-hidden="true"></i>
                     <span data-sidebar-label>Gastos</span>
                 </a>
+                @endif
                 @if ($sidebarCanSeeFinancialSummary)
                     <a class="rm-side-link rm-side-sub-link {{ $active === 'finance-summary' ? 'is-active' : '' }}"
                         href="{{ route('finance.summary') }}">
@@ -169,7 +159,9 @@
                 @endif
             </div>
         </details>
+        @endif
 
+        @if ($sidebarCanSeeCommerce || $sidebarCanSeeServices || $sidebarCanSeeRecords || $sidebarCanSeeUsers || $sidebarCanSeeRoles)
         <details class="rm-menu-group"
             {{ in_array($active, ['settings', 'services', 'users', 'roles', 'records'], true) ? 'open' : '' }}>
             <summary>
@@ -184,33 +176,44 @@
                 </svg>
             </summary>
             <div class="rm-menu-list">
+                @if ($sidebarCanSeeCommerce)
                 <a class="rm-side-link rm-side-sub-link {{ $active === 'settings' ? 'is-active' : '' }}"
                     href="{{ route('settings.commerce') }}">
                     <i aria-hidden="true"></i>
                     <span data-sidebar-label>Sucursales</span>
                 </a>
+                @endif
+                @if ($sidebarCanSeeServices)
                 <a class="rm-side-link rm-side-sub-link {{ $active === 'services' ? 'is-active' : '' }}"
                     href="{{ route('settings.services') }}">
                     <i aria-hidden="true"></i>
                     <span data-sidebar-label>Servicios</span>
                 </a>
+                @endif
+                @if ($sidebarCanSeeRecords)
                 <a class="rm-side-link rm-side-sub-link {{ $active === 'records' ? 'is-active' : '' }}"
                     href="{{ route('settings.records') }}">
                     <i aria-hidden="true"></i>
                     <span data-sidebar-label>Registros</span>
                 </a>
+                @endif
+                @if ($sidebarCanSeeUsers)
                 <a class="rm-side-link rm-side-sub-link {{ $active === 'users' ? 'is-active' : '' }}"
                     href="{{ route('settings.users') }}">
                     <i aria-hidden="true"></i>
                     <span data-sidebar-label>Usuarios</span>
                 </a>
+                @endif
+                @if ($sidebarCanSeeRoles)
                 <a class="rm-side-link rm-side-sub-link {{ $active === 'roles' ? 'is-active' : '' }}"
                     href="{{ route('settings.users') }}#roles">
                     <i aria-hidden="true"></i>
                     <span data-sidebar-label>Roles</span>
                 </a>
+                @endif
             </div>
         </details>
+        @endif
     </nav>
 
     @php
@@ -280,24 +283,30 @@
 </aside>
 
 <nav class="rm-mobile-tabs" aria-label="Navegacion movil">
+    @if ($sidebarCanSeeHome)
     <a class="rm-mobile-tab {{ $active === 'home' ? 'is-active' : '' }}" href="{{ route('dashboard') }}"><svg
             width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
             stroke-width="2.2">
             <path d="M3 10.5 12 3l9 7.5" />
             <path d="M5 9.5V21h14V9.5" />
         </svg>Inicio</a>
+    @endif
+    @if ($sidebarCanSeeAgenda)
     <a class="rm-mobile-tab {{ $active === 'agenda' ? 'is-active' : '' }}" href="{{ route('clinic.agenda') }}"><svg
             width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
             stroke-width="2.2">
             <rect x="3" y="5" width="18" height="16" rx="3" />
             <path d="M8 3v4M16 3v4M3 10h18" />
         </svg>Agenda</a>
+    @endif
+    @if ($sidebarCanSeeClients)
     <a class="rm-mobile-tab {{ $active === 'clients' ? 'is-active' : '' }}"
         href="{{ route('clinic.clients') }}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2.2">
             <path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" />
             <circle cx="9.5" cy="7" r="4" />
         </svg>Clientes</a>
+    @endif
     <button class="rm-mobile-tab" type="button" data-mobile-more-toggle aria-expanded="false"><svg width="22"
             height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
             <circle cx="5" cy="12" r="1.5" />
@@ -319,6 +328,7 @@
             </button>
         </div>
         <div class="rm-mobile-more-scroll">
+            @if ($sidebarCanSeeInventory || $sidebarCanSeeInventoryOperations)
             <details class="rm-mobile-menu-group"
                 {{ in_array($active, ['inventory', 'inventory-operations'], true) ? 'open' : '' }}>
                 <summary>
@@ -329,11 +339,17 @@
                     </svg>
                 </summary>
                 <div>
+                    @if ($sidebarCanSeeInventory)
                     <a href="{{ route('inventory.index') }}">Productos y activos</a>
+                    @endif
+                    @if ($sidebarCanSeeInventoryOperations)
                     <a href="{{ route('inventory.operations') }}">Operaciones</a>
+                    @endif
                 </div>
             </details>
+            @endif
 
+            @if ($sidebarCanSeeCashbox || $sidebarCanSeeExpenses || $sidebarCanSeeFinancialSummary)
             <details class="rm-mobile-menu-group"
                 {{ in_array($active, ['expenses', 'cashbox', 'finance-summary'], true) ? 'open' : '' }}>
                 <summary>
@@ -344,9 +360,13 @@
                     </svg>
                 </summary>
                 <div>
+                    @if ($sidebarCanSeeCashbox)
                     <a href="{{ route('clinic.cashbox') }}">Caja</a>
+                    @endif
+                    @if ($sidebarCanSeeExpenses)
                     <a href="{{ route('finance.expenses') }}">Gastos</a>
-                    @if ($sidebarCurrentRole === 'administrador')
+                    @endif
+                    @if ($sidebarCanSeeFinancialSummary)
                         <a class="rm-side-link rm-side-sub-link {{ $active === 'finance-summary' ? 'is-active' : '' }}"
                             href="{{ route('finance.summary') }}">
                             <i aria-hidden="true"></i>
@@ -355,7 +375,9 @@
                     @endif
                 </div>
             </details>
+            @endif
 
+            @if ($sidebarCanSeeCommerce || $sidebarCanSeeServices || $sidebarCanSeeRecords || $sidebarCanSeeUsers || $sidebarCanSeeRoles)
             <details class="rm-mobile-menu-group"
                 {{ in_array($active, ['settings', 'services', 'users', 'roles', 'records'], true) ? 'open' : '' }}>
                 <summary>
@@ -366,13 +388,24 @@
                     </svg>
                 </summary>
                 <div>
+                    @if ($sidebarCanSeeCommerce)
                     <a href="{{ route('settings.commerce') }}">Sucursales</a>
+                    @endif
+                    @if ($sidebarCanSeeServices)
                     <a href="{{ route('settings.services') }}">Servicios</a>
+                    @endif
+                    @if ($sidebarCanSeeRecords)
                     <a href="{{ route('settings.records') }}">Registros</a>
+                    @endif
+                    @if ($sidebarCanSeeUsers)
                     <a href="{{ route('settings.users') }}">Usuarios</a>
+                    @endif
+                    @if ($sidebarCanSeeRoles)
                     <a href="{{ route('settings.users') }}#roles">Roles</a>
+                    @endif
                 </div>
             </details>
+            @endif
         </div>
         <div class="rm-mobile-profile">
             <span class="rm-side-profile-photo">
