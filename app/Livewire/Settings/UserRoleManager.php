@@ -53,6 +53,8 @@ class UserRoleManager extends Component
 
     public array $rolePermissions = [];
 
+    public array $rolePermissionChecks = [];
+
     public bool $editingSystemRole = false;
 
     public bool $showUserModal = false;
@@ -72,6 +74,7 @@ class UserRoleManager extends Component
             ?? $company->roles()->oldest()->value('id');
         $this->userBranchIds = $company->branches()->pluck('id')->map(fn ($id) => (string) $id)->all();
         $this->rolePermissions = RumikaPermissions::onlyView();
+        $this->rolePermissionChecks = $this->permissionChecksFromPermissions($this->rolePermissions);
     }
 
     public function createUser(): void
@@ -220,8 +223,10 @@ class UserRoleManager extends Component
         $validated = $this->validate([
             'roleName' => ['required', 'string', 'max:90'],
             'roleDescription' => ['nullable', 'string', 'max:180'],
-            'rolePermissions' => ['array'],
+            'rolePermissionChecks' => ['array'],
         ]);
+
+        $this->rolePermissions = $this->permissionsFromChecks($validated['rolePermissionChecks'] ?? []);
 
         $role = $this->editingRoleId
             ? $company->roles()->whereKey($this->editingRoleId)->firstOrFail()
@@ -232,7 +237,7 @@ class UserRoleManager extends Component
             'slug' => $role->exists ? $role->slug : $this->uniqueRoleSlug($company, $validated['roleName']),
             'scope' => 'company',
             'description' => $validated['roleDescription'] ?: null,
-            'permissions' => $this->cleanPermissions($validated['rolePermissions'] ?? []),
+            'permissions' => $this->rolePermissions,
             'is_system' => $role->exists ? $role->is_system : false,
         ]);
 
@@ -252,6 +257,7 @@ class UserRoleManager extends Component
         $this->roleName = $role->name;
         $this->roleDescription = $role->description ?? '';
         $this->rolePermissions = $role->permissions ?? [];
+        $this->rolePermissionChecks = $this->permissionChecksFromPermissions($this->rolePermissions);
         $this->editingSystemRole = $role->is_system;
         $this->showRoleModal = true;
     }
@@ -323,6 +329,7 @@ class UserRoleManager extends Component
     {
         $this->reset(['editingRoleId', 'roleName', 'roleDescription', 'editingSystemRole']);
         $this->rolePermissions = RumikaPermissions::onlyView();
+        $this->rolePermissionChecks = $this->permissionChecksFromPermissions($this->rolePermissions);
         $this->resetErrorBag();
     }
 
@@ -446,6 +453,43 @@ class UserRoleManager extends Component
                 ];
             })
             ->filter()
+            ->all();
+    }
+
+    private function permissionChecksFromPermissions(array $permissions): array
+    {
+        $cleanPermissions = $this->cleanPermissions($permissions);
+
+        return collect(RumikaPermissions::modules())
+            ->mapWithKeys(fn (array $module, string $moduleKey) => [
+                $moduleKey => collect($module['actions'])
+                    ->mapWithKeys(fn (string $action) => [
+                        $action => in_array($action, $cleanPermissions[$moduleKey] ?? [], true),
+                    ])
+                    ->all(),
+            ])
+            ->all();
+    }
+
+    private function permissionsFromChecks(array $checks): array
+    {
+        $modules = RumikaPermissions::modules();
+
+        return collect($modules)
+            ->mapWithKeys(function (array $module, string $moduleKey) use ($checks) {
+                $moduleChecks = $checks[$moduleKey] ?? [];
+
+                if (! is_array($moduleChecks)) {
+                    return [];
+                }
+
+                $actions = collect($module['actions'])
+                    ->filter(fn (string $action) => filter_var($moduleChecks[$action] ?? false, FILTER_VALIDATE_BOOLEAN))
+                    ->values()
+                    ->all();
+
+                return $actions ? [$moduleKey => $actions] : [];
+            })
             ->all();
     }
 

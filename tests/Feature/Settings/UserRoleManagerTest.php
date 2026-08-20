@@ -26,10 +26,10 @@ class UserRoleManagerTest extends TestCase
         Livewire::test(UserRoleManager::class)
             ->set('roleName', 'Coordinador')
             ->set('roleDescription', 'Controla agenda y clientes')
-            ->set('rolePermissions', [
-                'inicio' => ['view'],
-                'agenda' => ['view', 'create', 'edit'],
-                'clientes' => ['view', 'create'],
+            ->set('rolePermissionChecks', [
+                'inicio' => ['view' => true],
+                'agenda' => ['view' => true, 'create' => true, 'edit' => true],
+                'clientes' => ['view' => true, 'create' => true],
             ])
             ->call('saveRole')
             ->assertHasNoErrors();
@@ -120,8 +120,8 @@ class UserRoleManagerTest extends TestCase
 
         Livewire::test(UserRoleManager::class)
             ->set('roleName', 'Rol Temporal')
-            ->set('rolePermissions', [
-                'agenda' => ['view', 'edit'],
+            ->set('rolePermissionChecks', [
+                'agenda' => ['view' => true, 'edit' => true],
                 'clientes' => true,
                 'caja' => false,
             ])
@@ -135,6 +135,36 @@ class UserRoleManagerTest extends TestCase
         $this->assertSame(['view', 'edit'], $role->permissions['agenda']);
         $this->assertArrayNotHasKey('clientes', $role->permissions);
         $this->assertArrayNotHasKey('caja', $role->permissions);
+    }
+
+    public function test_role_permissions_can_disable_one_action_without_clearing_the_module(): void
+    {
+        [$admin, $company] = $this->companyContext();
+        $role = Role::create([
+            'company_id' => $company->id,
+            'name' => 'Operador',
+            'slug' => 'operador',
+            'scope' => 'company',
+            'permissions' => [
+                'agenda' => ['view', 'create', 'edit', 'delete'],
+                'clientes' => ['view', 'edit'],
+            ],
+            'is_system' => false,
+        ]);
+
+        $this->actingAs($admin);
+
+        Livewire::test(UserRoleManager::class)
+            ->call('editRole', $role->id)
+            ->set('rolePermissionChecks.agenda.edit', false)
+            ->set('rolePermissionChecks.agenda.delete', false)
+            ->call('saveRole')
+            ->assertHasNoErrors();
+
+        $role->refresh();
+
+        $this->assertSame(['view', 'create'], $role->permissions['agenda']);
+        $this->assertSame(['view', 'edit'], $role->permissions['clientes']);
     }
 
     public function test_users_can_be_filtered_and_delete_marks_inactive(): void

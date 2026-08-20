@@ -274,7 +274,7 @@
                             @foreach ($actionLabels as $action => $label)
                                 <label class="rm-permission-check {{ in_array($action, $module['actions'], true) ? '' : 'is-disabled' }}">
                                     @if (in_array($action, $module['actions'], true))
-                                        <input wire:model="rolePermissions.{{ $moduleKey }}" type="checkbox" value="{{ $action }}">
+                                        <input wire:model="rolePermissionChecks.{{ $moduleKey }}.{{ $action }}" type="checkbox">
                                     @else
                                         <input type="checkbox" disabled>
                                     @endif
