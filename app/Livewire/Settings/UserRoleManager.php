@@ -427,10 +427,16 @@ class UserRoleManager extends Component
         $modules = RumikaPermissions::modules();
 
         return collect($permissions)
-            ->mapWithKeys(function (array $actions, string $moduleKey) use ($modules) {
+            ->mapWithKeys(function (mixed $actions, string $moduleKey) use ($modules) {
                 if (! array_key_exists($moduleKey, $modules)) {
                     return [];
                 }
+
+                $actions = match (true) {
+                    is_array($actions) => $actions,
+                    is_string($actions) => [$actions],
+                    default => [],
+                };
 
                 return [
                     $moduleKey => array_values(array_intersect(

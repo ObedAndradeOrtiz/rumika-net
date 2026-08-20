@@ -112,6 +112,31 @@ class UserRoleManagerTest extends TestCase
         $this->assertArrayNotHasKey('gastos', $professional->permissions);
     }
 
+    public function test_role_permissions_ignore_unexpected_boolean_values(): void
+    {
+        [$admin, $company] = $this->companyContext();
+
+        $this->actingAs($admin);
+
+        Livewire::test(UserRoleManager::class)
+            ->set('roleName', 'Rol Temporal')
+            ->set('rolePermissions', [
+                'agenda' => ['view', 'edit'],
+                'clientes' => true,
+                'caja' => false,
+            ])
+            ->call('saveRole')
+            ->assertHasNoErrors();
+
+        $role = Role::where('company_id', $company->id)
+            ->where('slug', 'rol-temporal')
+            ->firstOrFail();
+
+        $this->assertSame(['view', 'edit'], $role->permissions['agenda']);
+        $this->assertArrayNotHasKey('clientes', $role->permissions);
+        $this->assertArrayNotHasKey('caja', $role->permissions);
+    }
+
     public function test_users_can_be_filtered_and_delete_marks_inactive(): void
     {
         [$admin, $company, $branch] = $this->companyContext();
