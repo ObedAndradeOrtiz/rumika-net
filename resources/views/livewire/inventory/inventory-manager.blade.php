@@ -227,7 +227,7 @@
 
             <div class="rm-commerce-list">
                 @forelse ($movements as $movement)
-                    <article class="rm-commerce-row">
+                    <article class="rm-commerce-row rm-movement-row">
                         <div class="rm-commerce-icon"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M7 7h10v10H7z"/><path d="M3 3h4v4M17 3h4v4M17 17h4v4M3 17h4v4"/></svg></div>
                         <div class="rm-row-main">
                             <strong>{{ $movement->product?->name }} - {{ $this->movementLabel($movement->type) }}</strong>
