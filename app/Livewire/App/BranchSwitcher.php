@@ -4,6 +4,7 @@ namespace App\Livewire\App;
 
 use App\Models\Branch;
 use App\Models\Company;
+use App\Support\ActiveBranch;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Livewire\Component;
@@ -64,7 +65,7 @@ class BranchSwitcher extends Component
             return;
         }
 
-        session(['active_branch_id' => $branch->id]);
+        ActiveBranch::remember(Auth::user(), $branch->id);
         $this->showBranchModal = false;
         $this->dispatch('branch-switched');
     }
@@ -72,12 +73,7 @@ class BranchSwitcher extends Component
     public function render()
     {
         $branches = $this->availableBranches();
-        $activeBranch = $branches->firstWhere('id', session('active_branch_id'))
-            ?? $branches->first();
-
-        if ($activeBranch && session('active_branch_id') !== $activeBranch->id) {
-            session(['active_branch_id' => $activeBranch->id]);
-        }
+        $activeBranch = ActiveBranch::resolve(Auth::user(), $branches);
 
         return view('livewire.app.branch-switcher', [
             'branches' => $branches,

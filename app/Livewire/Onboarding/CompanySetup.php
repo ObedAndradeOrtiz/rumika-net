@@ -4,6 +4,7 @@ namespace App\Livewire\Onboarding;
 
 use App\Models\Branch;
 use App\Models\BusinessType;
+use App\Support\ActiveBranch;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -70,7 +71,7 @@ class CompanySetup extends Component
             ],
         ]);
 
-        session(['active_branch_id' => $branch->id]);
+        ActiveBranch::remember(Auth::user(), $branch->id);
 
         $this->redirect(route('dashboard', absolute: false), navigate: true);
     }

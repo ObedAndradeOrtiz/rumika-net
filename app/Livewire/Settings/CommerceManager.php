@@ -6,6 +6,7 @@ use App\Models\Branch;
 use App\Models\BusinessType;
 use App\Models\Company;
 use App\Models\Role;
+use App\Support\ActiveBranch;
 use App\Support\RumikaPermissions;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -179,7 +180,8 @@ class CommerceManager extends Component
         $branch = $this->company()->branches()->whereKey($branchId)->firstOrFail();
 
         $this->activeBranchId = $branch->id;
-        session(['active_branch_id' => $branch->id]);
+        ActiveBranch::remember(Auth::user(), $branch->id);
+        $this->dispatch('branch-switched');
     }
 
     public function resetForm(): void
