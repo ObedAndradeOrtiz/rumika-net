@@ -3,8 +3,6 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\BusinessType;
-use App\Models\Branch;
 use App\Models\Company;
 use App\Models\CompanyPlan;
 use App\Models\User;
@@ -51,7 +49,9 @@ class FirebaseGoogleAuthController extends Controller
         $request->session()->regenerate();
 
         return response()->json([
-            'redirect' => route('dashboard', absolute: false),
+            'redirect' => $user->companies()->first()?->onboarding_completed_at
+                ? route('dashboard', absolute: false)
+                : route('onboarding.company', absolute: false),
         ]);
     }
 
@@ -130,17 +130,6 @@ class FirebaseGoogleAuthController extends Controller
             'slug' => Str::slug('empresa-'.$user->name).'-'.Str::lower(Str::random(5)),
             'company_plan_id' => CompanyPlan::query()->where('slug', 'free')->value('id'),
             'status' => 'trial',
-        ]);
-
-        $businessTypeId = BusinessType::query()->where('slug', 'clinica')->value('id')
-            ?? BusinessType::query()->oldest()->value('id');
-
-        Branch::query()->create([
-            'company_id' => $company->id,
-            'business_type_id' => $businessTypeId,
-            'name' => 'Sucursal principal',
-            'slug' => 'sucursal-principal',
-            'status' => 'active',
         ]);
 
         $company->users()->attach($user->id, [

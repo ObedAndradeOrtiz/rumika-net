@@ -13,6 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'rumika.permission' => \App\Http\Middleware\EnsureRumikaPermission::class,
+            'rumika.onboarding' => \App\Http\Middleware\EnsureCompanyOnboardingIsComplete::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

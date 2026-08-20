@@ -501,6 +501,29 @@
             gap: 17px;
         }
 
+        .rm-register-grid {
+            display: grid;
+            gap: 16px;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .rm-select {
+            appearance: none;
+            cursor: pointer;
+        }
+
+        .rm-auth-note {
+            border: 1px solid #dbe3ee;
+            border-radius: 18px;
+            background: #f8fafc;
+            color: #667085;
+            font-size: 14px;
+            font-weight: 750;
+            line-height: 1.55;
+            margin: 0;
+            padding: 14px 16px;
+        }
+
         .rm-field {
             display: grid;
             gap: 8px;
@@ -851,6 +874,11 @@
 
             .rm-plan-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .rm-register-grid {
+                grid-template-columns: 1fr;
+                gap: 17px;
             }
 
             .rm-login-options {

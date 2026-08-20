@@ -17,7 +17,15 @@ class Company extends Model
         'company_plan_id',
         'timezone',
         'status',
+        'onboarding_completed_at',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'onboarding_completed_at' => 'datetime',
+        ];
+    }
 
     public function plan(): BelongsTo
     {
