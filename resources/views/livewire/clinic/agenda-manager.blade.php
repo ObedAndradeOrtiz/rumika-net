@@ -72,8 +72,8 @@
                                 >{{ $appointment->scheduled_at->format('H:i') }}</button>
                             @endif
                             <strong>{{ $appointment->client->full_name }}</strong>
-                            @if ($appointment->client->displayPhone())
-                                <span class="rm-appointment-phone">{{ $appointment->client->displayPhone() }}</span>
+                            @if ($appointment->client->displayContact())
+                                <span class="rm-appointment-phone">{{ $appointment->client->displayContact() }}</span>
                             @endif
                         </div>
                         @error('editingAppointmentTime')

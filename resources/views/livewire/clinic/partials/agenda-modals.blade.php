@@ -737,7 +737,7 @@
                 @forelse ($historyClient->phones as $phone)
                     <span>{{ $phone->label ? $phone->label.': ' : '' }}{{ $phone->phone }}</span>
                 @empty
-                    <span>{{ $historyClient->phone ?? 'Sin telefono' }}</span>
+                    <span>{{ $historyClient->displayContact() ?? 'Sin telefono ni CI' }}</span>
                 @endforelse
                 <span>{{ $historyClient->email ?? 'Sin email' }}</span>
             </div>

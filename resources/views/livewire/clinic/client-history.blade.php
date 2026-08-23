@@ -43,7 +43,7 @@
                         <article class="rm-commerce-row rm-client-list-row {{ $selectedClient?->id === $client->id ? 'is-selected' : '' }}">
                             <div class="rm-row-main">
                                 <strong>{{ $client->full_name }}</strong>
-                                <span>CI {{ $client->identity_number ?? 'N/A' }} - {{ $client->displayPhone() ?? 'Sin telefono' }}</span>
+                                <span>{{ $client->displayContact() ?? 'Sin telefono ni CI' }}</span>
                                 <div class="rm-commerce-meta">
                                     <span>{{ $client->status === 'active' ? 'Activo' : 'Inactivo' }}</span>
                                     @foreach ($client->phones->take(3) as $phone)
@@ -223,7 +223,7 @@
                     @forelse ($selectedClient->phones as $phone)
                         <span>{{ $phone->label ? $phone->label.': ' : '' }}{{ $phone->phone }}</span>
                     @empty
-                        <span>{{ $selectedClient->phone ?? 'Sin telefono' }}</span>
+                        <span>{{ $selectedClient->displayContact() ?? 'Sin telefono ni CI' }}</span>
                     @endforelse
                     <span>{{ $selectedClient->email ?? 'Sin email' }}</span>
                     <span>{{ $selectedClient->status === 'active' ? 'Activo' : 'Inactivo' }}</span>

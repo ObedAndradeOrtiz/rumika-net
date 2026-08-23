@@ -33,7 +33,7 @@
                     <button type="button" wire:click="selectClient({{ $client->id }})"
                         class="{{ $selectedClient?->id === $client->id ? 'is-active' : '' }}">
                         <strong>{{ $client->full_name }}</strong>
-                        <span>{{ $client->identity_number ? 'CI ' . $client->identity_number : 'Sin CI' }} · {{ $client->displayPhone() ?: 'Sin telefono' }}</span>
+                        <span>{{ $client->displayContact() ?? 'Sin telefono ni CI' }}</span>
                     </button>
                 @empty
                     <div class="rm-empty-state">No hay pacientes visibles para tu rol.</div>
@@ -65,7 +65,7 @@
                         @forelse ($selectedClient->phones as $phone)
                             <span>{{ $phone->phone }}</span>
                         @empty
-                            <span>Sin telefonos</span>
+                            <span>{{ $selectedClient->displayContact() ?? 'Sin telefonos ni CI' }}</span>
                         @endforelse
                     </div>
                 </section>

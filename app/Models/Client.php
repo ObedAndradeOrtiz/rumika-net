@@ -68,6 +68,17 @@ class Client extends Model
         return $this->primaryPhone?->phone ?? $this->phone;
     }
 
+    public function displayContact(): ?string
+    {
+        $phone = $this->displayPhone();
+
+        if ($phone) {
+            return $phone;
+        }
+
+        return $this->identity_number ? 'CI '.$this->identity_number : null;
+    }
+
     public function charges(): HasMany
     {
         return $this->hasMany(ClientCharge::class);
