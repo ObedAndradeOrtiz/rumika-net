@@ -11,7 +11,7 @@
                 </div>
             </header>
 
-            <livewire:clinic.cashbox-summary context="records" />
+            <livewire:settings.audit-log-manager />
         </section>
     </div>
 </x-app-layout>

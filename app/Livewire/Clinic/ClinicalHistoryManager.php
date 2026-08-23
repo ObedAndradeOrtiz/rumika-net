@@ -59,6 +59,8 @@ class ClinicalHistoryManager extends Component
     public string $templateBody = '';
     public string $templateFieldsText = '';
     public bool $templateIsActive = true;
+    public ?int $confirmingRecordDeleteId = null;
+    public ?int $confirmingTemplateDeleteId = null;
 
     public string $specialtyName = '';
     public string $specialtyDescription = '';
@@ -301,13 +303,45 @@ class ClinicalHistoryManager extends Component
     public function deleteTemplate(int $templateId): void
     {
         $this->authorizeClinical('delete');
-        $template = $this->company()->clinicalTemplates()->whereKey($templateId)->firstOrFail();
+        $this->confirmingTemplateDeleteId = $templateId;
+    }
+
+    public function deleteTemplateConfirmed(): void
+    {
+        $this->authorizeClinical('delete');
+        $template = $this->company()->clinicalTemplates()->whereKey($this->confirmingTemplateDeleteId)->firstOrFail();
 
         if ($template->records()->exists()) {
             $template->update(['is_active' => false]);
         } else {
             $template->delete();
         }
+
+        $this->confirmingTemplateDeleteId = null;
+    }
+
+    public function confirmDeleteRecord(int $recordId): void
+    {
+        $this->authorizeClinical('delete');
+        $this->confirmingRecordDeleteId = $recordId;
+    }
+
+    public function deleteRecordConfirmed(): void
+    {
+        $this->authorizeClinical('delete');
+        $record = $this->company()->clinicalRecords()
+            ->whereKey($this->confirmingRecordDeleteId)
+            ->where('client_id', $this->selectedClientId)
+            ->firstOrFail();
+
+        $record->delete();
+        $this->confirmingRecordDeleteId = null;
+    }
+
+    public function cancelClinicalDelete(): void
+    {
+        $this->confirmingRecordDeleteId = null;
+        $this->confirmingTemplateDeleteId = null;
     }
 
     public function resetTemplateForm(): void

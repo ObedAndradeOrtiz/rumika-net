@@ -466,6 +466,18 @@
     grid-template-columns: minmax(0, 1fr) minmax(180px, 240px);
 }
 
+.rm-audit-filter-row {
+    grid-template-columns: repeat(5, minmax(150px, 1fr));
+}
+
+.rm-audit-search {
+    grid-column: span 4;
+}
+
+.rm-audit-row .rm-commerce-icon {
+    font-size: 13px;
+}
+
 .rm-pagination-wrap {
     display: flex;
     justify-content: flex-end;
@@ -2579,8 +2591,13 @@
     }
 
     .rm-finance-range-row,
-    .rm-finance-summary-kpis {
+    .rm-finance-summary-kpis,
+    .rm-audit-filter-row {
         grid-template-columns: 1fr;
+    }
+
+    .rm-audit-search {
+        grid-column: auto;
     }
 
     .rm-finance-range-row .rm-field,

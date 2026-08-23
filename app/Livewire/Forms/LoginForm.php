@@ -19,7 +19,7 @@ class LoginForm extends Form
     public string $password = '';
 
     #[Validate('boolean')]
-    public bool $remember = false;
+    public bool $remember = true;
 
     /**
      * Attempt to authenticate the request's credentials.
@@ -30,7 +30,7 @@ class LoginForm extends Form
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only(['email', 'password']), $this->remember)) {
+        if (! Auth::attempt($this->only(['email', 'password']), true)) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([

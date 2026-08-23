@@ -152,6 +152,11 @@ class Company extends Model
         return $this->hasMany(CashboxTicket::class);
     }
 
+    public function auditLogs(): HasMany
+    {
+        return $this->hasMany(AuditLog::class);
+    }
+
     public function clinicalSpecialties(): HasMany
     {
         return $this->hasMany(ClinicalSpecialty::class);

@@ -174,6 +174,11 @@
                             </div>
                             <p>{{ \Illuminate\Support\Str::limit($record->content ?: collect($record->data ?? [])->map(fn($v, $k) => "$k: $v")->implode(' · '), 240) }}</p>
                             <footer>{{ $record->createdBy?->name ?? 'Sin responsable' }}</footer>
+                            @if ($canDeleteClinical)
+                                <footer>
+                                    <button type="button" wire:click="confirmDeleteRecord({{ $record->id }})">Eliminar ficha</button>
+                                </footer>
+                            @endif
                         </article>
                     @empty
                         <div class="rm-panel rm-empty-state">Este paciente aun no tiene fichas clinicas.</div>
@@ -462,4 +467,26 @@
             @endif
         </div>
     </section>
+
+    @if ($confirmingRecordDeleteId || $confirmingTemplateDeleteId)
+        <div class="rm-modal-backdrop" wire:click="cancelClinicalDelete"></div>
+        <section class="rm-modal-panel rm-modal-panel-sm" role="dialog" aria-modal="true">
+            <div class="rm-modal-title">
+                <div>
+                    <span>Confirmar eliminacion</span>
+                    <h2>¿Deseas eliminar este registro?</h2>
+                </div>
+                <button type="button" wire:click="cancelClinicalDelete">x</button>
+            </div>
+            <p class="rm-delete-copy">Esta accion quedara registrada en la bitacora del sistema.</p>
+            <div class="rm-form-actions">
+                @if ($confirmingRecordDeleteId)
+                    <button class="rm-button rm-button-danger" type="button" wire:click="deleteRecordConfirmed">Si, eliminar ficha</button>
+                @else
+                    <button class="rm-button rm-button-danger" type="button" wire:click="deleteTemplateConfirmed">Si, eliminar plantilla</button>
+                @endif
+                <button class="rm-button rm-button-outline" type="button" wire:click="cancelClinicalDelete">Cancelar</button>
+            </div>
+        </section>
+    @endif
 </div>
