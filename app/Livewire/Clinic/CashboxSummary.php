@@ -27,6 +27,7 @@ class CashboxSummary extends Component
     public string $expenseSourceFilter = '';
     public string $clientSearch = '';
     public ?int $confirmingPaymentDeleteId = null;
+    public ?int $confirmingProductSaleDeleteId = null;
     public ?int $confirmingExpenseDeleteId = null;
     public bool $showExpenseModal = false;
     public ?int $editingExpenseId = null;
@@ -142,8 +143,14 @@ class CashboxSummary extends Component
         $this->confirmingPaymentDeleteId = null;
     }
 
-    public function deletePayment(int $paymentId): void
+    public function deletePayment(?int $paymentId = null): void
     {
+        $paymentId ??= $this->confirmingPaymentDeleteId;
+
+        if (! $paymentId) {
+            return;
+        }
+
         $this->authorizeSuperAdmin();
         $company = $this->company();
         $payment = $company->treatmentPayments()->with(['items', 'chargePayments.charge'])->whereKey($paymentId)->firstOrFail();
@@ -163,6 +170,54 @@ class CashboxSummary extends Component
         $this->confirmingPaymentDeleteId = null;
     }
 
+    public function confirmDeleteProductSale(int $saleId): void
+    {
+        $this->authorizeSuperAdmin();
+        $this->confirmingProductSaleDeleteId = $saleId;
+    }
+
+    public function cancelDeleteProductSale(): void
+    {
+        $this->confirmingProductSaleDeleteId = null;
+    }
+
+    public function deleteProductSale(?int $saleId = null): void
+    {
+        $saleId ??= $this->confirmingProductSaleDeleteId;
+
+        if (! $saleId) {
+            return;
+        }
+
+        $this->authorizeSuperAdmin();
+        $company = $this->company();
+        $sale = $company->productSales()
+            ->with('items')
+            ->where('branch_id', $this->activeBranch()->id)
+            ->whereKey($saleId)
+            ->firstOrFail();
+
+        DB::transaction(function () use ($company, $sale) {
+            foreach ($sale->items as $item) {
+                if ($item->inventory_product_batch_id && (float) $item->stock_quantity > 0) {
+                    InventoryProductBatch::query()
+                        ->whereKey($item->inventory_product_batch_id)
+                        ->increment('current_quantity', (float) $item->stock_quantity);
+                }
+            }
+
+            InventoryMovement::query()
+                ->where('company_id', $company->id)
+                ->where('reference', 'SALE-'.$sale->id)
+                ->delete();
+
+            $sale->items()->delete();
+            $sale->delete();
+        });
+
+        $this->confirmingProductSaleDeleteId = null;
+    }
+
     public function confirmDeleteExpense(int $expenseId): void
     {
         $this->authorizeSuperAdmin();
@@ -174,8 +229,14 @@ class CashboxSummary extends Component
         $this->confirmingExpenseDeleteId = null;
     }
 
-    public function deleteExpense(int $expenseId): void
+    public function deleteExpense(?int $expenseId = null): void
     {
+        $expenseId ??= $this->confirmingExpenseDeleteId;
+
+        if (! $expenseId) {
+            return;
+        }
+
         $this->authorizeSuperAdmin();
         $this->company()->expenses()->whereKey($expenseId)->firstOrFail()->delete();
         $this->confirmingExpenseDeleteId = null;

@@ -110,10 +110,16 @@
                             </div>
                         </div>
                         <div class="rm-commerce-actions">
-                            <button class="rm-button rm-button-outline" type="button" wire:click="previewPaymentTicket({{ $row['payment_id'] }})">Ticket</button>
-                            @if ($canManageRecords)
+                            @if ($row['payment_id'])
+                                <button class="rm-button rm-button-outline" type="button" wire:click="previewPaymentTicket({{ $row['payment_id'] }})">Ticket</button>
+                            @else
+                                <span class="rm-soft-pill">Venta directa</span>
+                            @endif
+                            @if ($canManageRecords && $row['payment_id'])
                                 <a class="rm-button rm-button-outline" href="{{ route('clinic.agenda', ['editar_cobro' => $row['payment_id']]) }}">Editar</a>
                                 <button class="rm-button rm-button-danger" type="button" wire:click="confirmDeletePayment({{ $row['payment_id'] }})">Eliminar</button>
+                            @elseif ($canManageRecords && $row['product_sale_id'])
+                                <button class="rm-button rm-button-danger" type="button" wire:click="confirmDeleteProductSale({{ $row['product_sale_id'] }})">Eliminar</button>
                             @endif
                         </div>
                     </article>
@@ -292,8 +298,21 @@
             <h2>Eliminar cobro</h2>
             <p>Se eliminara el cobro completo, sus items, pagos aplicados y movimientos de inventario vinculados.</p>
             <div class="rm-form-actions">
-                <button class="rm-button rm-button-danger" type="button" wire:click="deletePayment({{ $confirmingPaymentDeleteId }})">Eliminar</button>
+                <button class="rm-button rm-button-danger" type="button" wire:click="deletePayment">Eliminar</button>
                 <button class="rm-button rm-button-outline" type="button" wire:click="cancelDeletePayment">Cancelar</button>
+            </div>
+        </section>
+    @endif
+
+    @if ($confirmingProductSaleDeleteId)
+        <div class="rm-modal-backdrop" wire:click="cancelDeleteProductSale"></div>
+        <section class="rm-modal-panel rm-modal-panel-small" role="dialog" aria-modal="true">
+            <div class="rm-confirm-icon">!</div>
+            <h2>Eliminar venta directa</h2>
+            <p>Se eliminara la venta de productos, sus items y se devolvera el stock que salio de inventario.</p>
+            <div class="rm-form-actions">
+                <button class="rm-button rm-button-danger" type="button" wire:click="deleteProductSale">Eliminar</button>
+                <button class="rm-button rm-button-outline" type="button" wire:click="cancelDeleteProductSale">Cancelar</button>
             </div>
         </section>
     @endif
@@ -305,7 +324,7 @@
             <h2>Eliminar gasto</h2>
             <p>Se eliminara este gasto del historial y de los calculos de caja.</p>
             <div class="rm-form-actions">
-                <button class="rm-button rm-button-danger" type="button" wire:click="deleteExpense({{ $confirmingExpenseDeleteId }})">Eliminar</button>
+                <button class="rm-button rm-button-danger" type="button" wire:click="deleteExpense">Eliminar</button>
                 <button class="rm-button rm-button-outline" type="button" wire:click="cancelDeleteExpense">Cancelar</button>
             </div>
         </section>

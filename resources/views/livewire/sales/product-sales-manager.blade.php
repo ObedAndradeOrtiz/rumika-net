@@ -163,6 +163,9 @@
                             <span>{{ $sale->invoice_requested ? 'Para facturar' : 'Sin factura' }}</span>
                         </div>
                     </div>
+                    <div class="rm-commerce-actions">
+                        <button class="rm-button rm-button-outline" type="button" wire:click="previewProductSaleTicket({{ $sale->id }})">Ticket</button>
+                    </div>
                 </article>
             @empty
                 <div class="rm-empty-state">Aun no hay ventas directas de productos.</div>
@@ -202,6 +205,65 @@
                 @empty
                     <div class="rm-empty-state">Aun no hay compradores guardados. Se crean al vender con NIT o telefono.</div>
                 @endforelse
+            </div>
+        </section>
+    @endif
+
+    @if ($showTicketPreview)
+        <div class="rm-modal-backdrop" wire:click="closeTicketPreview"></div>
+        <section class="rm-modal-panel rm-modal-panel-wide rm-print-preview-modal" role="dialog" aria-modal="true">
+            <div class="rm-modal-title">
+                <div>
+                    <span>Previsualizacion</span>
+                    <h2>{{ $ticketPreview['title'] ?? 'Ticket de venta' }}</h2>
+                    <p class="rm-modal-subtitle">{{ $ticketPreview['branch'] ?? $branch->name }} - {{ $ticketPreview['business_date'] ?? '' }}</p>
+                </div>
+                <button type="button" wire:click="closeTicketPreview" aria-label="Cerrar">x</button>
+            </div>
+
+            <div class="rm-print-preview-paper">
+                <div class="rm-print-header">
+                    <strong>{{ $ticketPreview['branch'] ?? $branch->name }}</strong>
+                    <span>{{ $ticketPreview['ticket_number'] ?? 'Ticket sin numero' }}</span>
+                    <span>{{ $ticketPreview['business_date'] ?? '' }}</span>
+                    <span>Comprador: {{ $ticketPreview['buyer'] ?? 'Consumidor final' }}</span>
+                    <span>NIT: {{ $ticketPreview['buyer_nit'] ?? 'Sin NIT' }}</span>
+                    <span>Vendido por: {{ $ticketPreview['sold_by'] ?? 'Sin vendedor' }}</span>
+                </div>
+
+                <div class="rm-print-section">
+                    <h3>Productos</h3>
+                    <div class="rm-print-table">
+                        <div class="rm-print-row rm-print-row-head"><span>Producto</span><span>Cant.</span><span>Total</span></div>
+                        @foreach (($ticketPreview['rows'] ?? []) as $row)
+                            <div class="rm-print-row">
+                                <span>{{ \Illuminate\Support\Str::limit($row['name'], 32, '') }}</span>
+                                <span>{{ number_format($row['quantity'], 2) }}</span>
+                                <span>{{ $ticketPreview['currency_symbol'] ?? \App\Support\Money::symbol() }} {{ number_format($row['total'], 2) }}</span>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="rm-print-totals">
+                    <span>Efectivo {{ $ticketPreview['currency_symbol'] ?? \App\Support\Money::symbol() }} {{ number_format($ticketPreview['totals']['cash'] ?? 0, 2) }}</span>
+                    <span>QR {{ $ticketPreview['currency_symbol'] ?? \App\Support\Money::symbol() }} {{ number_format($ticketPreview['totals']['qr'] ?? 0, 2) }}</span>
+                    <strong>Total {{ $ticketPreview['currency_symbol'] ?? \App\Support\Money::symbol() }} {{ number_format($ticketPreview['totals']['total'] ?? 0, 2) }}</strong>
+                    @if (! empty($ticketPreview['printer_enabled']))<span>Impresora {{ $ticketPreview['printer_name'] ?: 'sin seleccionar' }}</span>@endif
+                </div>
+            </div>
+
+            <div class="rm-form-actions">
+                <button
+                    class="rm-button rm-button-primary rm-auto-print-ticket"
+                    type="button"
+                    wire:click="markTicketPrinted"
+                    data-use-qz="{{ ! empty($ticketPreview['printer_enabled']) && ! empty($ticketPreview['printer_name']) ? '1' : '0' }}"
+                    data-printer-name="{{ $ticketPreview['printer_name'] ?? '' }}"
+                    data-ticket="{{ base64_encode($ticketPreview['raw_ticket'] ?? '') }}"
+                    onclick="event.preventDefault(); window.RumikaQz.printFromButton(this)"
+                >Imprimir ahora</button>
+                <button class="rm-button rm-button-outline" type="button" wire:click="closeTicketPreview">Volver</button>
             </div>
         </section>
     @endif

@@ -4,6 +4,7 @@ namespace App\Livewire\Sales;
 
 use App\Models\Branch;
 use App\Models\Buyer;
+use App\Models\CashboxTicket;
 use App\Models\Company;
 use App\Models\InventoryMovement;
 use App\Models\InventoryProduct;
@@ -33,6 +34,8 @@ class ProductSalesManager extends Component
     public string $reference = '';
     public string $notes = '';
     public string $message = '';
+    public bool $showTicketPreview = false;
+    public array $ticketPreview = [];
 
     public function mount(): void
     {
@@ -165,7 +168,7 @@ class ProductSalesManager extends Component
             }
         }
 
-        DB::transaction(function () use ($company, $branch, $validated, $subtotal, $cash, $qr, $paid) {
+        $sale = DB::transaction(function () use ($company, $branch, $validated, $subtotal, $cash, $qr, $paid) {
             $buyer = $this->buyerForSale($company);
             $sale = ProductSale::query()->create([
                 'company_id' => $company->id,
@@ -248,6 +251,8 @@ class ProductSalesManager extends Component
                     ]);
                 }
             }
+
+            return $sale->load(['items', 'soldBy']);
         });
 
         $this->reset(['buyerSearch', 'buyerName', 'buyerNit', 'buyerPhone', 'buyerEmail', 'productSearch', 'lines', 'cashAmount', 'qrAmount', 'invoiceRequested', 'reference', 'notes']);
@@ -255,6 +260,44 @@ class ProductSalesManager extends Component
         $this->cashAmount = '0';
         $this->qrAmount = '0';
         $this->message = 'Venta registrada correctamente.';
+        $this->openProductSaleTicket($sale, true);
+    }
+
+    public function previewProductSaleTicket(int $saleId): void
+    {
+        $sale = $this->company()
+            ->productSales()
+            ->with(['items', 'soldBy'])
+            ->where('branch_id', $this->activeBranch()->id)
+            ->whereKey($saleId)
+            ->firstOrFail();
+
+        $this->openProductSaleTicket($sale, false);
+    }
+
+    public function closeTicketPreview(): void
+    {
+        $this->showTicketPreview = false;
+        $this->ticketPreview = [];
+    }
+
+    public function markTicketPrinted(): void
+    {
+        $ticketId = $this->ticketPreview['ticket_id'] ?? null;
+
+        if (! $ticketId) {
+            return;
+        }
+
+        $this->company()
+            ->cashboxTickets()
+            ->where('branch_id', $this->activeBranch()->id)
+            ->whereKey($ticketId)
+            ->update([
+                'printed_by_user_id' => Auth::id(),
+                'printed_at' => now(),
+                'status' => 'printed',
+            ]);
     }
 
     public function getTotalProperty(): float
@@ -344,6 +387,134 @@ class ProductSalesManager extends Component
         ])->save();
 
         return $buyer;
+    }
+
+    private function openProductSaleTicket(ProductSale $sale, bool $autoPrint): void
+    {
+        $company = $this->company();
+        $branch = $this->activeBranch();
+        $sale->loadMissing(['items', 'soldBy']);
+        $payload = $this->productSaleTicketPayload($sale, $branch);
+        $ticket = CashboxTicket::query()->create([
+            'company_id' => $company->id,
+            'branch_id' => $branch->id,
+            'type' => 'product_sale',
+            'ticket_number' => 'SALE-'.$company->id.'-'.$branch->id.'-'.now()->format('YmdHis').'-'.random_int(100, 999),
+            'title' => 'Ticket de venta',
+            'payload' => $payload,
+            'status' => 'generated',
+        ]);
+
+        $payload['ticket_id'] = $ticket->id;
+        $payload['ticket_number'] = $ticket->ticket_number;
+        $ticket->update(['payload' => $payload]);
+
+        $this->ticketPreview = $payload;
+        $this->showTicketPreview = true;
+
+        if ($autoPrint && $payload['printer_enabled'] && $payload['printer_name']) {
+            $this->dispatch('rumika-auto-print-ticket');
+        }
+    }
+
+    private function productSaleTicketPayload(ProductSale $sale, Branch $branch): array
+    {
+        $rows = $sale->items
+            ->map(fn ($item) => [
+                'name' => $item->name,
+                'quantity' => (float) $item->quantity,
+                'unit_price' => (float) $item->unit_price,
+                'total' => (float) $item->total,
+                'pending_quantity' => (float) $item->pending_quantity,
+            ])
+            ->values()
+            ->all();
+
+        return [
+            'title' => 'Ticket de venta',
+            'branch' => $branch->name,
+            'business_date' => $sale->sold_at->format('d/m/Y H:i'),
+            'currency_code' => $branch->currency_code ?? 'BOB',
+            'currency_symbol' => $branch->moneySymbol(),
+            'buyer' => $sale->buyer_name ?: 'Consumidor final',
+            'buyer_nit' => $sale->buyer_nit ?: 'Sin NIT',
+            'sold_by' => $sale->soldBy?->name ?? 'Sin vendedor',
+            'received_by' => Auth::user()?->name ?? 'Sin cajero',
+            'printer_enabled' => (bool) $branch->uses_ticket_printer,
+            'printer_name' => $branch->printer_name,
+            'printer_bridge_url' => $branch->printer_bridge_url,
+            'rows' => $rows,
+            'totals' => [
+                'cash' => (float) $sale->cash_amount,
+                'qr' => (float) $sale->qr_amount,
+                'total' => (float) $sale->subtotal,
+            ],
+            'raw_ticket' => $this->buildRawProductSaleTicket($sale, $branch, $rows),
+            'created_at' => now()->format('d/m/Y H:i'),
+        ];
+    }
+
+    private function buildRawProductSaleTicket(ProductSale $sale, Branch $branch, array $rows): string
+    {
+        $width = 42;
+        $currency = $branch->moneySymbol();
+        $esc = "\x1B";
+        $gs = "\x1D";
+        $clean = fn ($value) => trim(preg_replace('/\s+/', ' ', iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', (string) $value) ?: (string) $value));
+        $center = function ($value) use ($width, $clean): string {
+            $text = substr($clean($value), 0, $width);
+
+            return str_pad($text, $width, ' ', STR_PAD_BOTH);
+        };
+        $money = fn ($value) => $currency.' '.number_format((float) $value, 2, '.', '');
+        $line = str_repeat('-', $width);
+        $row = function ($name, $value) use ($clean): string {
+            $name = substr($clean($name), 0, 25);
+            $value = substr($clean($value), 0, 17);
+
+            return str_pad($name, 25).str_pad($value, 17, ' ', STR_PAD_LEFT);
+        };
+        $lines = [
+            $esc.'@',
+            $center($branch->name),
+            $center('Ticket de venta'),
+            $line,
+            'FECHA: '.$sale->sold_at->format('d/m/Y H:i'),
+            'COMPRADOR: '.substr($clean($sale->buyer_name ?: 'Consumidor final'), 0, 31),
+            'NIT: '.substr($clean($sale->buyer_nit ?: 'S/N'), 0, 36),
+            'VENDEDOR: '.substr($clean($sale->soldBy?->name ?? 'Sin vendedor'), 0, 31),
+            $line,
+            'PRODUCTOS',
+            $line,
+        ];
+
+        foreach ($rows as $item) {
+            $name = $item['name'];
+
+            if ((float) $item['quantity'] > 1) {
+                $name .= ' x'.number_format((float) $item['quantity'], 0);
+            }
+
+            $lines[] = $row($name, $money($item['total']));
+
+            if ((float) $item['pending_quantity'] > 0) {
+                $lines[] = $row('Stock pendiente', number_format((float) $item['pending_quantity'], 2));
+            }
+        }
+
+        $lines[] = $line;
+        $lines[] = $row('EFECTIVO', $money($sale->cash_amount));
+        $lines[] = $row('QR', $money($sale->qr_amount));
+        $lines[] = $row('TOTAL', $money($sale->subtotal));
+        $lines[] = $line;
+        $lines[] = $center('Gracias por tu compra');
+        $lines[] = $center('Sistema Rumika SaaS');
+        $lines[] = '';
+        $lines[] = '';
+        $lines[] = '';
+        $lines[] = $gs.'V'."\x00";
+
+        return implode("\n", $lines);
     }
 
     private function company(): Company
