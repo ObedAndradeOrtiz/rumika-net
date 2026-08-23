@@ -299,7 +299,7 @@
                 <section class="rm-panel rm-clinical-editor">
                     <header>
                         <h2>{{ $editingTemplateId ? 'Editar plantilla' : 'Nueva plantilla' }}</h2>
-                        <span>Cada negocio puede definir su propia ficha.</span>
+                        <span>La plantilla crea campos reutilizables para fichas clinicas, evoluciones, recetas o consentimientos.</span>
                     </header>
                     <div class="rm-form-grid rm-clinical-form-grid two">
                         <label class="rm-field">
@@ -319,15 +319,18 @@
                     </div>
                     <label class="rm-field">
                         <span>Campos, uno por linea</span>
-                        <textarea wire:model="templateFieldsText" rows="5" placeholder="Tipo de sangre&#10;Alergias&#10;Antecedentes&#10;Diagnostico"></textarea>
+                        <textarea wire:model="templateFieldsText" rows="5" placeholder="Ejemplo:&#10;Tipo de sangre&#10;Alergias&#10;Antecedentes&#10;Diagnostico"></textarea>
                     </label>
                     <label class="rm-field">
                         <span>Texto base de la hoja</span>
-                        <textarea wire:model="templateBody" rows="6" placeholder="Plantilla de texto que aparecera al crear la ficha."></textarea>
+                        <textarea wire:model="templateBody" rows="6" placeholder="Texto opcional que aparecera precargado al crear una ficha con esta plantilla. Puedes dejarlo vacio."></textarea>
                     </label>
-                    <label class="rm-check-row">
+                    <label class="rm-check-row rm-template-active-row">
                         <input wire:model="templateIsActive" type="checkbox">
-                        <span>Plantilla activa</span>
+                        <span>
+                            <strong>Plantilla activa</strong>
+                            <small>Si esta activa, aparecera como opcion al crear una nueva ficha.</small>
+                        </span>
                     </label>
                     <div class="rm-modal-actions">
                         <button class="rm-button rm-button-primary" type="button" wire:click="saveTemplate">Guardar plantilla</button>

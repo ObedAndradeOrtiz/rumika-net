@@ -319,10 +319,10 @@
     font-weight: 900;
 }
 
-.rm-clinical-editor .rm-field input,
+.rm-clinical-editor .rm-field input:not([type="checkbox"]):not([type="radio"]),
 .rm-clinical-editor .rm-field select,
 .rm-clinical-editor .rm-field textarea,
-.rm-clinical-editor label > input,
+.rm-clinical-editor label > input:not([type="checkbox"]):not([type="radio"]),
 .rm-clinical-editor label > select,
 .rm-clinical-editor label > textarea {
     background: #ffffff;
@@ -383,6 +383,40 @@
     font-size: 14px;
     font-weight: 900;
     gap: 8px;
+}
+
+.rm-check-row input[type="checkbox"],
+.rm-inline-checks input[type="checkbox"] {
+    accent-color: var(--rumika-teal);
+    flex: 0 0 auto;
+    height: 18px;
+    width: 18px;
+}
+
+.rm-template-active-row {
+    background: #f8fafc;
+    border: 1px solid var(--rumika-border);
+    border-radius: 16px;
+    justify-content: flex-start;
+    padding: 14px 16px;
+    width: 100%;
+}
+
+.rm-template-active-row span {
+    display: grid;
+    gap: 2px;
+}
+
+.rm-template-active-row strong {
+    color: var(--rumika-ink);
+    font-size: 14px;
+    font-weight: 950;
+}
+
+.rm-template-active-row small {
+    color: var(--rumika-muted);
+    font-size: 12px;
+    font-weight: 750;
 }
 
 .rm-search-field {
