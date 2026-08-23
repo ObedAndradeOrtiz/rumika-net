@@ -84,6 +84,7 @@ class CrmManager extends Component
         $this->mobileListMode = false;
         $this->replyText = '';
         $this->tab = 'inbox';
+        $this->dispatch('crm-scroll-bottom');
     }
 
     public function showConversationList(): void
@@ -99,6 +100,7 @@ class CrmManager extends Component
             ->firstOrFail();
 
         $this->replyText = $reply->body;
+        $this->dispatch('crm-scroll-bottom');
     }
 
     public function saveQuickReply(): void
@@ -300,6 +302,7 @@ class CrmManager extends Component
         ]);
 
         $this->replyText = '';
+        $this->dispatch('crm-scroll-bottom');
         session()->flash($sent ? 'crm_success' : 'crm_warning', $sent ? 'Mensaje enviado.' : 'No se pudo enviar. Revisa el token o el numero.');
     }
 

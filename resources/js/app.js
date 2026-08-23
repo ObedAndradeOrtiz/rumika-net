@@ -3,6 +3,7 @@ import './modules/auth/password-toggle';
 import './modules/auth/firebase-google';
 import './modules/app-shell/sidebar-toggle';
 import './modules/app-shell/mobile-more';
+import './modules/crm/chat-scroll';
 import './modules/printing/qz-tray';
 
 document.addEventListener('livewire:init', () => {

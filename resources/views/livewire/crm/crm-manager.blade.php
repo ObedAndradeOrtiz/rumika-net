@@ -67,17 +67,19 @@
                             <h2>{{ $selectedConversation->contact?->name ?: 'Cliente WhatsApp' }}</h2>
                             <p>{{ $selectedConversation->contact?->phone }}</p>
                         </div>
-                        <button class="rm-button rm-button-outline" type="button" wire:click="openAppointmentModal">
-                            Agendar
-                        </button>
-                        @if ($canManageCrm || $selectedConversation->is_demo)
-                            <button class="rm-button rm-button-danger" type="button" wire:click="deleteConversation({{ $selectedConversation->id }})">
-                                Eliminar
+                        <div class="rm-crm-thread-actions">
+                            <button class="rm-button rm-button-outline" type="button" wire:click="openAppointmentModal">
+                                Agendar
                             </button>
-                        @endif
+                            @if ($canManageCrm || $selectedConversation->is_demo)
+                                <button class="rm-button rm-button-danger" type="button" wire:click="deleteConversation({{ $selectedConversation->id }})">
+                                    Eliminar
+                                </button>
+                            @endif
+                        </div>
                     </header>
 
-                    <div class="rm-crm-messages">
+                    <div class="rm-crm-messages" data-crm-messages>
                         @foreach ($selectedConversation->messages as $message)
                             <article class="rm-crm-message {{ $message->direction === 'out' ? 'is-out' : 'is-in' }}">
                                 <p>{{ $message->body ?: strtoupper($message->type) }}</p>
