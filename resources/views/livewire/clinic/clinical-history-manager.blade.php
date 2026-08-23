@@ -1,16 +1,4 @@
 <div class="rm-content rm-settings-page">
-    <section class="rm-settings-hero rm-clinical-hero">
-        <div>
-            <span>Historia clinica</span>
-            <h1>Fichas, documentos y recetas</h1>
-            <p>Administra plantillas, archivos del cliente, recetas y accesos por doctor o profesional.</p>
-        </div>
-        <div class="rm-settings-summary rm-clinical-summary">
-            <strong>{{ $records->count() + $documents->count() + $prescriptions->count() }}</strong>
-            <span>Registros del paciente</span>
-        </div>
-    </section>
-
     <section class="rm-clinical-layout {{ $lockedToClient ? 'is-client-locked' : '' }}">
         @unless ($lockedToClient)
             <aside class="rm-panel rm-clinical-patients">
