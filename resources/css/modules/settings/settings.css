@@ -48,6 +48,20 @@
     font-weight: 950;
 }
 
+.rm-form-grid {
+    display: grid;
+    gap: 12px;
+}
+
+.rm-form-grid.two {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.rm-form-grid label,
+.rm-clinical-editor label {
+    min-width: 0;
+}
+
 .rm-settings-grid {
     display: grid;
     gap: 20px;
@@ -169,7 +183,15 @@
     align-items: start;
     display: grid;
     gap: 18px;
-    grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+    grid-template-columns: minmax(280px, 380px) minmax(0, 1fr);
+}
+
+.rm-clinical-hero {
+    padding-block: clamp(16px, 2.2vw, 24px);
+}
+
+.rm-clinical-summary {
+    min-width: 160px;
 }
 
 .rm-clinical-patients,
@@ -181,6 +203,9 @@
 }
 
 .rm-clinical-patients {
+    align-self: start;
+    max-height: calc(100dvh - 150px);
+    overflow: hidden;
     position: sticky;
     top: 18px;
 }
@@ -215,7 +240,7 @@
 .rm-clinical-client-list {
     display: grid;
     gap: 10px;
-    max-height: 58vh;
+    max-height: min(62vh, 640px);
     overflow: auto;
     padding-right: 4px;
 }
@@ -232,6 +257,11 @@
     text-align: left;
 }
 
+.rm-clinical-client-list button strong,
+.rm-clinical-client-list button span {
+    overflow-wrap: anywhere;
+}
+
 .rm-clinical-client-list button.is-active {
     background: #e9f6f4;
     border-color: #b7e4dc;
@@ -240,7 +270,14 @@
 
 .rm-clinical-client-head {
     align-items: center;
+    display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
+    padding: 20px 24px;
+}
+
+.rm-clinical-client-head h2,
+.rm-clinical-client-head p {
+    overflow-wrap: anywhere;
 }
 
 .rm-clinical-phone-wrap {
@@ -265,6 +302,47 @@
 
 .rm-clinical-card {
     gap: 12px;
+}
+
+.rm-clinical-editor {
+    padding: 24px 28px;
+}
+
+.rm-clinical-form-grid {
+    align-items: end;
+}
+
+.rm-clinical-editor .rm-field span,
+.rm-clinical-editor label > span {
+    color: var(--rumika-ink);
+    font-size: 13px;
+    font-weight: 900;
+}
+
+.rm-clinical-editor .rm-field input,
+.rm-clinical-editor .rm-field select,
+.rm-clinical-editor .rm-field textarea,
+.rm-clinical-editor label > input,
+.rm-clinical-editor label > select,
+.rm-clinical-editor label > textarea {
+    background: #ffffff;
+    border: 1px solid var(--rumika-border);
+    border-radius: 14px;
+    color: var(--rumika-ink);
+    font-size: 14px;
+    font-weight: 800;
+    min-height: 52px;
+    min-width: 0;
+    padding: 0 14px;
+    width: 100%;
+}
+
+.rm-clinical-editor .rm-field textarea,
+.rm-clinical-editor label > textarea {
+    line-height: 1.45;
+    min-height: 130px;
+    padding-block: 14px;
+    resize: vertical;
 }
 
 .rm-clinical-card strong {
@@ -2422,22 +2500,28 @@
     }
 
     .rm-clinical-patients {
+        max-height: none;
+        overflow: visible;
         position: static;
     }
 
     .rm-clinical-client-list {
         grid-auto-columns: minmax(230px, 1fr);
         grid-auto-flow: column;
+        grid-template-columns: none;
         max-height: none;
         overflow-x: auto;
+        overflow-y: hidden;
         padding-bottom: 6px;
+        padding-right: 0;
     }
 
     .rm-settings-grid,
     .rm-profile-grid,
     .rm-role-grid,
     .rm-role-editor,
-    .rm-user-filters {
+    .rm-user-filters,
+    .rm-form-grid.two {
         grid-template-columns: 1fr;
     }
 
@@ -2505,10 +2589,25 @@
     .rm-clinical-client-head {
         align-items: start;
         grid-template-columns: 1fr;
+        padding: 16px;
     }
 
     .rm-clinical-phone-wrap {
         justify-content: flex-start;
+    }
+
+    .rm-clinical-editor {
+        padding: 16px;
+    }
+
+    .rm-clinical-editor .rm-field input,
+    .rm-clinical-editor .rm-field select,
+    .rm-clinical-editor .rm-field textarea,
+    .rm-clinical-editor label > input,
+    .rm-clinical-editor label > select,
+    .rm-clinical-editor label > textarea {
+        font-size: 13px;
+        min-height: 48px;
     }
 
     .rm-clinical-patients h2,

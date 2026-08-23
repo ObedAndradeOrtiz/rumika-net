@@ -1,11 +1,11 @@
 <div class="rm-settings-page">
-    <section class="rm-settings-hero">
+    <section class="rm-settings-hero rm-clinical-hero">
         <div>
             <span>Historia clinica</span>
             <h1>Fichas, documentos y recetas</h1>
             <p>Administra plantillas, archivos del cliente, recetas y accesos por doctor o profesional.</p>
         </div>
-        <div class="rm-settings-summary">
+        <div class="rm-settings-summary rm-clinical-summary">
             <strong>{{ $records->count() + $documents->count() + $prescriptions->count() }}</strong>
             <span>Registros del paciente</span>
         </div>
@@ -28,7 +28,7 @@
                     placeholder="Buscar por nombre, CI o telefono">
             </label>
 
-            <div class="rm-clinical-client-list">
+            <div class="rm-clinical-client-list" aria-label="Lista de pacientes">
                 @forelse ($clients as $client)
                     <button type="button" wire:click="selectClient({{ $client->id }})"
                         class="{{ $selectedClient?->id === $client->id ? 'is-active' : '' }}">
@@ -81,8 +81,8 @@
                     </header>
 
                     @if ($canCreateClinical)
-                        <div class="rm-form-grid two">
-                            <label>
+                        <div class="rm-form-grid rm-clinical-form-grid two">
+                            <label class="rm-field">
                                 <span>Plantilla</span>
                                 <select wire:model.live="templateId">
                                     <option value="">Sin plantilla</option>
@@ -91,11 +91,11 @@
                                     @endforeach
                                 </select>
                             </label>
-                            <label>
+                            <label class="rm-field">
                                 <span>Titulo</span>
                                 <input wire:model="recordTitle" type="text" placeholder="Ficha inicial, control, evolucion">
                             </label>
-                            <label>
+                            <label class="rm-field">
                                 <span>Tipo</span>
                                 <select wire:model="recordType">
                                     <option value="ficha">Ficha clinica</option>
@@ -105,7 +105,7 @@
                                     <option value="observacion">Observacion</option>
                                 </select>
                             </label>
-                            <label>
+                            <label class="rm-field">
                                 <span>Cita</span>
                                 <select wire:model.live="recordAppointmentId">
                                     <option value="">Sin cita</option>
@@ -114,7 +114,7 @@
                                     @endforeach
                                 </select>
                             </label>
-                            <label>
+                            <label class="rm-field">
                                 <span>Tratamiento de la cita</span>
                                 <select wire:model="recordAppointmentServiceId">
                                     <option value="">Sin tratamiento</option>
@@ -125,7 +125,7 @@
                                     @endforeach
                                 </select>
                             </label>
-                            <label>
+                            <label class="rm-field">
                                 <span>Servicio general</span>
                                 <select wire:model="recordServiceId">
                                     <option value="">Sin servicio</option>
@@ -137,9 +137,9 @@
                         </div>
 
                         @if ($recordData)
-                            <div class="rm-form-grid two">
+                            <div class="rm-form-grid rm-clinical-form-grid two">
                                 @foreach ($recordData as $field => $value)
-                                    <label>
+                                    <label class="rm-field">
                                         <span>{{ \Illuminate\Support\Str::headline(str_replace('_', ' ', $field)) }}</span>
                                         <input wire:model="recordData.{{ $field }}" type="text">
                                     </label>
@@ -147,7 +147,7 @@
                             </div>
                         @endif
 
-                        <label>
+                        <label class="rm-field">
                             <span>Detalle clinico</span>
                             <textarea wire:model="recordContent" rows="7" placeholder="Escribe signos, antecedentes, diagnostico, indicaciones o notas del caso."></textarea>
                         </label>
@@ -184,16 +184,16 @@
                         <span>Imagenes, PDF o documentos externos.</span>
                     </header>
                     @if ($canCreateClinical)
-                        <div class="rm-form-grid two">
-                            <label>
+                        <div class="rm-form-grid rm-clinical-form-grid two">
+                            <label class="rm-field">
                                 <span>Titulo</span>
                                 <input wire:model="documentTitle" type="text" placeholder="Ecografia, foto antes, consentimiento">
                             </label>
-                            <label>
+                            <label class="rm-field">
                                 <span>Archivo</span>
                                 <input wire:model="documentFile" type="file" accept=".jpg,.jpeg,.png,.webp,.pdf,.doc,.docx,.xls,.xlsx">
                             </label>
-                            <label>
+                            <label class="rm-field">
                                 <span>Cita</span>
                                 <select wire:model="documentAppointmentId">
                                     <option value="">Sin cita</option>
@@ -202,7 +202,7 @@
                                     @endforeach
                                 </select>
                             </label>
-                            <label>
+                            <label class="rm-field">
                                 <span>Servicio general</span>
                                 <select wire:model="documentServiceId">
                                     <option value="">Sin servicio</option>
@@ -212,7 +212,7 @@
                                 </select>
                             </label>
                         </div>
-                        <label>
+                        <label class="rm-field">
                             <span>Notas</span>
                             <textarea wire:model="documentNotes" rows="3" placeholder="De que trata el archivo o quien lo entrego."></textarea>
                         </label>
@@ -244,16 +244,16 @@
                         <span>Puede asociarse a una cita o tratamiento.</span>
                     </header>
                     @if ($canCreateClinical)
-                        <div class="rm-form-grid two">
-                            <label>
+                        <div class="rm-form-grid rm-clinical-form-grid two">
+                            <label class="rm-field">
                                 <span>Titulo</span>
                                 <input wire:model="prescriptionTitle" type="text">
                             </label>
-                            <label>
+                            <label class="rm-field">
                                 <span>Fecha</span>
                                 <input wire:model="prescriptionIssuedAt" type="date">
                             </label>
-                            <label>
+                            <label class="rm-field">
                                 <span>Cita</span>
                                 <select wire:model="prescriptionAppointmentId">
                                     <option value="">Sin cita</option>
@@ -262,7 +262,7 @@
                                     @endforeach
                                 </select>
                             </label>
-                            <label>
+                            <label class="rm-field">
                                 <span>Tratamiento</span>
                                 <select wire:model="prescriptionAppointmentServiceId">
                                     <option value="">Sin tratamiento</option>
@@ -274,7 +274,7 @@
                                 </select>
                             </label>
                         </div>
-                        <label>
+                        <label class="rm-field">
                             <span>Indicaciones</span>
                             <textarea wire:model="prescriptionIndications" rows="7" placeholder="Medicamentos, dosis, frecuencia, cuidados y controles."></textarea>
                         </label>
@@ -301,12 +301,12 @@
                         <h2>{{ $editingTemplateId ? 'Editar plantilla' : 'Nueva plantilla' }}</h2>
                         <span>Cada negocio puede definir su propia ficha.</span>
                     </header>
-                    <div class="rm-form-grid two">
-                        <label>
+                    <div class="rm-form-grid rm-clinical-form-grid two">
+                        <label class="rm-field">
                             <span>Nombre</span>
                             <input wire:model="templateName" type="text" placeholder="Ficha dermatologica, evaluacion inicial">
                         </label>
-                        <label>
+                        <label class="rm-field">
                             <span>Categoria</span>
                             <select wire:model="templateCategory">
                                 <option value="ficha_inicial">Ficha inicial</option>
@@ -317,11 +317,11 @@
                             </select>
                         </label>
                     </div>
-                    <label>
+                    <label class="rm-field">
                         <span>Campos, uno por linea</span>
                         <textarea wire:model="templateFieldsText" rows="5" placeholder="Tipo de sangre&#10;Alergias&#10;Antecedentes&#10;Diagnostico"></textarea>
                     </label>
-                    <label>
+                    <label class="rm-field">
                         <span>Texto base de la hoja</span>
                         <textarea wire:model="templateBody" rows="6" placeholder="Plantilla de texto que aparecera al crear la ficha."></textarea>
                     </label>
@@ -360,12 +360,12 @@
                         <h2>Especialidades medicas</h2>
                         <span>Un doctor puede tener varias especialidades.</span>
                     </header>
-                    <div class="rm-form-grid two">
-                        <label>
+                    <div class="rm-form-grid rm-clinical-form-grid two">
+                        <label class="rm-field">
                             <span>Nueva especialidad</span>
                             <input wire:model="specialtyName" type="text" placeholder="Dermatologia, ginecologia, podologia">
                         </label>
-                        <label>
+                        <label class="rm-field">
                             <span>Descripcion</span>
                             <input wire:model="specialtyDescription" type="text" placeholder="Opcional">
                         </label>
@@ -378,8 +378,8 @@
                         <h2>Asignar especialidades</h2>
                         <span>Selecciona profesional y sus especialidades.</span>
                     </header>
-                    <div class="rm-form-grid two">
-                        <label>
+                    <div class="rm-form-grid rm-clinical-form-grid two">
+                        <label class="rm-field">
                             <span>Profesional</span>
                             <select wire:model="specialtyUserId">
                                 <option value="">Seleccionar</option>
@@ -388,7 +388,7 @@
                                 @endforeach
                             </select>
                         </label>
-                        <label>
+                        <label class="rm-field">
                             <span>Especialidades</span>
                             <select wire:model="specialtyIds" multiple size="4">
                                 @foreach ($specialties as $specialty)
@@ -405,8 +405,8 @@
                         <h2>Autorizar historial por paciente</h2>
                         <span>Para doctores que no deben ver todo el historial completo.</span>
                     </header>
-                    <div class="rm-form-grid two">
-                        <label>
+                    <div class="rm-form-grid rm-clinical-form-grid two">
+                        <label class="rm-field">
                             <span>Paciente</span>
                             <select wire:model="accessClientId">
                                 @foreach ($clients as $client)
@@ -414,7 +414,7 @@
                                 @endforeach
                             </select>
                         </label>
-                        <label>
+                        <label class="rm-field">
                             <span>Doctor / profesional</span>
                             <select wire:model="accessUserId">
                                 <option value="">Seleccionar</option>
@@ -423,11 +423,11 @@
                                 @endforeach
                             </select>
                         </label>
-                        <label>
+                        <label class="rm-field">
                             <span>Vence</span>
                             <input wire:model="accessExpiresAt" type="date">
                         </label>
-                        <label>
+                        <label class="rm-field">
                             <span>Motivo</span>
                             <input wire:model="accessReason" type="text" placeholder="Interconsulta, apoyo, seguimiento">
                         </label>
