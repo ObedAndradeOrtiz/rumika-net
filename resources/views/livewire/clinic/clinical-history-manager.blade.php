@@ -64,87 +64,13 @@
             @if (! $selectedClient)
                 <section class="rm-panel rm-empty-state">Selecciona un paciente para trabajar su historia.</section>
             @elseif ($tab === 'records')
-                <section class="rm-panel rm-clinical-editor">
-                    <header>
-                        <h2>Nueva ficha o evolucion</h2>
-                        <span>Asociable a cita, tratamiento o servicio.</span>
-                    </header>
-
+                <section class="rm-panel rm-clinical-actionbar">
+                    <div>
+                        <h2>Fichas clinicas</h2>
+                        <p>Evoluciones, notas y datos asociados al paciente.</p>
+                    </div>
                     @if ($canCreateClinical)
-                        <div class="rm-form-grid rm-clinical-form-grid two">
-                            <label class="rm-field">
-                                <span>Plantilla</span>
-                                <select wire:model.live="templateId">
-                                    <option value="">Sin plantilla</option>
-                                    @foreach ($activeTemplates as $template)
-                                        <option value="{{ $template->id }}">{{ $template->name }}</option>
-                                    @endforeach
-                                </select>
-                            </label>
-                            <label class="rm-field">
-                                <span>Titulo</span>
-                                <input wire:model="recordTitle" type="text" placeholder="Ficha inicial, control, evolucion">
-                            </label>
-                            <label class="rm-field">
-                                <span>Tipo</span>
-                                <select wire:model="recordType">
-                                    <option value="ficha">Ficha clinica</option>
-                                    <option value="evolucion">Evolucion</option>
-                                    <option value="laboratorio">Laboratorio</option>
-                                    <option value="consentimiento">Consentimiento</option>
-                                    <option value="observacion">Observacion</option>
-                                </select>
-                            </label>
-                            <label class="rm-field">
-                                <span>Cita</span>
-                                <select wire:model.live="recordAppointmentId">
-                                    <option value="">Sin cita</option>
-                                    @foreach ($appointments as $appointment)
-                                        <option value="{{ $appointment->id }}">{{ $appointment->scheduled_at->format('d/m/Y H:i') }}</option>
-                                    @endforeach
-                                </select>
-                            </label>
-                            <label class="rm-field">
-                                <span>Tratamiento de la cita</span>
-                                <select wire:model="recordAppointmentServiceId">
-                                    <option value="">Sin tratamiento</option>
-                                    @foreach ($appointments as $appointment)
-                                        @foreach ($appointment->services as $line)
-                                            <option value="{{ $line->id }}">{{ $appointment->scheduled_at->format('d/m') }} - {{ $line->name }}</option>
-                                        @endforeach
-                                    @endforeach
-                                </select>
-                            </label>
-                            <label class="rm-field">
-                                <span>Servicio general</span>
-                                <select wire:model="recordServiceId">
-                                    <option value="">Sin servicio</option>
-                                    @foreach ($services as $service)
-                                        <option value="{{ $service->id }}">{{ $service->name }}</option>
-                                    @endforeach
-                                </select>
-                            </label>
-                        </div>
-
-                        @if ($recordData)
-                            <div class="rm-form-grid rm-clinical-form-grid two">
-                                @foreach ($recordData as $field => $value)
-                                    <label class="rm-field">
-                                        <span>{{ \Illuminate\Support\Str::headline(str_replace('_', ' ', $field)) }}</span>
-                                        <input wire:model="recordData.{{ $field }}" type="text">
-                                    </label>
-                                @endforeach
-                            </div>
-                        @endif
-
-                        <label class="rm-field">
-                            <span>Detalle clinico</span>
-                            <textarea wire:model="recordContent" rows="7" placeholder="Escribe signos, antecedentes, diagnostico, indicaciones o notas del caso."></textarea>
-                        </label>
-
-                        <button class="rm-button rm-button-primary" type="button" wire:click="saveRecord">Guardar ficha</button>
-                    @else
-                        <div class="rm-empty-state">Tu rol puede ver esta historia, pero no crear fichas para este paciente.</div>
+                        <button class="rm-button rm-button-primary" type="button" wire:click="openRecordModal">Nueva ficha</button>
                     @endif
                 </section>
 
@@ -153,14 +79,14 @@
                         <article class="rm-panel rm-clinical-card">
                             <div>
                                 <strong>{{ $record->title }}</strong>
-                                <span>{{ ucfirst(str_replace('_', ' ', $record->type)) }} · {{ $record->created_at->format('d/m/Y H:i') }}</span>
+                                <span>{{ ucfirst(str_replace('_', ' ', $record->type)) }} - {{ $record->created_at->format('d/m/Y H:i') }}</span>
                                 @if ($record->appointmentService)
                                     <small>{{ $record->appointmentService->name }}</small>
                                 @elseif ($record->service)
                                     <small>{{ $record->service->name }}</small>
                                 @endif
                             </div>
-                            <p>{{ \Illuminate\Support\Str::limit($record->content ?: collect($record->data ?? [])->map(fn($v, $k) => "$k: $v")->implode(' · '), 240) }}</p>
+                            <p>{{ \Illuminate\Support\Str::limit($record->content ?: collect($record->data ?? [])->map(fn($v, $k) => "$k: $v")->implode(' - '), 240) }}</p>
                             <footer>{{ $record->createdBy?->name ?? 'Sin responsable' }}</footer>
                             @if ($canDeleteClinical)
                                 <footer>
@@ -173,45 +99,13 @@
                     @endforelse
                 </section>
             @elseif ($tab === 'documents')
-                <section class="rm-panel rm-clinical-editor">
-                    <header>
-                        <h2>Subir archivo del cliente</h2>
-                        <span>Imagenes, PDF o documentos externos.</span>
-                    </header>
+                <section class="rm-panel rm-clinical-actionbar">
+                    <div>
+                        <h2>Archivos</h2>
+                        <p>Imagenes, PDF o documentos externos del paciente.</p>
+                    </div>
                     @if ($canCreateClinical)
-                        <div class="rm-form-grid rm-clinical-form-grid two">
-                            <label class="rm-field">
-                                <span>Titulo</span>
-                                <input wire:model="documentTitle" type="text" placeholder="Ecografia, foto antes, consentimiento">
-                            </label>
-                            <label class="rm-field">
-                                <span>Archivo</span>
-                                <input wire:model="documentFile" type="file" accept=".jpg,.jpeg,.png,.webp,.pdf,.doc,.docx,.xls,.xlsx">
-                            </label>
-                            <label class="rm-field">
-                                <span>Cita</span>
-                                <select wire:model="documentAppointmentId">
-                                    <option value="">Sin cita</option>
-                                    @foreach ($appointments as $appointment)
-                                        <option value="{{ $appointment->id }}">{{ $appointment->scheduled_at->format('d/m/Y H:i') }}</option>
-                                    @endforeach
-                                </select>
-                            </label>
-                            <label class="rm-field">
-                                <span>Servicio general</span>
-                                <select wire:model="documentServiceId">
-                                    <option value="">Sin servicio</option>
-                                    @foreach ($services as $service)
-                                        <option value="{{ $service->id }}">{{ $service->name }}</option>
-                                    @endforeach
-                                </select>
-                            </label>
-                        </div>
-                        <label class="rm-field">
-                            <span>Notas</span>
-                            <textarea wire:model="documentNotes" rows="3" placeholder="De que trata el archivo o quien lo entrego."></textarea>
-                        </label>
-                        <button class="rm-button rm-button-primary" type="button" wire:click="saveDocument">Subir archivo</button>
+                        <button class="rm-button rm-button-primary" type="button" wire:click="openDocumentModal">Nuevo archivo</button>
                     @endif
                 </section>
 
@@ -220,7 +114,7 @@
                         <article class="rm-panel rm-clinical-card">
                             <div>
                                 <strong>{{ $document->title }}</strong>
-                                <span>{{ $document->created_at->format('d/m/Y H:i') }} · {{ $document->file_name }}</span>
+                                <span>{{ $document->created_at->format('d/m/Y H:i') }} - {{ $document->file_name }}</span>
                             </div>
                             <p>{{ $document->notes ?: 'Sin notas' }}</p>
                             <footer>
@@ -233,47 +127,13 @@
                     @endforelse
                 </section>
             @elseif ($tab === 'prescriptions')
-                <section class="rm-panel rm-clinical-editor">
-                    <header>
-                        <h2>Nueva receta</h2>
-                        <span>Puede asociarse a una cita o tratamiento.</span>
-                    </header>
+                <section class="rm-panel rm-clinical-actionbar">
+                    <div>
+                        <h2>Recetas</h2>
+                        <p>Indicaciones medicas asociadas a citas o tratamientos.</p>
+                    </div>
                     @if ($canCreateClinical)
-                        <div class="rm-form-grid rm-clinical-form-grid two">
-                            <label class="rm-field">
-                                <span>Titulo</span>
-                                <input wire:model="prescriptionTitle" type="text">
-                            </label>
-                            <label class="rm-field">
-                                <span>Fecha</span>
-                                <input wire:model="prescriptionIssuedAt" type="date">
-                            </label>
-                            <label class="rm-field">
-                                <span>Cita</span>
-                                <select wire:model="prescriptionAppointmentId">
-                                    <option value="">Sin cita</option>
-                                    @foreach ($appointments as $appointment)
-                                        <option value="{{ $appointment->id }}">{{ $appointment->scheduled_at->format('d/m/Y H:i') }}</option>
-                                    @endforeach
-                                </select>
-                            </label>
-                            <label class="rm-field">
-                                <span>Tratamiento</span>
-                                <select wire:model="prescriptionAppointmentServiceId">
-                                    <option value="">Sin tratamiento</option>
-                                    @foreach ($appointments as $appointment)
-                                        @foreach ($appointment->services as $line)
-                                            <option value="{{ $line->id }}">{{ $appointment->scheduled_at->format('d/m') }} - {{ $line->name }}</option>
-                                        @endforeach
-                                    @endforeach
-                                </select>
-                            </label>
-                        </div>
-                        <label class="rm-field">
-                            <span>Indicaciones</span>
-                            <textarea wire:model="prescriptionIndications" rows="7" placeholder="Medicamentos, dosis, frecuencia, cuidados y controles."></textarea>
-                        </label>
-                        <button class="rm-button rm-button-primary" type="button" wire:click="savePrescription">Guardar receta</button>
+                        <button class="rm-button rm-button-primary" type="button" wire:click="openPrescriptionModal">Nueva receta</button>
                     @endif
                 </section>
 
@@ -282,7 +142,7 @@
                         <article class="rm-panel rm-clinical-card">
                             <div>
                                 <strong>{{ $prescription->title }}</strong>
-                                <span>{{ $prescription->issued_at->format('d/m/Y') }} · {{ $prescription->issuedBy?->name ?? 'Sin doctor' }}</span>
+                                <span>{{ $prescription->issued_at->format('d/m/Y') }} - {{ $prescription->issuedBy?->name ?? 'Sin doctor' }}</span>
                             </div>
                             <p>{{ \Illuminate\Support\Str::limit($prescription->indications, 260) }}</p>
                         </article>
@@ -291,48 +151,12 @@
                     @endforelse
                 </section>
             @elseif ($tab === 'templates')
-                <section class="rm-panel rm-clinical-editor">
-                    <header>
-                        <h2>{{ $editingTemplateId ? 'Editar plantilla' : 'Nueva plantilla' }}</h2>
-                        <span>La plantilla crea campos reutilizables para fichas clinicas, evoluciones, recetas o consentimientos.</span>
-                    </header>
-                    <div class="rm-form-grid rm-clinical-form-grid two">
-                        <label class="rm-field">
-                            <span>Nombre</span>
-                            <input wire:model="templateName" type="text" placeholder="Ficha dermatologica, evaluacion inicial">
-                        </label>
-                        <label class="rm-field">
-                            <span>Categoria</span>
-                            <select wire:model="templateCategory">
-                                <option value="ficha_inicial">Ficha inicial</option>
-                                <option value="evolucion">Evolucion</option>
-                                <option value="receta">Receta</option>
-                                <option value="consentimiento">Consentimiento</option>
-                                <option value="laboratorio">Laboratorio</option>
-                            </select>
-                        </label>
+                <section class="rm-panel rm-clinical-actionbar">
+                    <div>
+                        <h2>Plantillas</h2>
+                        <p>Formatos reutilizables para fichas, evoluciones y consentimientos.</p>
                     </div>
-                    <label class="rm-field">
-                        <span>Campos, uno por linea</span>
-                        <textarea wire:model="templateFieldsText" rows="5" placeholder="Ejemplo:&#10;Tipo de sangre&#10;Alergias&#10;Antecedentes&#10;Diagnostico"></textarea>
-                    </label>
-                    <label class="rm-field">
-                        <span>Texto base de la hoja</span>
-                        <textarea wire:model="templateBody" rows="6" placeholder="Texto opcional que aparecera precargado al crear una ficha con esta plantilla. Puedes dejarlo vacio."></textarea>
-                    </label>
-                    <label class="rm-check-row rm-template-active-row">
-                        <input wire:model="templateIsActive" type="checkbox">
-                        <span>
-                            <strong>Plantilla activa</strong>
-                            <small>Si esta activa, aparecera como opcion al crear una nueva ficha.</small>
-                        </span>
-                    </label>
-                    <div class="rm-modal-actions">
-                        <button class="rm-button rm-button-primary" type="button" wire:click="saveTemplate">Guardar plantilla</button>
-                        @if ($editingTemplateId)
-                            <button class="rm-button rm-button-outline" type="button" wire:click="resetTemplateForm">Cancelar</button>
-                        @endif
-                    </div>
+                    <button class="rm-button rm-button-primary" type="button" wire:click="openTemplateModal">Nueva plantilla</button>
                 </section>
 
                 <section class="rm-clinical-list">
@@ -340,9 +164,9 @@
                         <article class="rm-panel rm-clinical-card">
                             <div>
                                 <strong>{{ $template->name }}</strong>
-                                <span>{{ ucfirst(str_replace('_', ' ', $template->category)) }} · {{ $template->is_active ? 'Activa' : 'Inactiva' }}</span>
+                                <span>{{ ucfirst(str_replace('_', ' ', $template->category)) }} - {{ $template->is_active ? 'Activa' : 'Inactiva' }}</span>
                             </div>
-                            <p>{{ collect($template->fields ?? [])->map(fn($field) => $field['label'] ?? '')->filter()->implode(' · ') ?: 'Sin campos definidos' }}</p>
+                            <p>{{ collect($template->fields ?? [])->map(fn($field) => $field['label'] ?? '')->filter()->implode(' - ') ?: 'Sin campos definidos' }}</p>
                             <footer>
                                 <button type="button" wire:click="editTemplate({{ $template->id }})">Editar</button>
                                 @if ($canDeleteClinical)
@@ -353,88 +177,16 @@
                     @endforeach
                 </section>
             @elseif ($tab === 'access')
-                <section class="rm-panel rm-clinical-editor">
-                    <header>
-                        <h2>Especialidades medicas</h2>
-                        <span>Un doctor puede tener varias especialidades.</span>
-                    </header>
-                    <div class="rm-form-grid rm-clinical-form-grid two">
-                        <label class="rm-field">
-                            <span>Nueva especialidad</span>
-                            <input wire:model="specialtyName" type="text" placeholder="Dermatologia, ginecologia, podologia">
-                        </label>
-                        <label class="rm-field">
-                            <span>Descripcion</span>
-                            <input wire:model="specialtyDescription" type="text" placeholder="Opcional">
-                        </label>
+                <section class="rm-panel rm-clinical-actionbar">
+                    <div>
+                        <h2>Accesos clinicos</h2>
+                        <p>Especialidades y permisos por paciente para doctores o profesionales.</p>
                     </div>
-                    <button class="rm-button rm-button-primary" type="button" wire:click="saveSpecialty">Crear especialidad</button>
-                </section>
-
-                <section class="rm-panel rm-clinical-editor">
-                    <header>
-                        <h2>Asignar especialidades</h2>
-                        <span>Selecciona profesional y sus especialidades.</span>
-                    </header>
-                    <div class="rm-form-grid rm-clinical-form-grid two">
-                        <label class="rm-field">
-                            <span>Profesional</span>
-                            <select wire:model="specialtyUserId">
-                                <option value="">Seleccionar</option>
-                                @foreach ($staff as $user)
-                                    <option value="{{ $user->id }}">{{ $user->name }}</option>
-                                @endforeach
-                            </select>
-                        </label>
-                        <label class="rm-field">
-                            <span>Especialidades</span>
-                            <select wire:model="specialtyIds" multiple size="4">
-                                @foreach ($specialties as $specialty)
-                                    <option value="{{ $specialty->id }}">{{ $specialty->name }}</option>
-                                @endforeach
-                            </select>
-                        </label>
+                    <div class="rm-clinical-action-buttons">
+                        <button class="rm-button rm-button-outline" type="button" wire:click="openSpecialtyModal">Nueva especialidad</button>
+                        <button class="rm-button rm-button-outline" type="button" wire:click="openAssignSpecialtyModal">Asignar especialidades</button>
+                        <button class="rm-button rm-button-primary" type="button" wire:click="openPatientAccessModal">Autorizar paciente</button>
                     </div>
-                    <button class="rm-button rm-button-primary" type="button" wire:click="assignSpecialties">Guardar especialidades</button>
-                </section>
-
-                <section class="rm-panel rm-clinical-editor">
-                    <header>
-                        <h2>Autorizar historial por paciente</h2>
-                        <span>Para doctores que no deben ver todo el historial completo.</span>
-                    </header>
-                    <div class="rm-form-grid rm-clinical-form-grid two">
-                        <label class="rm-field">
-                            <span>Paciente</span>
-                            <select wire:model="accessClientId">
-                                @foreach ($clients as $client)
-                                    <option value="{{ $client->id }}">{{ $client->full_name }}</option>
-                                @endforeach
-                            </select>
-                        </label>
-                        <label class="rm-field">
-                            <span>Doctor / profesional</span>
-                            <select wire:model="accessUserId">
-                                <option value="">Seleccionar</option>
-                                @foreach ($staff as $user)
-                                    <option value="{{ $user->id }}">{{ $user->name }}</option>
-                                @endforeach
-                            </select>
-                        </label>
-                        <label class="rm-field">
-                            <span>Vence</span>
-                            <input wire:model="accessExpiresAt" type="date">
-                        </label>
-                        <label class="rm-field">
-                            <span>Motivo</span>
-                            <input wire:model="accessReason" type="text" placeholder="Interconsulta, apoyo, seguimiento">
-                        </label>
-                    </div>
-                    <div class="rm-inline-checks">
-                        <label><input wire:model="accessCanView" type="checkbox"> Puede ver</label>
-                        <label><input wire:model="accessCanCreate" type="checkbox"> Puede registrar</label>
-                    </div>
-                    <button class="rm-button rm-button-primary" type="button" wire:click="grantPatientAccess">Guardar acceso</button>
                 </section>
 
                 <section class="rm-clinical-list">
@@ -442,9 +194,9 @@
                         <article class="rm-panel rm-clinical-card">
                             <div>
                                 <strong>{{ $access->client?->full_name }}</strong>
-                                <span>{{ $access->user?->name }} · {{ $access->can_create ? 'Ver y registrar' : 'Solo ver' }}</span>
+                                <span>{{ $access->user?->name }} - {{ $access->can_create ? 'Ver y registrar' : 'Solo ver' }}</span>
                             </div>
-                            <p>{{ $access->reason ?: 'Sin motivo' }} {{ $access->expires_at ? '· Vence ' . $access->expires_at->format('d/m/Y') : '' }}</p>
+                            <p>{{ $access->reason ?: 'Sin motivo' }} {{ $access->expires_at ? '- Vence ' . $access->expires_at->format('d/m/Y') : '' }}</p>
                             <footer>
                                 <span>Autorizado por {{ $access->grantedBy?->name ?? 'Sistema' }}</span>
                                 <button type="button" wire:click="revokePatientAccess({{ $access->id }})">Quitar acceso</button>
@@ -456,25 +208,5 @@
         </div>
     </section>
 
-    @if ($confirmingRecordDeleteId || $confirmingTemplateDeleteId)
-        <div class="rm-modal-backdrop" wire:click="cancelClinicalDelete"></div>
-        <section class="rm-modal-panel rm-modal-panel-sm" role="dialog" aria-modal="true">
-            <div class="rm-modal-title">
-                <div>
-                    <span>Confirmar eliminacion</span>
-                    <h2>¿Deseas eliminar este registro?</h2>
-                </div>
-                <button type="button" wire:click="cancelClinicalDelete">x</button>
-            </div>
-            <p class="rm-delete-copy">Esta accion quedara registrada en la bitacora del sistema.</p>
-            <div class="rm-form-actions">
-                @if ($confirmingRecordDeleteId)
-                    <button class="rm-button rm-button-danger" type="button" wire:click="deleteRecordConfirmed">Si, eliminar ficha</button>
-                @else
-                    <button class="rm-button rm-button-danger" type="button" wire:click="deleteTemplateConfirmed">Si, eliminar plantilla</button>
-                @endif
-                <button class="rm-button rm-button-outline" type="button" wire:click="cancelClinicalDelete">Cancelar</button>
-            </div>
-        </section>
-    @endif
+    @include('livewire.clinic.partials.clinical-history-modals')
 </div>

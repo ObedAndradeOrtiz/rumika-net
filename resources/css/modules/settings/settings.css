@@ -312,6 +312,43 @@
     gap: 12px;
 }
 
+.rm-clinical-actionbar {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    justify-content: space-between;
+    padding: 18px 22px;
+}
+
+.rm-clinical-actionbar > div:first-child {
+    display: grid;
+    gap: 4px;
+    min-width: min(100%, 280px);
+}
+
+.rm-clinical-actionbar h2 {
+    color: var(--rumika-ink);
+    font-size: 22px;
+    font-weight: 950;
+    margin: 0;
+}
+
+.rm-clinical-actionbar p {
+    color: var(--rumika-muted);
+    font-size: 14px;
+    font-weight: 750;
+    line-height: 1.35;
+    margin: 0;
+}
+
+.rm-clinical-action-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
 .rm-clinical-editor {
     padding: 24px 28px;
 }
@@ -2667,6 +2704,23 @@
 
     .rm-clinical-editor {
         padding: 16px;
+    }
+
+    .rm-clinical-actionbar {
+        align-items: stretch;
+        padding: 16px;
+    }
+
+    .rm-clinical-actionbar .rm-button,
+    .rm-clinical-action-buttons,
+    .rm-clinical-action-buttons .rm-button {
+        justify-content: center;
+        width: 100%;
+    }
+
+    .rm-clinical-action-buttons {
+        display: grid;
+        grid-template-columns: 1fr;
     }
 
     .rm-clinical-editor .rm-field input,

@@ -74,6 +74,14 @@ class ClinicalHistoryManager extends Component
     public string $accessExpiresAt = '';
     public string $accessReason = '';
 
+    public bool $showRecordModal = false;
+    public bool $showDocumentModal = false;
+    public bool $showPrescriptionModal = false;
+    public bool $showTemplateModal = false;
+    public bool $showSpecialtyModal = false;
+    public bool $showAssignSpecialtyModal = false;
+    public bool $showPatientAccessModal = false;
+
     public function mount(): void
     {
         $this->prescriptionIssuedAt = now()->format('Y-m-d');
@@ -116,6 +124,92 @@ class ClinicalHistoryManager extends Component
         $this->documentAppointmentServiceId = null;
         $this->prescriptionAppointmentId = null;
         $this->prescriptionAppointmentServiceId = null;
+    }
+
+    public function openRecordModal(): void
+    {
+        $this->authorizeClinical('create');
+        abort_unless($this->canCreateForSelectedClient(), 403);
+
+        $this->showRecordModal = true;
+    }
+
+    public function closeRecordModal(): void
+    {
+        $this->showRecordModal = false;
+    }
+
+    public function openDocumentModal(): void
+    {
+        $this->authorizeClinical('create');
+        abort_unless($this->canCreateForSelectedClient(), 403);
+
+        $this->showDocumentModal = true;
+    }
+
+    public function closeDocumentModal(): void
+    {
+        $this->showDocumentModal = false;
+    }
+
+    public function openPrescriptionModal(): void
+    {
+        $this->authorizeClinical('create');
+        abort_unless($this->canCreateForSelectedClient(), 403);
+
+        $this->showPrescriptionModal = true;
+    }
+
+    public function closePrescriptionModal(): void
+    {
+        $this->showPrescriptionModal = false;
+    }
+
+    public function openTemplateModal(): void
+    {
+        $this->authorizeClinical('create');
+        $this->resetTemplateForm();
+        $this->showTemplateModal = true;
+    }
+
+    public function closeTemplateModal(): void
+    {
+        $this->showTemplateModal = false;
+        $this->resetTemplateForm();
+    }
+
+    public function openSpecialtyModal(): void
+    {
+        $this->authorizeClinical('manage_access');
+        $this->showSpecialtyModal = true;
+    }
+
+    public function closeSpecialtyModal(): void
+    {
+        $this->showSpecialtyModal = false;
+    }
+
+    public function openAssignSpecialtyModal(): void
+    {
+        $this->authorizeClinical('manage_access');
+        $this->showAssignSpecialtyModal = true;
+    }
+
+    public function closeAssignSpecialtyModal(): void
+    {
+        $this->showAssignSpecialtyModal = false;
+    }
+
+    public function openPatientAccessModal(): void
+    {
+        $this->authorizeClinical('manage_access');
+        $this->accessClientId = $this->selectedClientId;
+        $this->showPatientAccessModal = true;
+    }
+
+    public function closePatientAccessModal(): void
+    {
+        $this->showPatientAccessModal = false;
     }
 
     public function updatedTemplateId(): void
@@ -176,6 +270,7 @@ class ClinicalHistoryManager extends Component
 
         $this->reset(['templateId', 'recordTitle', 'recordAppointmentId', 'recordAppointmentServiceId', 'recordServiceId', 'recordContent', 'recordData']);
         $this->recordType = 'ficha';
+        $this->showRecordModal = false;
         $this->dispatch('clinical-record-saved');
     }
 
@@ -214,6 +309,7 @@ class ClinicalHistoryManager extends Component
         ]);
 
         $this->reset(['documentTitle', 'documentAppointmentId', 'documentAppointmentServiceId', 'documentServiceId', 'documentNotes', 'documentFile']);
+        $this->showDocumentModal = false;
         $this->dispatch('clinical-document-saved');
     }
 
@@ -247,6 +343,7 @@ class ClinicalHistoryManager extends Component
         $this->reset(['prescriptionAppointmentId', 'prescriptionAppointmentServiceId', 'prescriptionIndications']);
         $this->prescriptionTitle = 'Receta';
         $this->prescriptionIssuedAt = now()->format('Y-m-d');
+        $this->showPrescriptionModal = false;
         $this->dispatch('clinical-prescription-saved');
     }
 
@@ -283,6 +380,7 @@ class ClinicalHistoryManager extends Component
         ])->save();
 
         $this->resetTemplateForm();
+        $this->showTemplateModal = false;
         $this->dispatch('clinical-template-saved');
     }
 
@@ -298,6 +396,7 @@ class ClinicalHistoryManager extends Component
         $this->templateFieldsText = collect($template->fields ?? [])->map(fn ($field) => $field['label'] ?? '')->filter()->implode(PHP_EOL);
         $this->templateIsActive = $template->is_active;
         $this->tab = 'templates';
+        $this->showTemplateModal = true;
     }
 
     public function deleteTemplate(int $templateId): void
@@ -368,6 +467,7 @@ class ClinicalHistoryManager extends Component
         ]);
 
         $this->reset(['specialtyName', 'specialtyDescription']);
+        $this->showSpecialtyModal = false;
     }
 
     public function assignSpecialties(): void
@@ -385,6 +485,7 @@ class ClinicalHistoryManager extends Component
         $user->clinicalSpecialties()->sync($validated['specialtyIds']);
 
         $this->reset(['specialtyUserId', 'specialtyIds']);
+        $this->showAssignSpecialtyModal = false;
     }
 
     public function grantPatientAccess(): void
@@ -421,6 +522,7 @@ class ClinicalHistoryManager extends Component
         $this->reset(['accessUserId', 'accessExpiresAt', 'accessReason']);
         $this->accessCanView = true;
         $this->accessCanCreate = true;
+        $this->showPatientAccessModal = false;
     }
 
     public function revokePatientAccess(int $accessId): void
