@@ -64,7 +64,7 @@
     </section>
 
     <section class="rm-panel rm-report-section">
-        <div class="rm-panel-title"><div><h2>Metas configuradas</h2><p>Semanal, quincenal o mensual por personal y opcionalmente por sucursal.</p></div></div>
+        <div class="rm-panel-title"><div><h2>Metas configuradas</h2><p>Semanal, quincenal, mensual o personalizada por personal y opcionalmente por sucursal.</p></div></div>
         <div class="rm-commerce-list">
             @forelse ($targets as $target)
                 <article class="rm-commerce-row">
@@ -73,6 +73,7 @@
                         <strong>{{ $target->user?->name ?? 'Sin personal' }}</strong>
                         <span>{{ $target->branch?->name ?? 'Todas las sucursales' }} - {{ $periods[$target->period_type] ?? $target->period_type }}</span>
                         <div class="rm-commerce-meta">
+                            <span>Desde {{ $target->starts_at?->format('d/m/Y') ?? 'Sin fecha' }}{{ $target->ends_at ? ' hasta '.$target->ends_at->format('d/m/Y') : ' en adelante' }}</span>
                             <span>Venta minima {{ $currency }} {{ number_format((float) $target->minimum_sales_amount, 2) }}</span>
                             <span>Comision minima {{ $currency }} {{ number_format((float) $target->minimum_commission_amount, 2) }}</span>
                             <span>{{ $target->status === 'active' ? 'Activa' : 'Inactiva' }}</span>
@@ -97,7 +98,7 @@
                 <button type="button" wire:click="$set('showTargetModal', false)">x</button>
             </div>
             <form wire:submit="saveTarget" class="rm-form-stack">
-                <div class="rm-form-row">
+                <div class="rm-form-row rm-commission-date-row">
                     <label class="rm-field">
                         <span>Personal</span>
                         <select wire:model="targetUserId">
@@ -121,11 +122,12 @@
                 <div class="rm-form-row">
                     <label class="rm-field">
                         <span>Periodo</span>
-                        <select wire:model="targetPeriodType">
+                        <select wire:model.live="targetPeriodType">
                             @foreach ($periods as $value => $label)
                                 <option value="{{ $value }}">{{ $label }}</option>
                             @endforeach
                         </select>
+                        @error('targetPeriodType')<small>{{ $message }}</small>@enderror
                     </label>
                     <label class="rm-field">
                         <span>Estado</span>
@@ -134,6 +136,18 @@
                             <option value="inactive">Inactiva</option>
                         </select>
                     </label>
+                </div>
+                <div class="rm-form-row">
+                    <label class="rm-field"><span>Desde</span><input wire:model="targetDateFrom" type="date">@error('targetDateFrom')<small>{{ $message }}</small>@enderror</label>
+                    <label class="rm-field">
+                        <span>{{ $targetPeriodType === 'custom' ? 'Hasta' : 'Hasta opcional' }}</span>
+                        <input wire:model="targetDateTo" type="date">
+                        @error('targetDateTo')<small>{{ $message }}</small>@enderror
+                    </label>
+                    <div class="rm-field rm-muted-field">
+                        <span>Uso de la meta</span>
+                        <strong>{{ $targetPeriodType === 'custom' ? 'Rango cerrado' : 'Desde la fecha indicada' }}</strong>
+                    </div>
                 </div>
                 <div class="rm-form-row">
                     <label class="rm-field"><span>Venta minima</span><input wire:model="targetMinimumSales" type="number" min="0" step="0.01">@error('targetMinimumSales')<small>{{ $message }}</small>@enderror</label>

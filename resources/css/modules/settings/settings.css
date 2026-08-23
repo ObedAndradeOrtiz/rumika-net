@@ -3067,6 +3067,23 @@
     grid-template-columns: repeat(4, minmax(150px, 1fr)) auto;
 }
 
+.rm-commission-date-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.rm-muted-field strong {
+    align-items: center;
+    background: #f4f7fb;
+    border: 1px solid var(--rumika-border);
+    border-radius: 14px;
+    color: var(--rumika-muted);
+    display: flex;
+    font-size: 14px;
+    font-weight: 850;
+    min-height: 48px;
+    padding: 0 13px;
+}
+
 .rm-commission-table .rm-report-table-head,
 .rm-commission-table .rm-report-table-row {
     grid-template-columns: 1.2fr 1fr repeat(6, minmax(90px, 1fr));

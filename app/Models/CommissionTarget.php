@@ -12,6 +12,8 @@ class CommissionTarget extends Model
         'branch_id',
         'user_id',
         'period_type',
+        'starts_at',
+        'ends_at',
         'minimum_sales_amount',
         'minimum_commission_amount',
         'status',
@@ -20,6 +22,8 @@ class CommissionTarget extends Model
     protected function casts(): array
     {
         return [
+            'starts_at' => 'date',
+            'ends_at' => 'date',
             'minimum_sales_amount' => 'decimal:2',
             'minimum_commission_amount' => 'decimal:2',
         ];

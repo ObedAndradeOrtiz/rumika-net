@@ -29,6 +29,8 @@ class CommissionManager extends Component
     public string $targetUserId = '';
     public string $targetBranchId = '';
     public string $targetPeriodType = 'monthly';
+    public string $targetDateFrom = '';
+    public string $targetDateTo = '';
     public string $targetMinimumSales = '0';
     public string $targetMinimumCommission = '0';
     public string $targetStatus = 'active';
@@ -53,6 +55,8 @@ class CommissionManager extends Component
         $this->targetUserId = (string) $target->user_id;
         $this->targetBranchId = (string) $target->branch_id;
         $this->targetPeriodType = $target->period_type;
+        $this->targetDateFrom = $target->starts_at?->format('Y-m-d') ?? now()->format('Y-m-d');
+        $this->targetDateTo = $target->ends_at?->format('Y-m-d') ?? '';
         $this->targetMinimumSales = (string) $target->minimum_sales_amount;
         $this->targetMinimumCommission = (string) $target->minimum_commission_amount;
         $this->targetStatus = $target->status;
@@ -69,7 +73,9 @@ class CommissionManager extends Component
         $validated = $this->validate([
             'targetUserId' => ['required', Rule::in($userIds)],
             'targetBranchId' => ['nullable', Rule::in($branchIds)],
-            'targetPeriodType' => ['required', Rule::in(['weekly', 'biweekly', 'monthly'])],
+            'targetPeriodType' => ['required', Rule::in(array_keys($this->periodOptions()))],
+            'targetDateFrom' => ['required', 'date'],
+            'targetDateTo' => ['nullable', 'date', 'after_or_equal:targetDateFrom', 'required_if:targetPeriodType,custom'],
             'targetMinimumSales' => ['required', 'numeric', 'min:0', 'max:99999999.99'],
             'targetMinimumCommission' => ['required', 'numeric', 'min:0', 'max:99999999.99'],
             'targetStatus' => ['required', Rule::in(['active', 'inactive'])],
@@ -83,6 +89,8 @@ class CommissionManager extends Component
             'branch_id' => $validated['targetBranchId'] !== '' ? (int) $validated['targetBranchId'] : null,
             'user_id' => (int) $validated['targetUserId'],
             'period_type' => $validated['targetPeriodType'],
+            'starts_at' => $validated['targetDateFrom'],
+            'ends_at' => $validated['targetDateTo'] ?: null,
             'minimum_sales_amount' => $validated['targetMinimumSales'],
             'minimum_commission_amount' => $validated['targetMinimumCommission'],
             'status' => $validated['targetStatus'],
@@ -171,6 +179,14 @@ class CommissionManager extends Component
         $targets = $company->commissionTargets()
             ->where('status', 'active')
             ->where('period_type', $this->periodFilter)
+            ->where(function ($query) {
+                $query->whereNull('starts_at')
+                    ->orWhere('starts_at', '<=', $this->dateRangeEnd()->toDateString());
+            })
+            ->where(function ($query) {
+                $query->whereNull('ends_at')
+                    ->orWhere('ends_at', '>=', $this->dateRangeStart()->toDateString());
+            })
             ->get();
 
         $company->users()->orderBy('name')->get()->each(function (User $user) use ($rows, $targets, $branchIds) {
@@ -297,10 +313,10 @@ class CommissionManager extends Component
 
     private function applyDateRange($query, string $column)
     {
-        $query->where($column, '>=', Carbon::parse($this->dateFrom ?: now()->startOfMonth())->startOfDay());
+        $query->where($column, '>=', $this->dateRangeStart());
 
         if ($this->dateTo !== '') {
-            $query->where($column, '<=', Carbon::parse($this->dateTo)->endOfDay());
+            $query->where($column, '<=', $this->dateRangeEnd());
         }
 
         return $query;
@@ -308,12 +324,22 @@ class CommissionManager extends Component
 
     private function rangeLabel(): string
     {
-        $from = Carbon::parse($this->dateFrom ?: now()->startOfMonth())->format('d/m/Y');
+        $from = $this->dateRangeStart()->format('d/m/Y');
         $to = $this->dateTo !== ''
-            ? Carbon::parse($this->dateTo)->format('d/m/Y')
+            ? $this->dateRangeEnd()->format('d/m/Y')
             : 'en adelante';
 
         return $from.' - '.$to;
+    }
+
+    private function dateRangeStart(): Carbon
+    {
+        return Carbon::parse($this->dateFrom ?: now()->startOfMonth())->startOfDay();
+    }
+
+    private function dateRangeEnd(): Carbon
+    {
+        return Carbon::parse($this->dateTo ?: now())->endOfDay();
     }
 
     private function periodOptions(): array
@@ -322,6 +348,7 @@ class CommissionManager extends Component
             'weekly' => 'Semanal',
             'biweekly' => 'Quincenal',
             'monthly' => 'Mensual',
+            'custom' => 'Personalizado',
         ];
     }
 
@@ -329,6 +356,8 @@ class CommissionManager extends Component
     {
         $this->reset(['editingTargetId', 'targetUserId', 'targetBranchId']);
         $this->targetPeriodType = 'monthly';
+        $this->targetDateFrom = now()->format('Y-m-d');
+        $this->targetDateTo = '';
         $this->targetMinimumSales = '0';
         $this->targetMinimumCommission = '0';
         $this->targetStatus = 'active';
