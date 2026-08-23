@@ -17,7 +17,9 @@ use Livewire\Component;
 
 class ProductSalesManager extends Component
 {
+    public string $tab = 'sale';
     public string $buyerSearch = '';
+    public string $buyerDirectorySearch = '';
     public string $buyerName = '';
     public string $buyerNit = '';
     public string $buyerPhone = '';
@@ -45,6 +47,21 @@ class ProductSalesManager extends Component
         $this->buyerPhone = $buyer->phone ?? '';
         $this->buyerEmail = $buyer->email ?? '';
         $this->buyerSearch = '';
+    }
+
+    public function useBuyerForSale(int $buyerId): void
+    {
+        $this->selectBuyer($buyerId);
+        $this->tab = 'sale';
+    }
+
+    public function setTab(string $tab): void
+    {
+        if (! in_array($tab, ['sale', 'buyers'], true)) {
+            return;
+        }
+
+        $this->tab = $tab;
     }
 
     public function addProduct(int $productId): void
@@ -233,6 +250,7 @@ class ProductSalesManager extends Component
         $company = $this->company();
         $branch = $this->activeBranch();
         $buyerSearch = trim($this->buyerSearch);
+        $buyerDirectorySearch = trim($this->buyerDirectorySearch);
         $productSearch = trim($this->productSearch);
 
         return view('livewire.sales.product-sales-manager', [
@@ -245,12 +263,28 @@ class ProductSalesManager extends Component
                     ->orWhere('phone', 'like', "%{$buyerSearch}%"))
                 ->limit(6)
                 ->get(),
+            'buyerDirectory' => $company->buyers()
+                ->where('status', 'active')
+                ->when($buyerDirectorySearch !== '', fn (Builder $query) => $query
+                    ->where(fn (Builder $nested) => $nested
+                        ->where('full_name', 'like', "%{$buyerDirectorySearch}%")
+                        ->orWhere('nit', 'like', "%{$buyerDirectorySearch}%")
+                        ->orWhere('phone', 'like', "%{$buyerDirectorySearch}%")
+                        ->orWhere('email', 'like', "%{$buyerDirectorySearch}%")))
+                ->latest()
+                ->limit(80)
+                ->get(),
             'products' => $productSearch === '' ? collect() : $company->inventoryProducts()
                 ->with(['brand', 'useArea', 'batches' => fn ($query) => $query->where('branch_id', $branch->id)])
                 ->where('status', 'active')
                 ->where(fn (Builder $query) => $query
                     ->where('name', 'like', "%{$productSearch}%")
-                    ->orWhere('code', 'like', "%{$productSearch}%"))
+                    ->orWhere('code', 'like', "%{$productSearch}%")
+                    ->orWhereHas('brand', fn (Builder $brandQuery) => $brandQuery->where('name', 'like', "%{$productSearch}%"))
+                    ->orWhereHas('useArea', fn (Builder $areaQuery) => $areaQuery->where('name', 'like', "%{$productSearch}%"))
+                    ->orWhereHas('batches', fn (Builder $batchQuery) => $batchQuery
+                        ->where('branch_id', $branch->id)
+                        ->where('lot_code', 'like', "%{$productSearch}%")))
                 ->orderBy('name')
                 ->limit(8)
                 ->get(),

@@ -356,6 +356,34 @@
     grid-template-columns: minmax(0, 1fr) minmax(320px, 420px);
 }
 
+.rm-sales-compact-head {
+    align-items: center;
+    display: grid;
+    gap: 12px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    margin-bottom: 14px;
+}
+
+.rm-sales-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0;
+}
+
+.rm-sales-branch-pill {
+    align-items: center;
+    background: #e8f6f3;
+    border: 1px solid #c7ebe4;
+    border-radius: 16px;
+    color: var(--rumika-teal-dark);
+    display: inline-flex;
+    font-size: 13px;
+    font-weight: 950;
+    min-height: 46px;
+    padding: 0 16px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
 .rm-commerce-list.compact {
     gap: 8px;
 }
@@ -379,7 +407,9 @@
     border-radius: 18px;
     display: grid;
     gap: 12px;
-    grid-template-columns: minmax(220px, 1fr) 120px 130px minmax(150px, 1fr) auto;
+    grid-template-columns: minmax(170px, 1fr) minmax(86px, 110px) minmax(92px, 120px) minmax(130px, 170px) auto;
+    min-width: 0;
+    overflow: hidden;
     padding: 14px;
 }
 
@@ -402,6 +432,14 @@
     color: var(--rumika-muted);
     font-size: 12px;
     font-weight: 800;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rm-sale-line .rm-field,
+.rm-sale-line .rm-field input {
+    min-width: 0;
 }
 
 .rm-sale-summary {
@@ -438,6 +476,14 @@
     color: var(--rumika-teal-dark);
     font-weight: 900;
     padding: 14px 18px;
+}
+
+.rm-buyer-directory-list {
+    margin-top: 14px;
+}
+
+.rm-buyer-directory-row {
+    grid-template-columns: 56px minmax(0, 1fr) auto;
 }
 
 .rm-error-text {
@@ -2825,6 +2871,16 @@
         grid-template-columns: 1fr;
     }
 
+    .rm-sales-compact-head {
+        grid-template-columns: 1fr;
+    }
+
+    .rm-sales-branch-pill {
+        justify-content: center;
+        min-height: 42px;
+        width: 100%;
+    }
+
     .rm-sale-summary {
         position: static;
     }
@@ -3367,6 +3423,18 @@
         justify-content: center;
         padding-inline: 8px;
         width: 100%;
+    }
+
+    .rm-buyer-directory-row {
+        grid-template-columns: 48px minmax(0, 1fr);
+    }
+
+    .rm-buyer-directory-row .rm-commerce-actions {
+        grid-column: 1 / -1;
+    }
+
+    .rm-buyer-directory-row .rm-commerce-actions button {
+        min-height: 44px;
     }
 
     .rm-catalog-panel .rm-commerce-meta {

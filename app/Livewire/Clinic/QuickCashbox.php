@@ -839,6 +839,10 @@ class QuickCashbox extends Component
 
             'business_date' => $businessDate->format('d/m/Y'),
 
+            'currency_code' => $branch->currency_code ?? 'BOB',
+
+            'currency_symbol' => $branch->moneySymbol(),
+
             'shift_number' => $session?->shift_number,
 
             'status' => $session?->status,
@@ -1070,6 +1074,7 @@ class QuickCashbox extends Component
         $width = 42;
         $descriptionWidth = 24;
         $amountWidth = 18;
+        $currencySymbol = $branch->moneySymbol();
 
         $clean = function ($value): string {
             $value = Str::ascii((string) $value);
@@ -1078,8 +1083,8 @@ class QuickCashbox extends Component
             return trim($value);
         };
 
-        $money = function ($value): string {
-            return number_format(
+        $money = function ($value) use ($currencySymbol): string {
+            return $currencySymbol . ' ' . number_format(
                 (float) $value,
                 2,
                 '.',

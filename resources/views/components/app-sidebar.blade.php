@@ -53,8 +53,8 @@
         </a>
         @endif
 
-        @if ($sidebarCanSeeAgenda || $sidebarCanSeeClients || $sidebarCanSeeClinicalHistory)
-        <details class="rm-menu-group" {{ in_array($active, ['agenda', 'clients', 'clinical-history'], true) ? 'open' : '' }}>
+        @if ($sidebarCanSeeAgenda || $sidebarCanSeeClients || $sidebarCanSeeClinicalHistory || $sidebarCanSeeProductSales)
+        <details class="rm-menu-group" {{ in_array($active, ['agenda', 'clients', 'clinical-history', 'product-sales'], true) ? 'open' : '' }}>
             <summary>
                 <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     stroke-width="2.2">
@@ -81,6 +81,13 @@
                     href="{{ route('clinic.clients') }}">
                     <i aria-hidden="true"></i>
                     <span data-sidebar-label>Clientes</span>
+                </a>
+                @endif
+                @if ($sidebarCanSeeProductSales)
+                <a class="rm-side-link rm-side-sub-link {{ $active === 'product-sales' ? 'is-active' : '' }}"
+                    href="{{ route('sales.products') }}">
+                    <i aria-hidden="true"></i>
+                    <span data-sidebar-label>Ventas</span>
                 </a>
                 @endif
                 @if ($sidebarCanSeeClinicalHistory)
@@ -130,9 +137,9 @@
         </details>
         @endif
 
-        @if ($sidebarCanSeeCashbox || $sidebarCanSeeProductSales || $sidebarCanSeeExpenses || $sidebarCanSeeFinancialSummary || $sidebarCanSeeStatistics)
+        @if ($sidebarCanSeeCashbox || $sidebarCanSeeExpenses || $sidebarCanSeeFinancialSummary || $sidebarCanSeeStatistics)
         <details class="rm-menu-group"
-            {{ in_array($active, ['expenses', 'cashbox', 'product-sales', 'finance-summary', 'statistics'], true) ? 'open' : '' }}>
+            {{ in_array($active, ['expenses', 'cashbox', 'finance-summary', 'statistics'], true) ? 'open' : '' }}>
             <summary>
                 <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     stroke-width="2.2">
@@ -152,13 +159,6 @@
                     href="{{ route('clinic.cashbox') }}">
                     <i aria-hidden="true"></i>
                     <span data-sidebar-label>Caja</span>
-                </a>
-                @endif
-                @if ($sidebarCanSeeProductSales)
-                <a class="rm-side-link rm-side-sub-link {{ $active === 'product-sales' ? 'is-active' : '' }}"
-                    href="{{ route('sales.products') }}">
-                    <i aria-hidden="true"></i>
-                    <span data-sidebar-label>Ventas</span>
                 </a>
                 @endif
                 @if ($sidebarCanSeeExpenses)
@@ -353,8 +353,8 @@
             </button>
         </div>
         <div class="rm-mobile-more-scroll">
-            @if ($sidebarCanSeeClinicalHistory)
-            <details class="rm-mobile-menu-group" {{ $active === 'clinical-history' ? 'open' : '' }}>
+            @if ($sidebarCanSeeClinicalHistory || $sidebarCanSeeProductSales)
+            <details class="rm-mobile-menu-group" {{ in_array($active, ['clinical-history', 'product-sales'], true) ? 'open' : '' }}>
                 <summary>
                     <span>Gestion de clientes</span>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -363,7 +363,12 @@
                     </svg>
                 </summary>
                 <div>
+                    @if ($sidebarCanSeeProductSales)
+                    <a href="{{ route('sales.products') }}">Ventas</a>
+                    @endif
+                    @if ($sidebarCanSeeClinicalHistory)
                     <a href="{{ route('clinic.clinical-history') }}">Historia clinica</a>
+                    @endif
                 </div>
             </details>
             @endif

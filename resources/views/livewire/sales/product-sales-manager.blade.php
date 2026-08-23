@@ -1,26 +1,23 @@
 <div class="rm-content rm-settings-page">
-    <div class="rm-settings-hero">
-        <div>
-            <span>Venta comercial</span>
-            <h1>Venta de productos</h1>
-            <p>Vende productos sin agenda ni paciente. El comprador es opcional y puede guardarse por NIT o telefono.</p>
+    <div class="rm-sales-compact-head">
+        <div class="rm-tab-switcher rm-sales-tabs">
+            <button type="button" wire:click="setTab('sale')" class="{{ $tab === 'sale' ? 'is-active' : '' }}">Venta</button>
+            <button type="button" wire:click="setTab('buyers')" class="{{ $tab === 'buyers' ? 'is-active' : '' }}">Compradores</button>
         </div>
-        <div class="rm-kpi">
-            <strong>{{ $branch->name }}</strong>
-            <span>Sucursal activa</span>
-        </div>
+        <span class="rm-sales-branch-pill">{{ $branch->name }}</span>
     </div>
 
     @if ($message)
         <div class="rm-panel rm-success-panel">{{ $message }}</div>
     @endif
 
+    @if ($tab === 'sale')
     <section class="rm-commerce-sale-grid">
         <div class="rm-panel rm-catalog-panel">
             <div class="rm-panel-title">
                 <div>
-                    <h2>Comprador</h2>
-                    <p>Busca por NIT, telefono o nombre. Si no tiene datos, puedes vender como consumidor final.</p>
+                    <h2>Comprador de venta directa</h2>
+                    <p>Busca por NIT, telefono o nombre. Esto no se mezcla con pacientes clinicos.</p>
                 </div>
             </div>
 
@@ -40,6 +37,8 @@
                         </button>
                     @endforeach
                 </div>
+            @elseif (trim($buyerSearch) !== '')
+                <div class="rm-empty-state">No existe ese comprador. Puedes llenar sus datos abajo y se guardara si tiene NIT o telefono.</div>
             @endif
 
             <div class="rm-form-grid two">
@@ -52,13 +51,13 @@
             <div class="rm-panel-title">
                 <div>
                     <h2>Productos</h2>
-                    <p>Busca por nombre o codigo y agrega los productos vendidos.</p>
+                    <p>Busca por nombre, codigo, marca, zona o lote.</p>
                 </div>
             </div>
 
             <label class="rm-search-field">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-                <input wire:model.live.debounce.300ms="productSearch" type="search" placeholder="Buscar producto por nombre o codigo">
+                <input wire:model.live.debounce.300ms="productSearch" type="search" placeholder="Buscar producto por nombre, codigo, marca, zona o lote">
             </label>
 
             @if ($products->isNotEmpty())
@@ -68,7 +67,7 @@
                         <button class="rm-commerce-row rm-product-result" type="button" wire:click="addProduct({{ $product->id }})">
                             <div class="rm-row-main">
                                 <strong>{{ $product->name }}</strong>
-                                <span>{{ $product->code }} - {{ $product->brand?->name ?? 'Sin marca' }} - Stock {{ number_format($stock, 2) }}</span>
+                                <span>{{ $product->code }} - {{ $product->brand?->name ?? 'Sin marca' }} - {{ $product->useArea?->name ?? 'Sin zona' }} - Stock {{ number_format($stock, 2) }}</span>
                             </div>
                             <span class="rm-soft-pill">{{ $product->useArea?->name ?? 'Sin area' }}</span>
                         </button>
@@ -81,7 +80,7 @@
                     <div class="rm-sale-line">
                         <div>
                             <strong>{{ $line['name'] }}</strong>
-                            <span>{{ $line['code'] }} - {{ $line['lot'] }} - Stock {{ number_format((float) $line['available'], 2) }}</span>
+                            <span>{{ $line['code'] }} - {{ $line['brand'] }} - {{ $line['area'] }} - {{ $line['lot'] }} - Stock {{ number_format((float) $line['available'], 2) }}</span>
                         </div>
                         <label class="rm-field"><span>Cantidad</span><input wire:model.live="lines.{{ $index }}.quantity" type="number" min="0.01" step="0.01"></label>
                         <label class="rm-field"><span>Precio</span><input wire:model.live="lines.{{ $index }}.unit_price" type="number" min="0" step="0.01"></label>
@@ -165,4 +164,40 @@
             @endforelse
         </div>
     </section>
+    @else
+        <section class="rm-panel rm-catalog-panel">
+            <div class="rm-panel-title">
+                <div>
+                    <h2>Compradores por NIT</h2>
+                    <p>Directorio comercial separado de los clientes clinicos.</p>
+                </div>
+            </div>
+
+            <label class="rm-search-field">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+                <input wire:model.live.debounce.300ms="buyerDirectorySearch" type="search" placeholder="Buscar por NIT, telefono, nombre o email">
+            </label>
+
+            <div class="rm-commerce-list rm-buyer-directory-list">
+                @forelse ($buyerDirectory as $buyer)
+                    <article class="rm-commerce-row rm-buyer-directory-row">
+                        <div class="rm-commerce-icon">{{ strtoupper(substr($buyer->full_name ?: ($buyer->nit ?: 'CF'), 0, 2)) }}</div>
+                        <div class="rm-row-main">
+                            <strong>{{ $buyer->full_name ?: 'Sin nombre' }}</strong>
+                            <span>NIT {{ $buyer->nit ?: 'Sin NIT' }} - {{ $buyer->phone ?: 'Sin telefono' }}</span>
+                            <div class="rm-commerce-meta">
+                                <span>{{ $buyer->email ?: 'Sin email' }}</span>
+                                <span>{{ $buyer->status === 'active' ? 'Activo' : 'Inactivo' }}</span>
+                            </div>
+                        </div>
+                        <div class="rm-commerce-actions">
+                            <button type="button" wire:click="useBuyerForSale({{ $buyer->id }})">Usar en venta</button>
+                        </div>
+                    </article>
+                @empty
+                    <div class="rm-empty-state">Aun no hay compradores guardados. Se crean al vender con NIT o telefono.</div>
+                @endforelse
+            </div>
+        </section>
+    @endif
 </div>
