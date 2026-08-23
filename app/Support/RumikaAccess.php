@@ -24,6 +24,10 @@ class RumikaAccess
             return false;
         }
 
+        if (! self::planAllows($company, $module)) {
+            return false;
+        }
+
         $companyRole = $user->companies()
             ->where('companies.id', $company->id)
             ->value('company_user.role');
@@ -45,6 +49,19 @@ class RumikaAccess
         return $roleQuery
             ->get()
             ->contains(fn ($role) => self::roleCan($role->slug, $role->permissions, $module, $action));
+    }
+
+    public static function planAllows(Company $company, string $module): bool
+    {
+        $features = $company->plan?->features ?? CompanyPlanCatalog::forSlug('free')['features'];
+
+        if (is_string($features)) {
+            $features = json_decode($features, true);
+        }
+
+        $modules = is_array($features) ? ($features['modules'] ?? []) : [];
+
+        return in_array('*', $modules, true) || in_array($module, $modules, true);
     }
 
     public static function roleCan(?string $slug, mixed $permissions, string $module, string $action = 'view'): bool

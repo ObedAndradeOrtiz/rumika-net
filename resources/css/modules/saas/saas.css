@@ -255,6 +255,11 @@
     gap: 8px;
 }
 
+.rm-saas-card-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
 .rm-saas-company-meta span,
 .rm-saas-company-users span {
     background: #f0f3f6;
@@ -283,6 +288,18 @@
 .rm-saas-company-users small {
     color: inherit;
     opacity: 0.78;
+}
+
+.rm-saas-editor-modal {
+    max-height: min(92vh, 840px);
+    overflow-y: auto;
+    width: min(92vw, 860px);
+}
+
+.rm-saas-editor-actions {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: minmax(0, 1fr) auto auto;
 }
 
 .rm-saas-empty {
@@ -332,11 +349,52 @@
 }
 
 .rm-saas-plan-list span,
+.rm-saas-plan-list small,
 .rm-saas-user-list small {
     color: var(--rumika-muted);
     font-size: 12px;
     font-weight: 800;
     margin-top: 3px;
+}
+
+.rm-saas-plan-list small {
+    line-height: 1.35;
+}
+
+.rm-billing-blocked {
+    background: #f4f7fb;
+    display: grid;
+    min-height: 100vh;
+    padding: 20px;
+    place-items: center;
+}
+
+.rm-billing-blocked section {
+    background: #ffffff;
+    border: 1px solid var(--rumika-border);
+    border-radius: 26px;
+    box-shadow: 0 24px 60px rgba(17, 24, 39, 0.08);
+    display: grid;
+    gap: 16px;
+    max-width: 520px;
+    padding: 32px;
+    text-align: center;
+}
+
+.rm-billing-blocked .rm-brand-mark {
+    justify-self: center;
+}
+
+.rm-billing-blocked h1 {
+    font-size: 34px;
+    font-weight: 950;
+    line-height: 1.05;
+}
+
+.rm-billing-blocked p {
+    color: var(--rumika-muted);
+    font-weight: 800;
+    line-height: 1.55;
 }
 
 .rm-saas-plan-list b {
@@ -425,5 +483,14 @@
 
     .rm-saas-panel {
         padding: 16px;
+    }
+
+    .rm-saas-card-actions,
+    .rm-saas-card-actions .rm-button {
+        width: 100%;
+    }
+
+    .rm-saas-editor-actions {
+        grid-template-columns: 1fr;
     }
 }

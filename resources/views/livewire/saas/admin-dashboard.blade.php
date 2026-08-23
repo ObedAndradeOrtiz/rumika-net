@@ -114,6 +114,8 @@
                         <div class="rm-saas-company-meta">
                             <span>{{ $company->plan?->name ?? 'Sin plan' }} · ${{ number_format((float) ($company->plan?->monthly_price ?? 0), 0) }}</span>
                             <span class="is-{{ $company->status }}">{{ ucfirst($company->status) }}</span>
+                            <span>{{ $company->billing_status ?: 'Sin pago' }}</span>
+                            <span>Acceso hasta {{ $company->access_expires_at?->format('d/m/Y') ?? ($company->trial_ends_at?->format('d/m/Y') ?? 'Sin fecha') }}</span>
                             <span>{{ $company->branches_count }} sucursales</span>
                             <span>{{ $company->users_count }} usuarios</span>
                             <span>{{ $company->clients_count }} clientes</span>
@@ -126,6 +128,12 @@
                             @empty
                                 <span>Sin usuarios asociados</span>
                             @endforelse
+                        </div>
+
+                        <div class="rm-saas-card-actions">
+                            <button class="rm-button rm-button-outline" type="button" wire:click="editCompany({{ $company->id }})">
+                                Editar acceso y plan
+                            </button>
                         </div>
                     </article>
                 @empty
@@ -152,6 +160,16 @@
                             <div>
                                 <strong>{{ $companyPlan->name }}</strong>
                                 <span>{{ $companyPlan->description }}</span>
+                                @php
+                                    $features = $companyPlan->features ?? [];
+                                    $limits = $features['limits'] ?? [];
+                                    $modules = $features['modules'] ?? [];
+                                @endphp
+                                <small>
+                                    {{ in_array('*', $modules, true) ? 'Todos los modulos' : count($modules).' modulos' }}
+                                    · Sucursales {{ $limits['branches'] ?? 'sin limite' }}
+                                    · Usuarios {{ $limits['users'] ?? 'sin limite' }}
+                                </small>
                             </div>
                             <b>$ {{ number_format((float) $companyPlan->monthly_price, 0) }}</b>
                         </article>
@@ -186,4 +204,101 @@
             </div>
         </section>
     </main>
+
+    @if ($editingCompanyId)
+        <div class="rm-modal-backdrop" wire:click="closeCompanyEditor"></div>
+        <section class="rm-modal-panel rm-saas-editor-modal" role="dialog" aria-modal="true">
+            <div class="rm-modal-title">
+                <div>
+                    <span>Cliente SaaS</span>
+                    <h2>Editar acceso y plan</h2>
+                </div>
+                <button type="button" wire:click="closeCompanyEditor">x</button>
+            </div>
+
+            <form class="rm-form-stack" wire:submit="saveCompanyBilling">
+                <label class="rm-field">
+                    <span>Nombre comercial</span>
+                    <input class="rm-input" wire:model="editCompanyName" type="text">
+                    @error('editCompanyName') <small>{{ $message }}</small> @enderror
+                </label>
+
+                <div class="rm-form-row">
+                    <label class="rm-field">
+                        <span>Plan</span>
+                        <select class="rm-input" wire:model="editPlanId">
+                            @foreach ($plans as $companyPlan)
+                                <option value="{{ $companyPlan->id }}">{{ $companyPlan->name }} - ${{ number_format((float) $companyPlan->monthly_price, 0) }}</option>
+                            @endforeach
+                        </select>
+                        @error('editPlanId') <small>{{ $message }}</small> @enderror
+                    </label>
+
+                    <label class="rm-field">
+                        <span>Estado del cliente</span>
+                        <select class="rm-input" wire:model="editStatus">
+                            <option value="trial">Prueba</option>
+                            <option value="active">Activo</option>
+                            <option value="past_due">Vencido</option>
+                            <option value="blocked">Bloqueado</option>
+                            <option value="suspended">Suspendido</option>
+                        </select>
+                        @error('editStatus') <small>{{ $message }}</small> @enderror
+                    </label>
+                </div>
+
+                <div class="rm-form-row">
+                    <label class="rm-field">
+                        <span>Estado de pago</span>
+                        <select class="rm-input" wire:model="editBillingStatus">
+                            <option value="trial">Demo</option>
+                            <option value="paid">Pagado</option>
+                            <option value="pending">Pendiente</option>
+                            <option value="past_due">Vencido</option>
+                            <option value="blocked">Bloqueado</option>
+                        </select>
+                        @error('editBillingStatus') <small>{{ $message }}</small> @enderror
+                    </label>
+
+                    <label class="rm-field">
+                        <span>Fecha de pago</span>
+                        <input class="rm-input" wire:model="editLastPaidAt" type="date">
+                        @error('editLastPaidAt') <small>{{ $message }}</small> @enderror
+                    </label>
+                </div>
+
+                <div class="rm-form-row">
+                    <label class="rm-field">
+                        <span>Acceso hasta</span>
+                        <input class="rm-input" wire:model="editAccessExpiresAt" type="date">
+                        @error('editAccessExpiresAt') <small>{{ $message }}</small> @enderror
+                    </label>
+
+                    <label class="rm-field">
+                        <span>Proximo pago</span>
+                        <input class="rm-input" wire:model="editNextPaymentDueAt" type="date">
+                        @error('editNextPaymentDueAt') <small>{{ $message }}</small> @enderror
+                    </label>
+                </div>
+
+                <label class="rm-field">
+                    <span>Notas de facturacion</span>
+                    <textarea class="rm-input" wire:model="editBillingNotes" rows="4" placeholder="Comprobante, monto, banco, observacion interna"></textarea>
+                    @error('editBillingNotes') <small>{{ $message }}</small> @enderror
+                </label>
+
+                <div class="rm-saas-editor-actions">
+                    <button class="rm-button rm-button-outline" type="button" wire:click="grantMonthlyAccess">
+                        Dar acceso 1 mes pagado
+                    </button>
+                    <button class="rm-button rm-button-muted" type="button" wire:click="closeCompanyEditor">
+                        Cancelar
+                    </button>
+                    <button class="rm-button rm-button-primary" type="submit">
+                        Guardar cambios
+                    </button>
+                </div>
+            </form>
+        </section>
+    @endif
 </div>

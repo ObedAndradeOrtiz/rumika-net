@@ -130,6 +130,8 @@ class FirebaseGoogleAuthController extends Controller
             'slug' => Str::slug('empresa-'.$user->name).'-'.Str::lower(Str::random(5)),
             'company_plan_id' => CompanyPlan::query()->where('slug', 'free')->value('id'),
             'status' => 'trial',
+            'billing_status' => 'trial',
+            'trial_ends_at' => now()->addDays(3),
         ]);
 
         $company->users()->attach($user->id, [

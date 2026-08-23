@@ -18,12 +18,22 @@ class Company extends Model
         'timezone',
         'status',
         'onboarding_completed_at',
+        'trial_ends_at',
+        'access_expires_at',
+        'last_paid_at',
+        'next_payment_due_at',
+        'billing_status',
+        'billing_notes',
     ];
 
     protected function casts(): array
     {
         return [
             'onboarding_completed_at' => 'datetime',
+            'trial_ends_at' => 'datetime',
+            'access_expires_at' => 'datetime',
+            'last_paid_at' => 'datetime',
+            'next_payment_due_at' => 'date',
         ];
     }
 

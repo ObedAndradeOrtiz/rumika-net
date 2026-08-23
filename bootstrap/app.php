@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'rumika.permission' => \App\Http\Middleware\EnsureRumikaPermission::class,
             'rumika.onboarding' => \App\Http\Middleware\EnsureCompanyOnboardingIsComplete::class,
             'rumika.saas_admin' => \App\Http\Middleware\EnsureSaasAdmin::class,
+            'rumika.subscription' => \App\Http\Middleware\EnsureCompanySubscriptionIsActive::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
