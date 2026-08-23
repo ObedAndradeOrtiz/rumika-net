@@ -1,11 +1,12 @@
 <main class="rm-content rm-settings-page">
-    <section class="rm-hero-card">
-        <div>
+    <section class="rm-settings-hero rm-system-hero">
+        <div class="rm-system-hero-copy">
             <span>Cuenta y plan</span>
             <h1>Mi sistema</h1>
             <p>Consulta el estado de tu empresa, fechas de pago, limites del plan y opciones disponibles.</p>
         </div>
         <div class="rm-system-status">
+            <small>Plan actual</small>
             <strong>{{ $company->plan?->name ?? 'Free' }}</strong>
             <span>{{ $accessLabel }}</span>
         </div>
