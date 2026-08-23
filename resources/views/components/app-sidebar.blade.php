@@ -29,6 +29,10 @@
     $sidebarCanSeeAudit = $canAccess('bitacora');
     $sidebarCanSeeUsers = $canAccess('usuarios');
     $sidebarCanSeeRoles = $canAccess('roles');
+    $sidebarCompanyRole = $sidebarNavCompany
+        ? $sidebarNavUser?->companies()->where('companies.id', $sidebarNavCompany->id)->value('company_user.role')
+        : null;
+    $sidebarCanSeeSystem = in_array($sidebarCompanyRole, \App\Support\RumikaAccess::ADMIN_ROLES, true);
 @endphp
 
 <aside class="rm-side">
@@ -243,9 +247,9 @@
         </details>
         @endif
 
-        @if ($sidebarCanSeeCommerce || $sidebarCanSeeServices || $sidebarCanSeeRecords || $sidebarCanSeeAudit || $sidebarCanSeeUsers || $sidebarCanSeeRoles)
+        @if ($sidebarCanSeeSystem || $sidebarCanSeeCommerce || $sidebarCanSeeServices || $sidebarCanSeeRecords || $sidebarCanSeeAudit || $sidebarCanSeeUsers || $sidebarCanSeeRoles)
         <details class="rm-menu-group"
-            {{ in_array($active, ['settings', 'services', 'users', 'roles', 'records', 'audit'], true) ? 'open' : '' }}>
+            {{ in_array($active, ['system', 'settings', 'services', 'users', 'roles', 'records', 'audit'], true) ? 'open' : '' }}>
             <summary>
                 <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     stroke-width="2.2">
@@ -258,6 +262,13 @@
                 </svg>
             </summary>
             <div class="rm-menu-list">
+                @if ($sidebarCanSeeSystem)
+                <a class="rm-side-link rm-side-sub-link {{ $active === 'system' ? 'is-active' : '' }}"
+                    href="{{ route('settings.system') }}">
+                    <i aria-hidden="true"></i>
+                    <span data-sidebar-label>Mi sistema</span>
+                </a>
+                @endif
                 @if ($sidebarCanSeeCommerce)
                 <a class="rm-side-link rm-side-sub-link {{ $active === 'settings' ? 'is-active' : '' }}"
                     href="{{ route('settings.commerce') }}">
@@ -513,9 +524,9 @@
             </details>
             @endif
 
-            @if ($sidebarCanSeeCommerce || $sidebarCanSeeServices || $sidebarCanSeeRecords || $sidebarCanSeeAudit || $sidebarCanSeeUsers || $sidebarCanSeeRoles)
+            @if ($sidebarCanSeeSystem || $sidebarCanSeeCommerce || $sidebarCanSeeServices || $sidebarCanSeeRecords || $sidebarCanSeeAudit || $sidebarCanSeeUsers || $sidebarCanSeeRoles)
             <details class="rm-mobile-menu-group"
-                {{ in_array($active, ['settings', 'services', 'users', 'roles', 'records', 'audit'], true) ? 'open' : '' }}>
+                {{ in_array($active, ['system', 'settings', 'services', 'users', 'roles', 'records', 'audit'], true) ? 'open' : '' }}>
                 <summary>
                     <span>Gestion administrativa</span>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -524,6 +535,9 @@
                     </svg>
                 </summary>
                 <div>
+                    @if ($sidebarCanSeeSystem)
+                    <a href="{{ route('settings.system') }}">Mi sistema</a>
+                    @endif
                     @if ($sidebarCanSeeCommerce)
                     <a href="{{ route('settings.commerce') }}">Sucursales</a>
                     @endif

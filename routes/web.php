@@ -74,6 +74,10 @@ Route::view('configuracion/bitacora', 'settings.audit')
     ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.permission:bitacora'])
     ->name('settings.audit');
 
+Route::view('configuracion/mi-sistema', 'settings.system')
+    ->middleware(['auth', 'verified', 'rumika.onboarding'])
+    ->name('settings.system');
+
 Route::view('agenda', 'clinic.agenda')
     ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.permission:agenda'])
     ->name('clinic.agenda');

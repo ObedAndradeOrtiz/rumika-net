@@ -2,6 +2,182 @@
     align-content: start;
 }
 
+.rm-system-status {
+    background: #e9f6f4;
+    border: 1px solid #c8ebe6;
+    border-radius: 18px;
+    color: var(--rumika-teal-dark);
+    display: grid;
+    gap: 4px;
+    min-width: 190px;
+    padding: 18px;
+}
+
+.rm-system-status strong {
+    font-size: 22px;
+    font-weight: 950;
+}
+
+.rm-system-status span {
+    color: var(--rumika-muted);
+    font-size: 13px;
+    font-weight: 850;
+}
+
+.rm-system-kpis .rm-kpi {
+    min-height: 84px;
+}
+
+.rm-system-usage-grid,
+.rm-system-plan-grid {
+    display: grid;
+    gap: 14px;
+}
+
+.rm-system-usage-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.rm-system-usage-grid article,
+.rm-system-plan,
+.rm-system-payment-list article {
+    background: #ffffff;
+    border: 1px solid var(--rumika-border);
+    border-radius: 16px;
+    padding: 16px;
+}
+
+.rm-system-usage-grid strong {
+    color: var(--rumika-ink);
+    display: block;
+    font-size: 25px;
+    font-weight: 950;
+}
+
+.rm-system-usage-grid span,
+.rm-system-usage-grid small {
+    color: var(--rumika-muted);
+    display: block;
+    font-size: 12px;
+    font-weight: 850;
+    margin-top: 4px;
+}
+
+.rm-system-plan-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.rm-system-plan {
+    display: grid;
+    gap: 14px;
+}
+
+.rm-system-plan.is-current {
+    background: #e9f6f4;
+    border-color: #9dd8cf;
+}
+
+.rm-system-plan > div:first-child > span {
+    color: var(--rumika-muted);
+    font-size: 12px;
+    font-weight: 850;
+}
+
+.rm-system-plan h3 {
+    color: var(--rumika-ink);
+    font-size: 23px;
+    font-weight: 950;
+    margin-top: 4px;
+}
+
+.rm-system-plan strong {
+    color: var(--rumika-teal-dark);
+    display: block;
+    font-size: 18px;
+    font-weight: 950;
+    margin-top: 6px;
+}
+
+.rm-system-plan p {
+    color: var(--rumika-muted);
+    font-size: 13px;
+    font-weight: 750;
+    line-height: 1.35;
+    margin-top: 8px;
+}
+
+.rm-system-plan-list,
+.rm-system-plan-modules {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.rm-system-plan-list span,
+.rm-system-plan-modules small {
+    background: #f0f3f6;
+    border-radius: 999px;
+    color: var(--rumika-muted);
+    font-size: 11px;
+    font-weight: 850;
+    padding: 8px 10px;
+}
+
+.rm-system-plan.is-current .rm-system-plan-list span,
+.rm-system-plan.is-current .rm-system-plan-modules small {
+    background: #ffffff;
+}
+
+.rm-system-payment-list {
+    display: grid;
+    gap: 10px;
+}
+
+.rm-system-payment-list article {
+    align-items: center;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+}
+
+.rm-system-payment-list strong {
+    color: var(--rumika-ink);
+    display: block;
+    font-size: 16px;
+    font-weight: 950;
+}
+
+.rm-system-payment-list span,
+.rm-system-payment-list small {
+    color: var(--rumika-muted);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+@media (max-width: 1100px) {
+    .rm-system-usage-grid,
+    .rm-system-plan-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 700px) {
+    .rm-system-status {
+        min-width: 0;
+    }
+
+    .rm-system-usage-grid,
+    .rm-system-plan-grid,
+    .rm-system-kpis {
+        grid-template-columns: 1fr;
+    }
+
+    .rm-system-payment-list article {
+        align-items: start;
+        display: grid;
+    }
+}
+
 .rm-settings-hero {
     align-items: center;
     background: #ffffff;
