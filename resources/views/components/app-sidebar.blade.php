@@ -513,9 +513,9 @@
             </details>
             @endif
 
-            @if ($sidebarCanSeeCommerce || $sidebarCanSeeServices || $sidebarCanSeeRecords || $sidebarCanSeeUsers || $sidebarCanSeeRoles)
+            @if ($sidebarCanSeeCommerce || $sidebarCanSeeServices || $sidebarCanSeeRecords || $sidebarCanSeeAudit || $sidebarCanSeeUsers || $sidebarCanSeeRoles)
             <details class="rm-mobile-menu-group"
-                {{ in_array($active, ['settings', 'services', 'users', 'roles', 'records'], true) ? 'open' : '' }}>
+                {{ in_array($active, ['settings', 'services', 'users', 'roles', 'records', 'audit'], true) ? 'open' : '' }}>
                 <summary>
                     <span>Gestion administrativa</span>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -532,6 +532,9 @@
                     @endif
                     @if ($sidebarCanSeeRecords)
                     <a href="{{ route('settings.records') }}">Registros</a>
+                    @endif
+                    @if ($sidebarCanSeeAudit)
+                    <a href="{{ route('settings.audit') }}">Bitacora</a>
                     @endif
                     @if ($sidebarCanSeeUsers || $sidebarCanSeeRoles)
                     <a href="{{ route('settings.users') }}">Usuarios y roles</a>

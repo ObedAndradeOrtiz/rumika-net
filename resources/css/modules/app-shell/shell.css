@@ -1296,7 +1296,7 @@
     box-shadow: 0 -24px 70px rgba(16, 24, 40, 0.18);
     display: grid;
     gap: 10px;
-    grid-template-rows: auto minmax(0, 1fr) auto;
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
     left: 0;
     max-height: calc(100dvh - 18px);
     overflow: hidden;
@@ -1335,6 +1335,7 @@
     min-height: 0;
     overflow-y: auto;
     padding-right: 2px;
+    padding-bottom: 8px;
     overscroll-behavior: contain;
 }
 
