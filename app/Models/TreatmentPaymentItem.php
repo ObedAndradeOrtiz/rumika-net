@@ -20,6 +20,8 @@ class TreatmentPaymentItem extends Model
         'unit_price',
         'charged_total',
         'total',
+        'commission_percent',
+        'commission_amount',
     ];
 
     protected function casts(): array
@@ -29,6 +31,8 @@ class TreatmentPaymentItem extends Model
             'unit_price' => 'decimal:2',
             'charged_total' => 'decimal:2',
             'total' => 'decimal:2',
+            'commission_percent' => 'decimal:2',
+            'commission_amount' => 'decimal:2',
         ];
     }
 

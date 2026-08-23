@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\FinanceReportExportController;
 use App\Http\Controllers\RumikaBotController;
 use App\Livewire\Onboarding\CompanySetup;
 
@@ -105,6 +106,18 @@ Route::view('finanzas/resumen', 'finance.summary')
 Route::view('finanzas/facturacion', 'finance.invoicing')
     ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.permission:facturacion'])
     ->name('finance.invoicing');
+
+Route::view('finanzas/deudas', 'finance.debts')
+    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.permission:deudas'])
+    ->name('finance.debts');
+
+Route::view('finanzas/reportes', 'finance.reports')
+    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.permission:reportes'])
+    ->name('finance.reports');
+
+Route::get('finanzas/reportes/pdf', FinanceReportExportController::class)
+    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.permission:reportes'])
+    ->name('finance.reports.pdf');
 
 Route::view('estadisticas', 'statistics.index')
     ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.permission:estadisticas'])

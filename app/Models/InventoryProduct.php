@@ -21,6 +21,7 @@ class InventoryProduct extends Model
         'units_per_package',
         'purchase_cost',
         'minimum_stock',
+        'commission_enabled',
         'status',
     ];
 
@@ -30,6 +31,7 @@ class InventoryProduct extends Model
             'units_per_package' => 'integer',
             'purchase_cost' => 'decimal:2',
             'minimum_stock' => 'integer',
+            'commission_enabled' => 'boolean',
         ];
     }
 

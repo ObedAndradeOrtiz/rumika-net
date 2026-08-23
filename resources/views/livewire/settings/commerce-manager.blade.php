@@ -171,6 +171,39 @@
                     @endif
                 </section>
 
+                <section class="rm-printer-settings">
+                    <div class="rm-panel-title rm-panel-title-compact">
+                        <div>
+                            <h3>Comisiones de esta sucursal</h3>
+                            <p>Se aplican al guardar cobros o ventas nuevas. Los productos y servicios pueden desactivarse luego uno por uno.</p>
+                        </div>
+                    </div>
+                    <div class="rm-form-row">
+                        <label class="rm-field">
+                            <span>% venta de productos</span>
+                            <input wire:model="productCommissionPercent" type="number" min="0" max="100" step="0.01">
+                            @error('productCommissionPercent') <small>{{ $message }}</small> @enderror
+                        </label>
+                        <label class="rm-field">
+                            <span>Minimo por producto</span>
+                            <input wire:model="productCommissionMinSale" type="number" min="0" step="0.01">
+                            @error('productCommissionMinSale') <small>{{ $message }}</small> @enderror
+                        </label>
+                    </div>
+                    <div class="rm-form-row">
+                        <label class="rm-field">
+                            <span>% servicios/tratamientos</span>
+                            <input wire:model="serviceCommissionPercent" type="number" min="0" max="100" step="0.01">
+                            @error('serviceCommissionPercent') <small>{{ $message }}</small> @enderror
+                        </label>
+                        <label class="rm-field">
+                            <span>Minimo por servicio</span>
+                            <input wire:model="serviceCommissionMinSale" type="number" min="0" step="0.01">
+                            @error('serviceCommissionMinSale') <small>{{ $message }}</small> @enderror
+                        </label>
+                    </div>
+                </section>
+
                 <div class="rm-form-actions">
                     <button class="rm-button rm-button-primary" type="submit">{{ $editingId ? 'Guardar cambios' : 'Crear comercio' }}</button>
                     <button class="rm-button rm-button-outline" type="button" wire:click="closeCommerceModal">Cancelar</button>

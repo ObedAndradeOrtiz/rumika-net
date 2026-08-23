@@ -16,6 +16,8 @@
     $sidebarCanSeeCashbox = $canAccess('caja');
     $sidebarCanSeeProductSales = $canAccess('ventas_productos');
     $sidebarCanSeeInvoicing = $canAccess('facturacion');
+    $sidebarCanSeeDebts = $canAccess('deudas');
+    $sidebarCanSeeReports = $canAccess('reportes');
     $sidebarCanSeeExpenses = $canAccess('gastos');
     $sidebarCanSeeFinancialSummary = $canAccess('resumen_financiero');
     $sidebarCanSeeStatistics = $canAccess('estadisticas');
@@ -138,9 +140,9 @@
         </details>
         @endif
 
-        @if ($sidebarCanSeeCashbox || $sidebarCanSeeInvoicing || $sidebarCanSeeExpenses || $sidebarCanSeeFinancialSummary || $sidebarCanSeeStatistics)
+        @if ($sidebarCanSeeCashbox || $sidebarCanSeeInvoicing || $sidebarCanSeeDebts || $sidebarCanSeeReports || $sidebarCanSeeExpenses || $sidebarCanSeeFinancialSummary || $sidebarCanSeeStatistics)
         <details class="rm-menu-group"
-            {{ in_array($active, ['expenses', 'cashbox', 'invoicing', 'finance-summary', 'statistics'], true) ? 'open' : '' }}>
+            {{ in_array($active, ['expenses', 'cashbox', 'invoicing', 'debts', 'reports', 'finance-summary', 'statistics'], true) ? 'open' : '' }}>
             <summary>
                 <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     stroke-width="2.2">
@@ -174,6 +176,20 @@
                     href="{{ route('finance.invoicing') }}">
                     <i aria-hidden="true"></i>
                     <span data-sidebar-label>Facturacion</span>
+                </a>
+                @endif
+                @if ($sidebarCanSeeDebts)
+                <a class="rm-side-link rm-side-sub-link {{ $active === 'debts' ? 'is-active' : '' }}"
+                    href="{{ route('finance.debts') }}">
+                    <i aria-hidden="true"></i>
+                    <span data-sidebar-label>Deudas</span>
+                </a>
+                @endif
+                @if ($sidebarCanSeeReports)
+                <a class="rm-side-link rm-side-sub-link {{ $active === 'reports' ? 'is-active' : '' }}"
+                    href="{{ route('finance.reports') }}">
+                    <i aria-hidden="true"></i>
+                    <span data-sidebar-label>Reportes</span>
                 </a>
                 @endif
                 @if ($sidebarCanSeeFinancialSummary)
@@ -402,9 +418,9 @@
             </details>
             @endif
 
-            @if ($sidebarCanSeeCashbox || $sidebarCanSeeInvoicing || $sidebarCanSeeExpenses || $sidebarCanSeeFinancialSummary || $sidebarCanSeeStatistics)
+            @if ($sidebarCanSeeCashbox || $sidebarCanSeeInvoicing || $sidebarCanSeeDebts || $sidebarCanSeeReports || $sidebarCanSeeExpenses || $sidebarCanSeeFinancialSummary || $sidebarCanSeeStatistics)
             <details class="rm-mobile-menu-group"
-                {{ in_array($active, ['expenses', 'cashbox', 'invoicing', 'finance-summary', 'statistics'], true) ? 'open' : '' }}>
+                {{ in_array($active, ['expenses', 'cashbox', 'invoicing', 'debts', 'reports', 'finance-summary', 'statistics'], true) ? 'open' : '' }}>
                 <summary>
                     <span>Gestion financiera</span>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -421,6 +437,12 @@
                     @endif
                     @if ($sidebarCanSeeInvoicing)
                     <a href="{{ route('finance.invoicing') }}">Facturacion</a>
+                    @endif
+                    @if ($sidebarCanSeeDebts)
+                    <a href="{{ route('finance.debts') }}">Deudas</a>
+                    @endif
+                    @if ($sidebarCanSeeReports)
+                    <a href="{{ route('finance.reports') }}">Reportes</a>
                     @endif
                     @if ($sidebarCanSeeFinancialSummary)
                         <a class="rm-side-link rm-side-sub-link {{ $active === 'finance-summary' ? 'is-active' : '' }}"

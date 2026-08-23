@@ -40,6 +40,14 @@ class CommerceManager extends Component
 
     public string $printerBridgeUrl = '';
 
+    public string $productCommissionPercent = '0';
+
+    public string $productCommissionMinSale = '0';
+
+    public string $serviceCommissionPercent = '0';
+
+    public string $serviceCommissionMinSale = '0';
+
     public ?string $currentLogoPath = null;
 
     public $logo = null;
@@ -80,6 +88,10 @@ class CommerceManager extends Component
             'status' => ['required', 'in:active,inactive'],
             'usesTicketPrinter' => ['boolean'],
             'printerName' => ['nullable', 'string', 'max:120'],
+            'productCommissionPercent' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'productCommissionMinSale' => ['nullable', 'numeric', 'min:0', 'max:99999999.99'],
+            'serviceCommissionPercent' => ['nullable', 'numeric', 'min:0', 'max:100'],
+            'serviceCommissionMinSale' => ['nullable', 'numeric', 'min:0', 'max:99999999.99'],
             'logo' => ['nullable', 'image', 'max:4096'],
         ]);
 
@@ -114,6 +126,10 @@ class CommerceManager extends Component
             'uses_ticket_printer' => $validated['usesTicketPrinter'],
             'printer_name' => $validated['usesTicketPrinter'] ? ($validated['printerName'] ?: null) : null,
             'printer_bridge_url' => null,
+            'product_commission_percent' => (float) ($validated['productCommissionPercent'] ?: 0),
+            'product_commission_min_sale' => (float) ($validated['productCommissionMinSale'] ?: 0),
+            'service_commission_percent' => (float) ($validated['serviceCommissionPercent'] ?: 0),
+            'service_commission_min_sale' => (float) ($validated['serviceCommissionMinSale'] ?: 0),
         ]);
 
         if ($this->logo instanceof TemporaryUploadedFile) {
@@ -153,6 +169,10 @@ class CommerceManager extends Component
         $this->usesTicketPrinter = (bool) $branch->uses_ticket_printer;
         $this->printerName = $branch->printer_name ?? '';
         $this->printerBridgeUrl = $branch->printer_bridge_url ?? '';
+        $this->productCommissionPercent = (string) ($branch->product_commission_percent ?? 0);
+        $this->productCommissionMinSale = (string) ($branch->product_commission_min_sale ?? 0);
+        $this->serviceCommissionPercent = (string) ($branch->service_commission_percent ?? 0);
+        $this->serviceCommissionMinSale = (string) ($branch->service_commission_min_sale ?? 0);
         $this->currentLogoPath = $branch->logo_path;
         $this->logo = null;
         $this->showCommerceModal = true;
@@ -208,9 +228,13 @@ class CommerceManager extends Component
 
     public function resetForm(): void
     {
-        $this->reset(['editingId', 'name', 'businessTypeId', 'countryCode', 'phone', 'address', 'usesTicketPrinter', 'printerName', 'printerBridgeUrl', 'currentLogoPath', 'logo']);
+        $this->reset(['editingId', 'name', 'businessTypeId', 'countryCode', 'phone', 'address', 'usesTicketPrinter', 'printerName', 'printerBridgeUrl', 'productCommissionPercent', 'productCommissionMinSale', 'serviceCommissionPercent', 'serviceCommissionMinSale', 'currentLogoPath', 'logo']);
         $this->countryCode = 'BO';
         $this->status = 'active';
+        $this->productCommissionPercent = '0';
+        $this->productCommissionMinSale = '0';
+        $this->serviceCommissionPercent = '0';
+        $this->serviceCommissionMinSale = '0';
         $this->resetErrorBag();
     }
 

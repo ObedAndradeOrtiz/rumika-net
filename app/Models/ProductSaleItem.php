@@ -18,6 +18,8 @@ class ProductSaleItem extends Model
         'pending_quantity',
         'unit_price',
         'total',
+        'commission_percent',
+        'commission_amount',
         'missing_reason',
     ];
 
@@ -29,6 +31,8 @@ class ProductSaleItem extends Model
             'pending_quantity' => 'decimal:2',
             'unit_price' => 'decimal:2',
             'total' => 'decimal:2',
+            'commission_percent' => 'decimal:2',
+            'commission_amount' => 'decimal:2',
         ];
     }
 

@@ -10,6 +10,7 @@ use App\Models\Client;
 use App\Models\ClientCharge;
 use App\Models\Company;
 use App\Models\InventoryMovement;
+use App\Models\InventoryProduct;
 use App\Models\InventoryProductBatch;
 use App\Models\Service;
 use App\Models\TreatmentPayment;
@@ -1055,6 +1056,7 @@ class AgendaManager extends Component
                     'unit_price' => $chargedTotal,
                     'charged_total' => $chargedTotal,
                     'total' => $paidAmount,
+                    ...$this->serviceCommissionData($appointment->branch, $serviceLine->service, $paidAmount),
                 ]);
             }
 
@@ -1103,6 +1105,7 @@ class AgendaManager extends Component
                     'unit_price' => $unitPrice,
                     'charged_total' => $chargedTotal,
                     'total' => $paidAmount,
+                    ...$this->productCommissionData($appointment->branch, $batch->product, $paidAmount),
                 ]);
 
                 InventoryMovement::query()->create([
@@ -1771,6 +1774,36 @@ class AgendaManager extends Component
         $attributes['status'] = 'pending';
 
         return ClientCharge::query()->create($attributes);
+    }
+
+    private function serviceCommissionData(Branch $branch, ?Service $service, float $paidAmount): array
+    {
+        $percent = (float) $branch->service_commission_percent;
+        $minimum = (float) $branch->service_commission_min_sale;
+
+        if ($paidAmount <= 0 || $percent <= 0 || $paidAmount < $minimum || $service?->commission_enabled === false) {
+            return ['commission_percent' => 0, 'commission_amount' => 0];
+        }
+
+        return [
+            'commission_percent' => $percent,
+            'commission_amount' => round($paidAmount * $percent / 100, 2),
+        ];
+    }
+
+    private function productCommissionData(Branch $branch, ?InventoryProduct $product, float $paidAmount): array
+    {
+        $percent = (float) $branch->product_commission_percent;
+        $minimum = (float) $branch->product_commission_min_sale;
+
+        if ($paidAmount <= 0 || $percent <= 0 || $paidAmount < $minimum || $product?->commission_enabled === false) {
+            return ['commission_percent' => 0, 'commission_amount' => 0];
+        }
+
+        return [
+            'commission_percent' => $percent,
+            'commission_amount' => round($paidAmount * $percent / 100, 2),
+        ];
     }
 
     private function applyChargePayment(ClientCharge $charge, TreatmentPayment $payment, float $amount): void

@@ -15,6 +15,7 @@ class Service extends Model
         'description',
         'price',
         'duration_minutes',
+        'commission_enabled',
         'status',
     ];
 
@@ -23,6 +24,7 @@ class Service extends Model
         return [
             'price' => 'decimal:2',
             'duration_minutes' => 'integer',
+            'commission_enabled' => 'boolean',
         ];
     }
 

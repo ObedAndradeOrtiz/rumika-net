@@ -23,6 +23,10 @@ class Branch extends Model
         'uses_ticket_printer',
         'printer_name',
         'printer_bridge_url',
+        'product_commission_percent',
+        'product_commission_min_sale',
+        'service_commission_percent',
+        'service_commission_min_sale',
         'status',
     ];
 
@@ -30,6 +34,10 @@ class Branch extends Model
     {
         return [
             'uses_ticket_printer' => 'boolean',
+            'product_commission_percent' => 'decimal:2',
+            'product_commission_min_sale' => 'decimal:2',
+            'service_commission_percent' => 'decimal:2',
+            'service_commission_min_sale' => 'decimal:2',
         ];
     }
 

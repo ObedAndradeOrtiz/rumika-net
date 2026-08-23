@@ -229,6 +229,7 @@ class ProductSalesManager extends Component
                     'pending_quantity' => $pendingQuantity,
                     'unit_price' => $unitPrice,
                     'total' => round($quantity * $unitPrice, 2),
+                    ...$this->productCommissionData($branch, $product, round($quantity * $unitPrice, 2)),
                     'missing_reason' => $pendingQuantity > 0 ? (($line['missing_reason'] ?? '') ?: 'Venta con stock pendiente') : null,
                 ]);
 
@@ -464,6 +465,21 @@ class ProductSalesManager extends Component
             ],
             'raw_ticket' => $this->buildRawProductSaleTicket($sale, $branch, $rows),
             'created_at' => now()->format('d/m/Y H:i'),
+        ];
+    }
+
+    private function productCommissionData(Branch $branch, InventoryProduct $product, float $saleTotal): array
+    {
+        $percent = (float) $branch->product_commission_percent;
+        $minimum = (float) $branch->product_commission_min_sale;
+
+        if ($saleTotal <= 0 || $percent <= 0 || $saleTotal < $minimum || $product->commission_enabled === false) {
+            return ['commission_percent' => 0, 'commission_amount' => 0];
+        }
+
+        return [
+            'commission_percent' => $percent,
+            'commission_amount' => round($saleTotal * $percent / 100, 2),
         ];
     }
 
