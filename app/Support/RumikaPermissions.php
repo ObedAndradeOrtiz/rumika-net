@@ -47,6 +47,11 @@ class RumikaPermissions
                 'group' => 'Gestion financiera',
                 'actions' => ['view', 'create', 'edit', 'delete'],
             ],
+            'facturacion' => [
+                'label' => 'Facturacion',
+                'group' => 'Gestion financiera',
+                'actions' => ['view', 'edit'],
+            ],
             'gastos' => [
                 'label' => 'Gastos',
                 'group' => 'Gestion financiera',

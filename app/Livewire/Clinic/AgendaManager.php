@@ -75,6 +75,8 @@ class AgendaManager extends Component
     public string $paymentQrAmount = '';
     public array $extraPaymentSplits = [];
     public bool $invoiceRequested = false;
+    public string $invoiceNit = '';
+    public string $invoiceName = '';
     public string $paymentReference = '';
     public string $paymentNotes = '';
     public ?int $paymentAttendedByUserId = null;
@@ -188,6 +190,8 @@ class AgendaManager extends Component
             'paymentCashAmount' => ['nullable', 'numeric', 'min:0', 'max:99999999.99'],
             'paymentQrAmount' => ['nullable', 'numeric', 'min:0', 'max:99999999.99'],
             'invoiceRequested' => ['boolean'],
+            'invoiceNit' => ['nullable', 'string', 'max:40'],
+            'invoiceName' => ['nullable', 'string', 'max:180'],
             'paymentReference' => ['nullable', 'string', 'max:120'],
             'paymentNotes' => ['nullable', 'string', 'max:500'],
         ];
@@ -208,6 +212,18 @@ class AgendaManager extends Component
         }
 
         $validated = $this->validate($rules);
+
+        if (($validated['invoiceRequested'] ?? false) && trim((string) ($validated['invoiceNit'] ?? '')) === '') {
+            $this->addError('invoiceNit', 'Ingresa el NIT para facturar.');
+
+            return;
+        }
+
+        if (($validated['invoiceRequested'] ?? false) && trim((string) ($validated['invoiceName'] ?? '')) === '') {
+            $this->addError('invoiceName', 'Ingresa el nombre o razon social para facturar.');
+
+            return;
+        }
 
         $newClientPhoneRows = $this->clientMode === 'new'
             ? $this->normalizedPhoneRows($validated['clientPhones'] ?? [], $validated['clientPhoneCountry'])
@@ -622,6 +638,8 @@ class AgendaManager extends Component
         $this->extraPaymentSplits = [];
         $this->paymentMethod = 'cash';
         $this->invoiceRequested = false;
+        $this->invoiceNit = $appointment->client->identity_document ?? '';
+        $this->invoiceName = $appointment->client->full_name ?? '';
         $this->paymentReference = '';
         $this->paymentNotes = '';
         $this->paymentAttendedByUserId = $appointment->attended_by_user_id;
@@ -676,6 +694,8 @@ class AgendaManager extends Component
         $this->paymentAmount = (string) $payment->amount;
         $this->paymentMethod = $payment->method;
         $this->invoiceRequested = $payment->invoice_requested;
+        $this->invoiceNit = $payment->invoice_nit ?? $payment->client?->identity_document ?? '';
+        $this->invoiceName = $payment->invoice_name ?? $payment->client?->full_name ?? '';
         $this->paymentReference = $payment->reference ?? '';
         $this->paymentNotes = $payment->notes ?? '';
         $this->paymentAttendedByUserId = $payment->performed_by_user_id;
@@ -815,6 +835,8 @@ class AgendaManager extends Component
             'extraPaymentSplits.*.amount' => ['nullable', 'numeric', 'min:0', 'max:99999999.99'],
             'extraPaymentSplits.*.reference' => ['nullable', 'string', 'max:120'],
             'invoiceRequested' => ['boolean'],
+            'invoiceNit' => ['nullable', 'string', 'max:40'],
+            'invoiceName' => ['nullable', 'string', 'max:180'],
             'paymentReference' => ['nullable', 'string', 'max:120'],
             'paymentNotes' => ['nullable', 'string', 'max:500'],
             'paymentAttendedByUserId' => ['nullable', Rule::in($userIds)],
@@ -845,6 +867,18 @@ class AgendaManager extends Component
 
         if ($amount <= 0) {
             $this->addError('paymentCashAmount', 'Ingresa al menos un monto en efectivo o QR.');
+
+            return;
+        }
+
+        if (($validated['invoiceRequested'] ?? false) && trim((string) ($validated['invoiceNit'] ?? '')) === '') {
+            $this->addError('invoiceNit', 'Ingresa el NIT para facturar.');
+
+            return;
+        }
+
+        if (($validated['invoiceRequested'] ?? false) && trim((string) ($validated['invoiceName'] ?? '')) === '') {
+            $this->addError('invoiceName', 'Ingresa el nombre o razon social para facturar.');
 
             return;
         }
@@ -960,6 +994,13 @@ class AgendaManager extends Component
                 'amount' => $amount,
                 'method' => $this->paymentMethodFromAmounts($cash, $qr, $extraSplits),
                 'invoice_requested' => (bool) ($validated['invoiceRequested'] ?? false),
+                'invoice_nit' => ($validated['invoiceRequested'] ?? false) ? trim((string) $validated['invoiceNit']) : null,
+                'invoice_name' => ($validated['invoiceRequested'] ?? false) ? trim((string) $validated['invoiceName']) : null,
+                'invoice_status' => ($validated['invoiceRequested'] ?? false)
+                    ? ($payment->invoice_status === 'invoiced' ? 'invoiced' : 'pending')
+                    : 'not_requested',
+                'invoiced_at' => ($validated['invoiceRequested'] ?? false) ? $payment->invoiced_at : null,
+                'invoiced_by_user_id' => ($validated['invoiceRequested'] ?? false) ? $payment->invoiced_by_user_id : null,
                 'reference' => $validated['paymentReference'] ?: null,
                 'notes' => $validated['paymentNotes'] ?: null,
             ]);
@@ -1461,6 +1502,9 @@ class AgendaManager extends Component
             'amount' => $amount,
             'method' => $method,
             'invoice_requested' => (bool) ($data['invoiceRequested'] ?? false),
+            'invoice_nit' => ($data['invoiceRequested'] ?? false) ? trim((string) ($data['invoiceNit'] ?? '')) : null,
+            'invoice_name' => ($data['invoiceRequested'] ?? false) ? trim((string) ($data['invoiceName'] ?? '')) : null,
+            'invoice_status' => ($data['invoiceRequested'] ?? false) ? 'pending' : 'not_requested',
             'reference' => $data['paymentReference'] ?: null,
             'notes' => $data['paymentNotes'] ?: null,
             'paid_at' => $appointment->scheduled_at,
@@ -2059,7 +2103,7 @@ class AgendaManager extends Component
 
     private function resetAppointmentForm(): void
     {
-        $this->reset(['clientSearch', 'clientId', 'clientName', 'clientCi', 'clientPhone', 'clientPhoneCountry', 'clientPhones', 'clientEmail', 'clientNotes', 'appointmentAttendedByUserId', 'serviceSearch', 'packageSearch', 'serviceIds', 'treatmentName', 'appointmentNotes', 'paymentAmount', 'paymentCashAmount', 'paymentQrAmount', 'paymentReference', 'paymentNotes', 'paymentServiceLinePrices', 'paymentServiceLinePayments', 'paymentProductLines', 'paymentProductSoldByUserId', 'pendingChargePayments', 'productSearch']);
+        $this->reset(['clientSearch', 'clientId', 'clientName', 'clientCi', 'clientPhone', 'clientPhoneCountry', 'clientPhones', 'clientEmail', 'clientNotes', 'appointmentAttendedByUserId', 'serviceSearch', 'packageSearch', 'serviceIds', 'treatmentName', 'appointmentNotes', 'paymentAmount', 'paymentCashAmount', 'paymentQrAmount', 'invoiceNit', 'invoiceName', 'paymentReference', 'paymentNotes', 'paymentServiceLinePrices', 'paymentServiceLinePayments', 'paymentProductLines', 'paymentProductSoldByUserId', 'pendingChargePayments', 'productSearch']);
         $this->clientMode = 'existing';
         $this->clientPhoneCountry = $this->activeBranch()->country_code ?? 'BO';
         $this->clientPhones = [['phone' => '', 'label' => 'Principal']];

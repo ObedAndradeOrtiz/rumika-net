@@ -128,10 +128,10 @@
             </div>
 
             <label class="rm-check-row rm-template-active-row">
-                <input wire:model="invoiceRequested" type="checkbox">
+                <input wire:model.live="invoiceRequested" type="checkbox">
                 <span>
                     <strong>Solicita factura</strong>
-                    <small>Usa NIT o nombre del comprador si fue registrado.</small>
+                    <small>Pedira NIT y nombre fiscal antes de guardar.</small>
                 </span>
             </label>
 

@@ -24,6 +24,9 @@ class ProductSale extends Model
         'qr_amount',
         'method',
         'invoice_requested',
+        'invoice_status',
+        'invoiced_at',
+        'invoiced_by_user_id',
         'reference',
         'notes',
         'sold_at',
@@ -37,6 +40,7 @@ class ProductSale extends Model
             'cash_amount' => 'decimal:2',
             'qr_amount' => 'decimal:2',
             'invoice_requested' => 'boolean',
+            'invoiced_at' => 'datetime',
             'sold_at' => 'datetime',
         ];
     }
@@ -64,6 +68,11 @@ class ProductSale extends Model
     public function receivedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'received_by_user_id');
+    }
+
+    public function invoicedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'invoiced_by_user_id');
     }
 
     public function items(): HasMany

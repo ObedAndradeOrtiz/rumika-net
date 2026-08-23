@@ -19,6 +19,11 @@ class TreatmentPayment extends Model
         'amount',
         'method',
         'invoice_requested',
+        'invoice_nit',
+        'invoice_name',
+        'invoice_status',
+        'invoiced_at',
+        'invoiced_by_user_id',
         'reference',
         'notes',
         'paid_at',
@@ -29,6 +34,7 @@ class TreatmentPayment extends Model
         return [
             'amount' => 'decimal:2',
             'invoice_requested' => 'boolean',
+            'invoiced_at' => 'datetime',
             'paid_at' => 'datetime',
         ];
     }
@@ -66,6 +72,11 @@ class TreatmentPayment extends Model
     public function performedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'performed_by_user_id');
+    }
+
+    public function invoicedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'invoiced_by_user_id');
     }
 
     public function splits(): HasMany

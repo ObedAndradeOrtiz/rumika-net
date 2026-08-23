@@ -151,6 +151,18 @@ class ProductSalesManager extends Component
             return;
         }
 
+        if (($validated['invoiceRequested'] ?? false) && trim((string) $validated['buyerNit']) === '') {
+            $this->addError('buyerNit', 'Ingresa el NIT para facturar.');
+
+            return;
+        }
+
+        if (($validated['invoiceRequested'] ?? false) && trim((string) $validated['buyerName']) === '') {
+            $this->addError('buyerName', 'Ingresa el nombre o razon social para facturar.');
+
+            return;
+        }
+
         foreach ($validated['lines'] as $index => $line) {
             $quantity = round((float) $line['quantity'], 2);
             $batch = $line['batch_id']
@@ -186,6 +198,7 @@ class ProductSalesManager extends Component
                 'qr_amount' => $qr,
                 'method' => $cash > 0 && $qr > 0 ? 'mixed' : ($qr > 0 ? 'qr' : 'cash'),
                 'invoice_requested' => $validated['invoiceRequested'],
+                'invoice_status' => $validated['invoiceRequested'] ? 'pending' : 'not_requested',
                 'reference' => $validated['reference'] ?: null,
                 'notes' => $validated['notes'] ?: null,
                 'sold_at' => now(),

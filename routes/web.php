@@ -102,6 +102,10 @@ Route::view('finanzas/resumen', 'finance.summary')
     ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.permission:resumen_financiero'])
     ->name('finance.summary');
 
+Route::view('finanzas/facturacion', 'finance.invoicing')
+    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.permission:facturacion'])
+    ->name('finance.invoicing');
+
 Route::view('estadisticas', 'statistics.index')
     ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.permission:estadisticas'])
     ->name('statistics.index');

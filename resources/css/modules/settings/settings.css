@@ -2783,6 +2783,90 @@
     color: #b42318;
 }
 
+.rm-invoicing-page {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.rm-invoicing-head {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.rm-invoicing-head h1 {
+    margin: 4px 0 8px;
+}
+
+.rm-invoicing-totals {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(150px, 1fr));
+    gap: 10px;
+}
+
+.rm-invoicing-totals span {
+    background: #eef8f5;
+    border: 1px solid #ccebe4;
+    border-radius: 18px;
+    color: #54627a;
+    display: grid;
+    gap: 6px;
+    padding: 16px;
+}
+
+.rm-invoicing-totals strong {
+    color: #00645d;
+    font-size: 22px;
+}
+
+.rm-invoicing-filters {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.rm-invoicing-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.rm-invoice-row {
+    align-items: center;
+    border: 1px solid #d6dfed;
+    border-radius: 18px;
+    display: grid;
+    grid-template-columns: 110px minmax(0, 1fr) auto;
+    gap: 18px;
+    padding: 18px;
+}
+
+.rm-invoice-kind {
+    align-items: center;
+    background: #e6f6f2;
+    border-radius: 18px;
+    color: #00645d;
+    display: inline-flex;
+    font-weight: 800;
+    justify-content: center;
+    min-height: 58px;
+    text-align: center;
+}
+
+.rm-invoice-kind.is-product {
+    background: #fff2df;
+    color: #ad5900;
+}
+
+.rm-invoice-row small {
+    color: #65728a;
+    display: block;
+    font-weight: 700;
+    margin-top: 8px;
+}
+
 @media (max-width: 980px) {
     .rm-clinical-layout {
         grid-template-columns: 1fr;
@@ -3674,6 +3758,43 @@
 
     .rm-pagination-pages {
         justify-content: flex-start;
+    }
+}
+
+@media (max-width: 760px) {
+    .rm-invoicing-head {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .rm-invoicing-totals {
+        grid-template-columns: 1fr;
+    }
+
+    .rm-invoicing-filters .rm-filter-row {
+        grid-template-columns: 1fr;
+    }
+
+    .rm-invoice-row {
+        align-items: stretch;
+        grid-template-columns: 1fr;
+        gap: 12px;
+        padding: 14px;
+    }
+
+    .rm-invoice-kind {
+        min-height: 44px;
+        width: 100%;
+    }
+
+    .rm-invoice-row .rm-commerce-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+        width: 100%;
+    }
+
+    .rm-invoice-row .rm-commerce-actions .rm-button {
+        width: 100%;
     }
 }
 

@@ -69,6 +69,18 @@ class DatabaseSeeder extends Seeder
                 'description' => 'Pacientes, citas e historial odontologico.',
                 'enabled_modules' => ['agenda', 'clientes', 'historial', 'inventario'],
             ],
+            [
+                'name' => 'Farmacia',
+                'slug' => 'farmacia',
+                'description' => 'Venta directa, compradores por NIT, inventario por lotes y vencimientos.',
+                'enabled_modules' => ['clientes', 'ventas_productos', 'inventario', 'caja', 'facturacion'],
+            ],
+            [
+                'name' => 'Tienda',
+                'slug' => 'tienda',
+                'description' => 'Venta comercial, compradores, inventario, caja y facturacion.',
+                'enabled_modules' => ['clientes', 'ventas_productos', 'inventario', 'caja', 'facturacion'],
+            ],
         ];
 
         foreach ($businessTypes as $businessType) {

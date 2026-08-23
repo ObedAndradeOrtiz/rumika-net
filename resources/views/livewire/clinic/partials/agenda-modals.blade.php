@@ -305,7 +305,21 @@
                     <label class="rm-field"><span>QR</span><input wire:model="paymentQrAmount" type="number" min="0" step="0.01"></label>
                 </div>
             @endif
-            <label class="rm-check-option"><input wire:model="invoiceRequested" type="checkbox"><span>Marcar para facturar luego</span><small>Se vera en caja/facturacion pendiente</small></label>
+            <label class="rm-check-option"><input wire:model.live="invoiceRequested" type="checkbox"><span>Marcar para facturar luego</span><small>Se vera en caja/facturacion pendiente</small></label>
+            @if ($invoiceRequested)
+                <div class="rm-form-row">
+                    <label class="rm-field">
+                        <span>NIT / documento</span>
+                        <input wire:model="invoiceNit" type="text" placeholder="NIT para factura">
+                        @error('invoiceNit')<small>{{ $message }}</small>@enderror
+                    </label>
+                    <label class="rm-field">
+                        <span>Nombre o razon social</span>
+                        <input wire:model="invoiceName" type="text" placeholder="Nombre para factura">
+                        @error('invoiceName')<small>{{ $message }}</small>@enderror
+                    </label>
+                </div>
+            @endif
 
             <div class="rm-form-actions"><button class="rm-button rm-button-primary" type="submit">Guardar cita</button></div>
         </form>
@@ -534,7 +548,21 @@
                     </details>
                     <label class="rm-field"><span>Referencia</span><input wire:model="paymentReference" type="text" placeholder="Numero QR, recibo, anticipo"></label>
                     <label class="rm-field"><span>Notas</span><input wire:model="paymentNotes" type="text"></label>
-                    <label class="rm-check-option"><input wire:model="invoiceRequested" type="checkbox"><span>Para facturar</span><small>Queda marcado para el modulo de facturacion</small></label>
+                    <label class="rm-check-option"><input wire:model.live="invoiceRequested" type="checkbox"><span>Para facturar</span><small>Queda marcado para el modulo de facturacion</small></label>
+                    @if ($invoiceRequested)
+                        <div class="rm-form-grid one">
+                            <label class="rm-field">
+                                <span>NIT / documento</span>
+                                <input wire:model="invoiceNit" type="text" placeholder="NIT para factura">
+                                @error('invoiceNit')<small>{{ $message }}</small>@enderror
+                            </label>
+                            <label class="rm-field">
+                                <span>Nombre o razon social</span>
+                                <input wire:model="invoiceName" type="text" placeholder="Nombre para factura">
+                                @error('invoiceName')<small>{{ $message }}</small>@enderror
+                            </label>
+                        </div>
+                    @endif
                     @if ($editingPaymentId && $paymentTickets->isNotEmpty())
                         <div class="rm-payment-ticket-list">
                             <strong>Tickets de este cobro</strong>
