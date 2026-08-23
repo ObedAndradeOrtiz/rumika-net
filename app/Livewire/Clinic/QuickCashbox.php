@@ -534,6 +534,16 @@ class QuickCashbox extends Component
                         'branch_id',
                         $branch->id
                     )
+                    ->where(function ($query) use ($day) {
+                        $query
+                            ->whereHas('session', fn ($sessionQuery) => $sessionQuery
+                                ->whereDate('business_date', $day->toDateString()))
+                            ->orWhere(function ($ticketQuery) use ($day) {
+                                $ticketQuery
+                                    ->whereNull('cashbox_session_id')
+                                    ->whereDate('created_at', $day->toDateString());
+                            });
+                    })
                     ->whereIn(
                         'type',
                         [
