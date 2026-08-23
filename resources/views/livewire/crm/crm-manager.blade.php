@@ -1,15 +1,4 @@
 <main class="rm-content rm-crm-page">
-    <section class="rm-settings-hero rm-crm-hero">
-        <div>
-            <span>Mensajeria</span>
-            <h1>Centro de mensajes</h1>
-            <p>Recibe mensajes, responde desde la bandeja y agenda clientes directo al calendario.</p>
-        </div>
-        <button class="rm-button" type="button" wire:click="openChannelModal">
-            Nuevo canal
-        </button>
-    </section>
-
     @if (session('crm_success'))
         <div class="rm-alert rm-alert-success">{{ session('crm_success') }}</div>
     @endif
@@ -112,7 +101,7 @@
                     <h2>Numeros de WhatsApp por empresa</h2>
                     <p class="rm-crm-webhook">Webhook: <code>{{ $webhookUrl }}</code></p>
                 </div>
-                <button class="rm-button" type="button" wire:click="openChannelModal">Nuevo canal</button>
+                <button class="rm-button rm-button-primary" type="button" wire:click="openChannelModal">Nuevo canal</button>
             </div>
 
             <div class="rm-crm-channel-list">
