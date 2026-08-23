@@ -18,6 +18,7 @@ class CrmConversation extends Model
         'last_message',
         'last_message_at',
         'last_customer_message_at',
+        'is_demo',
     ];
 
     protected function casts(): array
@@ -25,6 +26,7 @@ class CrmConversation extends Model
         return [
             'last_message_at' => 'datetime',
             'last_customer_message_at' => 'datetime',
+            'is_demo' => 'boolean',
         ];
     }
 

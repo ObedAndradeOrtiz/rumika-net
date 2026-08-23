@@ -40,6 +40,8 @@
                             </span>
                             @if ($conversation->unread_count)
                                 <i>{{ $conversation->unread_count }}</i>
+                            @elseif ($conversation->is_demo)
+                                <em>Demo</em>
                             @endif
                         </button>
                     @empty
@@ -68,6 +70,11 @@
                         <button class="rm-button rm-button-outline" type="button" wire:click="openAppointmentModal">
                             Agendar
                         </button>
+                        @if ($canManageCrm || $selectedConversation->is_demo)
+                            <button class="rm-button rm-button-danger" type="button" wire:click="deleteConversation({{ $selectedConversation->id }})">
+                                Eliminar
+                            </button>
+                        @endif
                     </header>
 
                     <div class="rm-crm-messages">
@@ -85,6 +92,13 @@
                     </div>
 
                     <form class="rm-crm-reply" wire:submit="sendReply">
+                        @if ($quickReplies->isNotEmpty())
+                            <div class="rm-crm-quick-replies">
+                                @foreach ($quickReplies as $reply)
+                                    <button type="button" wire:click="useQuickReply({{ $reply->id }})">{{ $reply->title }}</button>
+                                @endforeach
+                            </div>
+                        @endif
                         <textarea wire:model.defer="replyText" rows="2" placeholder="Escribe una respuesta"></textarea>
                         @error('replyText')
                             <small class="rm-field-error">{{ $message }}</small>
@@ -107,7 +121,12 @@
                     <h2>Numeros de WhatsApp por empresa</h2>
                     <p class="rm-crm-webhook">Webhook: <code>{{ $webhookUrl }}</code></p>
                 </div>
-                <button class="rm-button rm-button-primary" type="button" wire:click="openChannelModal">Nuevo canal</button>
+                <div class="rm-crm-heading-actions">
+                    @if ($canManageCrm)
+                        <button class="rm-button rm-button-outline" type="button" wire:click="createDemoConversation">Chat demo</button>
+                    @endif
+                    <button class="rm-button rm-button-primary" type="button" wire:click="openChannelModal">Nuevo canal</button>
+                </div>
             </div>
 
             <div class="rm-crm-channel-list">
@@ -133,6 +152,77 @@
                         <p>Agrega el primer numero de WhatsApp Business para esta empresa.</p>
                     </div>
                 @endforelse
+            </div>
+
+            <div class="rm-crm-admin-grid">
+                <section class="rm-crm-admin-card">
+                    <div class="rm-crm-card-head">
+                        <div>
+                            <span>Respuestas rapidas</span>
+                            <h3>Mensajes predeterminados</h3>
+                        </div>
+                    </div>
+                    <div class="rm-crm-mini-form">
+                        <input class="rm-input" type="text" wire:model.defer="quickReplyTitle" placeholder="Titulo corto">
+                        <textarea class="rm-input" rows="3" wire:model.defer="quickReplyBody" placeholder="Mensaje para usar en la bandeja"></textarea>
+                        <button class="rm-button rm-button-primary" type="button" wire:click="saveQuickReply">Guardar mensaje</button>
+                    </div>
+                    <div class="rm-crm-mini-list">
+                        @forelse ($quickReplies as $reply)
+                            <article>
+                                <div>
+                                    <strong>{{ $reply->title }}</strong>
+                                    <p>{{ $reply->body }}</p>
+                                </div>
+                                <button type="button" wire:click="deleteQuickReply({{ $reply->id }})">Eliminar</button>
+                            </article>
+                        @empty
+                            <div class="rm-empty-state">
+                                <strong>Sin mensajes</strong>
+                                <p>Crea respuestas rapidas para ahorrar tiempo en la bandeja.</p>
+                            </div>
+                        @endforelse
+                    </div>
+                </section>
+
+                <section class="rm-crm-admin-card">
+                    <div class="rm-crm-card-head">
+                        <div>
+                            <span>Meta WhatsApp</span>
+                            <h3>Plantillas</h3>
+                        </div>
+                    </div>
+                    <div class="rm-crm-mini-form">
+                        <input class="rm-input" type="text" wire:model.defer="templateName" placeholder="Nombre de plantilla">
+                        <div class="rm-crm-inline-fields">
+                            <select class="rm-input" wire:model.defer="templateCategory">
+                                <option value="utility">Utilidad</option>
+                                <option value="marketing">Marketing</option>
+                                <option value="authentication">Autenticacion</option>
+                            </select>
+                            <input class="rm-input" type="text" wire:model.defer="templateLanguage" placeholder="es">
+                        </div>
+                        <textarea class="rm-input" rows="3" wire:model.defer="templateBody" placeholder="Contenido de la plantilla"></textarea>
+                        <button class="rm-button rm-button-primary" type="button" wire:click="saveTemplate">Guardar plantilla</button>
+                    </div>
+                    <div class="rm-crm-mini-list">
+                        @forelse ($templates as $template)
+                            <article>
+                                <div>
+                                    <strong>{{ $template->name }}</strong>
+                                    <p>{{ $template->body }}</p>
+                                    <small>{{ ucfirst($template->category) }} · {{ strtoupper($template->language) }} · {{ ucfirst($template->status) }}</small>
+                                </div>
+                                <button type="button" wire:click="deleteTemplate({{ $template->id }})">Eliminar</button>
+                            </article>
+                        @empty
+                            <div class="rm-empty-state">
+                                <strong>Sin plantillas</strong>
+                                <p>Registra aqui las plantillas que luego se aprobaran o sincronizaran con Meta.</p>
+                            </div>
+                        @endforelse
+                    </div>
+                </section>
             </div>
         </section>
     @endif

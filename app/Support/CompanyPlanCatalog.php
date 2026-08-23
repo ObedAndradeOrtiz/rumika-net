@@ -17,7 +17,7 @@ class CompanyPlanCatalog
                 'features' => [
                     'trial_days' => 3,
                     'blocked_after_trial' => true,
-                    'modules' => ['*'],
+                    'modules' => ['inicio', 'agenda', 'clientes', 'historia_clinica', 'servicios', 'caja', 'facturacion', 'deudas', 'reportes', 'sucursales'],
                     'limits' => [
                         'branches' => 1,
                         'users' => 2,

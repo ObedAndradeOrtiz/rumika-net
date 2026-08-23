@@ -192,6 +192,16 @@ class Company extends Model
         return $this->hasMany(CrmMessage::class);
     }
 
+    public function crmQuickReplies(): HasMany
+    {
+        return $this->hasMany(CrmQuickReply::class);
+    }
+
+    public function whatsappTemplates(): HasMany
+    {
+        return $this->hasMany(WhatsappTemplate::class);
+    }
+
     public function billingPayments(): HasMany
     {
         return $this->hasMany(CompanyBillingPayment::class);

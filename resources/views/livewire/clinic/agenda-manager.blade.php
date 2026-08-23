@@ -214,6 +214,18 @@
                             </button>
                         </div>
                         <div class="rm-secondary-actions">
+                            @if ($canUseWhatsapp && $appointment->client?->displayPhone())
+                                <button class="rm-icon-button is-whatsapp" type="button"
+                                    wire:click="openWhatsappConversation({{ $appointment->id }})"
+                                    aria-label="Abrir WhatsApp" title="Abrir WhatsApp">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2.3">
+                                        <path d="M20 11.5a8.5 8.5 0 0 1-12.5 7.5L3 20l1.1-4.2A8.5 8.5 0 1 1 20 11.5Z" />
+                                        <path d="M8.8 8.9c.2-.5.4-.6.8-.6h.6c.2 0 .5.1.6.5l.5 1.2c.1.3.1.5-.1.7l-.4.5c.5.9 1.2 1.6 2.1 2.1l.5-.4c.2-.2.5-.2.7-.1l1.2.5c.4.2.5.4.5.7v.5c0 .5-.2.8-.7 1-1 .3-2.4-.1-3.9-1.2-1.7-1.3-2.9-3-3.1-4.2-.1-.5 0-.9.1-1.2Z" />
+                                    </svg>
+                                    <span>WhatsApp</span>
+                                </button>
+                            @endif
                             @if ($canViewClinicalHistory)
                                 <a class="rm-icon-button is-clinical-history" href="{{ route('clinic.clinical-history', ['cliente' => $appointment->client_id]) }}" wire:navigate aria-label="Historia clinica" title="Historia clinica">
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none"

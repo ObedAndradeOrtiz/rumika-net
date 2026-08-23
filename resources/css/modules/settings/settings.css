@@ -2443,6 +2443,12 @@
     color: #475569;
 }
 
+.rm-commerce-actions .rm-icon-button.is-whatsapp {
+    background: #e8f8ef;
+    border-color: #b7e7ca;
+    color: #138a46;
+}
+
 .rm-commerce-actions .rm-icon-button.is-delete {
     background: #fff1f2;
     border-color: #fecdd3;
@@ -2450,7 +2456,8 @@
 }
 
 .rm-commerce-actions .rm-icon-button.is-history span,
-.rm-commerce-actions .rm-icon-button.is-clinical-history span {
+.rm-commerce-actions .rm-icon-button.is-clinical-history span,
+.rm-commerce-actions .rm-icon-button.is-whatsapp span {
     display: none;
 }
 
@@ -3842,7 +3849,8 @@
     }
 
     .rm-appointment-row .rm-secondary-actions .rm-icon-button.is-history,
-    .rm-appointment-row .rm-secondary-actions .rm-icon-button.is-clinical-history {
+    .rm-appointment-row .rm-secondary-actions .rm-icon-button.is-clinical-history,
+    .rm-appointment-row .rm-secondary-actions .rm-icon-button.is-whatsapp {
         aspect-ratio: auto;
         font-size: 11px;
         gap: 5px;
@@ -3853,7 +3861,8 @@
     }
 
     .rm-appointment-row .rm-secondary-actions .rm-icon-button.is-history span,
-    .rm-appointment-row .rm-secondary-actions .rm-icon-button.is-clinical-history span {
+    .rm-appointment-row .rm-secondary-actions .rm-icon-button.is-clinical-history span,
+    .rm-appointment-row .rm-secondary-actions .rm-icon-button.is-whatsapp span {
         display: inline;
     }
 

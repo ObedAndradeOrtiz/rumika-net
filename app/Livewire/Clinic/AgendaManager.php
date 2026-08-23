@@ -9,6 +9,8 @@ use App\Models\CashboxTicket;
 use App\Models\Client;
 use App\Models\ClientCharge;
 use App\Models\Company;
+use App\Models\CrmContact;
+use App\Models\CrmConversation;
 use App\Models\InventoryMovement;
 use App\Models\InventoryProduct;
 use App\Models\InventoryProductBatch;
@@ -16,6 +18,7 @@ use App\Models\Service;
 use App\Models\TreatmentPayment;
 use App\Models\TreatmentPaymentItem;
 use App\Models\TreatmentPlan;
+use App\Models\WhatsappChannel;
 use App\Support\Money;
 use App\Support\CompanyPlanLimits;
 use App\Support\PhoneNumber;
@@ -1407,6 +1410,54 @@ class AgendaManager extends Component
         $this->showHistoryModal = true;
     }
 
+    public function openWhatsappConversation(int $appointmentId)
+    {
+        abort_unless(RumikaAccess::can(Auth::user(), 'crm', 'view', company: $this->company()), 403);
+
+        $appointment = $this->appointmentQuery()
+            ->with(['client.primaryPhone', 'client.phones'])
+            ->whereKey($appointmentId)
+            ->firstOrFail();
+
+        $channel = $this->activeWhatsappChannel();
+        $phone = preg_replace('/\D+/', '', (string) $appointment->client?->displayPhone());
+
+        if (! $channel || $phone === '') {
+            return null;
+        }
+
+        $contact = CrmContact::query()->updateOrCreate(
+            ['company_id' => $this->company()->id, 'phone' => $phone],
+            [
+                'client_id' => $appointment->client_id,
+                'name' => $appointment->client->full_name,
+                'email' => $appointment->client->email,
+                'last_interaction_at' => now(),
+            ],
+        );
+
+        $conversation = CrmConversation::query()->firstOrCreate(
+            [
+                'company_id' => $this->company()->id,
+                'whatsapp_channel_id' => $channel->id,
+                'crm_contact_id' => $contact->id,
+            ],
+            [
+                'client_id' => $appointment->client_id,
+                'status' => 'open',
+                'last_message' => 'Conversacion iniciada desde agenda.',
+                'last_message_at' => now(),
+            ],
+        );
+
+        $conversation->update([
+            'client_id' => $appointment->client_id,
+            'status' => 'open',
+        ]);
+
+        return redirect()->route('crm.index', ['conversation' => $conversation->id]);
+    }
+
     public function appointmentStatusLabel(?string $status): string
     {
         return match ($status) {
@@ -1491,6 +1542,7 @@ class AgendaManager extends Component
             'appointments' => $appointments,
             'canCreateAppointments' => RumikaAccess::can(Auth::user(), 'agenda', 'create', company: $company),
             'canViewClinicalHistory' => RumikaAccess::can(Auth::user(), 'historia_clinica', 'view', company: $company),
+            'canUseWhatsapp' => RumikaAccess::can(Auth::user(), 'crm', 'view', company: $company) && (bool) $this->activeWhatsappChannel(),
             'clients' => $this->filteredClients($company),
             'staffUsers' => $company->users()->orderBy('name')->get(),
             'phoneCountries' => PhoneNumber::countries(),
@@ -1530,6 +1582,54 @@ class AgendaManager extends Component
             || RumikaAccess::can(Auth::user(), 'agenda', 'delete', company: $company)
             || RumikaAccess::can(Auth::user(), 'historia_clinica', 'view_full', company: $company)
             || RumikaAccess::can(Auth::user(), 'historia_clinica', 'manage_access', company: $company);
+    }
+
+    private function activeWhatsappChannel(): ?WhatsappChannel
+    {
+        $company = $this->company();
+        $branch = $this->activeBranch();
+        $query = $company->whatsappChannels()
+            ->where('is_active', true)
+            ->where(function ($query) use ($branch) {
+                $query->whereNull('branch_id')->orWhere('branch_id', $branch->id);
+            });
+
+        if (! $this->userCanManageCrm($company)) {
+            $assignedIds = Auth::user()
+                ->whatsappChannels()
+                ->where('whatsapp_channels.company_id', $company->id)
+                ->pluck('whatsapp_channels.id')
+                ->all();
+
+            if ($assignedIds === []) {
+                return null;
+            }
+
+            $query->whereIn('id', $assignedIds);
+        }
+
+        return $query
+            ->orderByRaw('branch_id IS NULL')
+            ->first();
+    }
+
+    private function userCanManageCrm(Company $company): bool
+    {
+        $companyRole = Auth::user()
+            ->companies()
+            ->where('companies.id', $company->id)
+            ->value('company_user.role');
+
+        if (in_array($companyRole, RumikaAccess::ADMIN_ROLES, true)) {
+            return true;
+        }
+
+        return Auth::user()
+            ->branches()
+            ->where('branches.company_id', $company->id)
+            ->leftJoin('roles', 'roles.id', '=', 'branch_user.role_id')
+            ->whereIn('roles.slug', RumikaAccess::ADMIN_ROLES)
+            ->exists();
     }
 
     private function storePayment(Company $company, Branch $branch, Client $client, Appointment $appointment, ?TreatmentPlan $plan, float $amount, array $data): int

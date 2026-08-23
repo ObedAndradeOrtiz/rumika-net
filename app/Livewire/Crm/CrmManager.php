@@ -6,9 +6,12 @@ use App\Models\Appointment;
 use App\Models\Client;
 use App\Models\ClientPhone;
 use App\Models\CrmConversation;
+use App\Models\CrmContact;
 use App\Models\CrmMessage;
+use App\Models\CrmQuickReply;
 use App\Models\Service;
 use App\Models\WhatsappChannel;
+use App\Models\WhatsappTemplate;
 use App\Services\WhatsappMessageSender;
 use App\Support\CompanyPlanLimits;
 use Carbon\Carbon;
@@ -24,6 +27,12 @@ class CrmManager extends Component
     public ?int $selectedConversationId = null;
     public bool $mobileListMode = true;
     public string $replyText = '';
+    public string $quickReplyTitle = '';
+    public string $quickReplyBody = '';
+    public string $templateName = '';
+    public string $templateCategory = 'utility';
+    public string $templateLanguage = 'es';
+    public string $templateBody = '';
 
     public bool $showChannelModal = false;
     public ?int $editingChannelId = null;
@@ -55,6 +64,10 @@ class CrmManager extends Component
         $this->appointmentForm['branch_id'] = (string) (session('active_branch_id') ?: $this->branches()->first()?->id);
         $this->appointmentForm['scheduled_date'] = now()->format('Y-m-d');
         $this->appointmentForm['scheduled_time'] = now()->addHour()->format('H:00');
+
+        if ($conversationId = request()->integer('conversation')) {
+            $this->selectConversation($conversationId);
+        }
     }
 
     public function selectConversation(int $conversationId): void
@@ -76,6 +89,172 @@ class CrmManager extends Component
     public function showConversationList(): void
     {
         $this->mobileListMode = true;
+    }
+
+    public function useQuickReply(int $replyId): void
+    {
+        $reply = $this->company()->crmQuickReplies()
+            ->where('is_active', true)
+            ->whereKey($replyId)
+            ->firstOrFail();
+
+        $this->replyText = $reply->body;
+    }
+
+    public function saveQuickReply(): void
+    {
+        $validated = $this->validate([
+            'quickReplyTitle' => ['required', 'string', 'max:80'],
+            'quickReplyBody' => ['required', 'string', 'max:1000'],
+        ]);
+
+        CrmQuickReply::query()->create([
+            'company_id' => $this->company()->id,
+            'title' => $validated['quickReplyTitle'],
+            'body' => $validated['quickReplyBody'],
+            'is_active' => true,
+        ]);
+
+        $this->quickReplyTitle = '';
+        $this->quickReplyBody = '';
+        session()->flash('crm_success', 'Mensaje predeterminado guardado.');
+    }
+
+    public function deleteQuickReply(int $replyId): void
+    {
+        $this->company()->crmQuickReplies()->whereKey($replyId)->delete();
+    }
+
+    public function saveTemplate(): void
+    {
+        $validated = $this->validate([
+            'templateName' => ['required', 'string', 'max:120'],
+            'templateCategory' => ['required', 'string', 'max:40'],
+            'templateLanguage' => ['required', 'string', 'max:12'],
+            'templateBody' => ['required', 'string', 'max:1200'],
+        ]);
+
+        WhatsappTemplate::query()->updateOrCreate(
+            [
+                'company_id' => $this->company()->id,
+                'name' => Str::slug($validated['templateName'], '_'),
+                'language' => $validated['templateLanguage'],
+            ],
+            [
+                'category' => $validated['templateCategory'],
+                'body' => $validated['templateBody'],
+                'status' => 'draft',
+            ],
+        );
+
+        $this->templateName = '';
+        $this->templateCategory = 'utility';
+        $this->templateLanguage = 'es';
+        $this->templateBody = '';
+        session()->flash('crm_success', 'Plantilla guardada como borrador.');
+    }
+
+    public function deleteTemplate(int $templateId): void
+    {
+        $this->company()->whatsappTemplates()->whereKey($templateId)->delete();
+    }
+
+    public function createDemoConversation(): void
+    {
+        $company = $this->company();
+        $channel = $company->whatsappChannels()
+            ->where('phone_number_id', 'rumika-demo-' . $company->id)
+            ->first();
+
+        if (! $channel) {
+            $channel = WhatsappChannel::query()->create([
+                'company_id' => $company->id,
+                'branch_id' => null,
+                'name' => 'Demo WhatsApp',
+                'phone_number' => '59170000000',
+                'phone_number_id' => 'rumika-demo-' . $company->id,
+                'waba_id' => 'demo',
+                'api_version' => 'v23.0',
+                'access_token' => 'demo-token',
+                'verify_token' => $this->makeVerifyToken(),
+                'audio_converter_api_key' => null,
+                'is_active' => false,
+            ]);
+        }
+
+        $contact = CrmContact::query()->updateOrCreate(
+            ['company_id' => $company->id, 'phone' => '59170000000'],
+            ['name' => 'Cliente demo', 'last_interaction_at' => now()],
+        );
+
+        $conversation = CrmConversation::query()->firstOrCreate(
+            [
+                'company_id' => $company->id,
+                'whatsapp_channel_id' => $channel->id,
+                'crm_contact_id' => $contact->id,
+            ],
+            [
+                'client_id' => null,
+                'status' => 'open',
+                'is_demo' => true,
+                'last_message' => 'Hola, quiero agendar una cita.',
+                'last_message_at' => now(),
+                'last_customer_message_at' => now(),
+            ],
+        );
+
+        $conversation->update(['is_demo' => true, 'last_message_at' => now()]);
+
+        if ($conversation->messages()->doesntExist()) {
+            $conversation->messages()->createMany([
+                [
+                    'company_id' => $company->id,
+                    'whatsapp_channel_id' => $channel->id,
+                    'crm_contact_id' => $contact->id,
+                    'wamid' => 'demo-in-' . Str::uuid(),
+                    'direction' => 'in',
+                    'type' => 'text',
+                    'body' => 'Hola, quiero agendar una cita para esta semana.',
+                    'status' => 'received',
+                    'message_at' => now()->subMinutes(8),
+                    'is_read' => true,
+                ],
+                [
+                    'company_id' => $company->id,
+                    'whatsapp_channel_id' => $channel->id,
+                    'crm_contact_id' => $contact->id,
+                    'wamid' => 'demo-out-' . Str::uuid(),
+                    'direction' => 'out',
+                    'type' => 'text',
+                    'body' => 'Claro, podemos ayudarte. Te comparto los horarios disponibles.',
+                    'status' => 'sent',
+                    'message_at' => now()->subMinutes(6),
+                    'is_read' => true,
+                ],
+            ]);
+        }
+
+        $this->selectConversation($conversation->id);
+        session()->flash('crm_success', 'Chat demo creado.');
+    }
+
+    public function deleteConversation(int $conversationId): void
+    {
+        $conversation = $this->company()->crmConversations()
+            ->whereIn('whatsapp_channel_id', $this->accessibleChannelIds())
+            ->whereKey($conversationId)
+            ->firstOrFail();
+
+        abort_unless($conversation->is_demo || $this->isCompanyAdmin(), 403);
+
+        $conversation->delete();
+
+        if ($this->selectedConversationId === $conversationId) {
+            $this->selectedConversationId = null;
+            $this->mobileListMode = true;
+        }
+
+        session()->flash('crm_success', 'Chat eliminado.');
     }
 
     public function sendReply(WhatsappMessageSender $sender): void
@@ -366,6 +545,9 @@ class CrmManager extends Component
             'services' => $this->services(),
             'staffUsers' => $this->staffUsers(),
             'webhookUrl' => url('/webhook/whatsapp'),
+            'quickReplies' => $company->crmQuickReplies()->where('is_active', true)->latest()->get(),
+            'templates' => $company->whatsappTemplates()->with('channel')->latest()->get(),
+            'canManageCrm' => $this->isCompanyAdmin(),
         ]);
     }
 
@@ -398,7 +580,15 @@ class CrmManager extends Component
             ->where('companies.id', $company->id)
             ->value('company_user.role');
 
-        return in_array($role, ['owner', 'super_admin', 'super-administrador', 'admin', 'administrator', 'administrador'], true);
+        if (in_array($role, ['owner', 'super_admin', 'super-administrador', 'admin', 'administrator', 'administrador'], true)) {
+            return true;
+        }
+
+        return $user->branches()
+            ->where('branches.company_id', $company->id)
+            ->leftJoin('roles', 'roles.id', '=', 'branch_user.role_id')
+            ->whereIn('roles.slug', ['owner', 'super_admin', 'super-administrador', 'admin', 'administrator', 'administrador'])
+            ->exists();
     }
 
     private function branches()
