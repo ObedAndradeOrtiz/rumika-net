@@ -31,7 +31,7 @@ class ClientHistory extends Component
     public string $identityNumber = '';
     public string $phone = '';
     public string $phoneCountry = 'BO';
-    public array $phones = [['phone' => '', 'label' => 'Principal']];
+    public array $phones = [['phone' => '', 'label' => 'Principal', 'is_primary' => true]];
     public string $email = '';
     public string $birthDate = '';
     public string $clinicalNotes = '';
@@ -68,9 +68,11 @@ class ClientHistory extends Component
             ->map(fn ($phone) => [
                 'phone' => $phone->phone,
                 'label' => $phone->label ?: '',
+                'is_primary' => (bool) $phone->is_primary,
             ])
             ->values()
-            ->all() ?: [['phone' => $client->phone ?? '', 'label' => 'Principal']];
+            ->all() ?: [['phone' => $client->phone ?? '', 'label' => 'Principal', 'is_primary' => true]];
+        $this->ensureSinglePrimaryPhone();
         $this->email = $client->email ?? '';
         $this->birthDate = $client->birth_date?->format('Y-m-d') ?? '';
         $this->clinicalNotes = $client->clinical_notes ?? '';
@@ -90,6 +92,7 @@ class ClientHistory extends Component
             'phones' => ['array', 'max:6'],
             'phones.*.phone' => ['nullable', 'string', 'max:60'],
             'phones.*.label' => ['nullable', 'string', 'max:40'],
+            'phones.*.is_primary' => ['nullable', 'boolean'],
             'email' => ['nullable', 'email', 'max:140'],
             'birthDate' => ['nullable', 'date'],
             'clinicalNotes' => ['nullable', 'string', 'max:2000'],
@@ -113,7 +116,7 @@ class ClientHistory extends Component
             $client->fill([
                 'full_name' => $validated['fullName'],
                 'identity_number' => $validated['identityNumber'] ?: null,
-                'phone' => $phoneRows[0]['phone'] ?? null,
+                'phone' => collect($phoneRows)->firstWhere('is_primary', true)['phone'] ?? ($phoneRows[0]['phone'] ?? null),
                 'email' => $validated['email'] ?: null,
                 'birth_date' => $validated['birthDate'] ?: null,
                 'clinical_notes' => $validated['clinicalNotes'] ?: null,
@@ -178,7 +181,7 @@ class ClientHistory extends Component
             return;
         }
 
-        $this->phones[] = ['phone' => '', 'label' => ''];
+        $this->phones[] = ['phone' => '', 'label' => '', 'is_primary' => false];
     }
 
     public function removePhone(int $index): void
@@ -187,7 +190,16 @@ class ClientHistory extends Component
         $this->phones = array_values($this->phones);
 
         if ($this->phones === []) {
-            $this->phones = [['phone' => '', 'label' => 'Principal']];
+            $this->phones = [['phone' => '', 'label' => 'Principal', 'is_primary' => true]];
+        }
+
+        $this->ensureSinglePrimaryPhone();
+    }
+
+    public function setPrimaryPhone(int $index): void
+    {
+        foreach ($this->phones as $phoneIndex => $phoneRow) {
+            $this->phones[$phoneIndex]['is_primary'] = $phoneIndex === $index;
         }
     }
 
@@ -265,7 +277,7 @@ class ClientHistory extends Component
             'birthDate',
             'clinicalNotes',
         ]);
-        $this->phones = [['phone' => '', 'label' => 'Principal']];
+        $this->phones = [['phone' => '', 'label' => 'Principal', 'is_primary' => true]];
         $this->phoneCountry = $this->activeBranch()->country_code ?? 'BO';
         $this->status = 'active';
         $this->resetErrorBag();
@@ -293,10 +305,17 @@ class ClientHistory extends Component
             $rows[] = [
                 'phone' => $normalized,
                 'label' => trim((string) ($phone['label'] ?? '')),
+                'is_primary' => filter_var($phone['is_primary'] ?? false, FILTER_VALIDATE_BOOLEAN),
             ];
         }
 
-        return collect($rows)->unique('phone')->values()->all();
+        $rows = collect($rows)->unique('phone')->values()->all();
+
+        if ($rows !== [] && ! collect($rows)->contains(fn (array $row) => $row['is_primary'])) {
+            $rows[0]['is_primary'] = true;
+        }
+
+        return $rows;
     }
 
     private function syncClientPhones(Client $client, array $phones): void
@@ -306,9 +325,24 @@ class ClientHistory extends Component
         foreach ($phones as $index => $phone) {
             $client->phones()->create([
                 'phone' => $phone['phone'],
-                'label' => $phone['label'] ?: ($index === 0 ? 'Principal' : null),
-                'is_primary' => $index === 0,
+                'label' => $phone['label'] ?: ($phone['is_primary'] ? 'Principal' : null),
+                'is_primary' => (bool) $phone['is_primary'],
             ]);
+        }
+    }
+
+    private function ensureSinglePrimaryPhone(): void
+    {
+        $primaryFound = false;
+
+        foreach ($this->phones as $index => $phoneRow) {
+            $isPrimary = filter_var($phoneRow['is_primary'] ?? false, FILTER_VALIDATE_BOOLEAN);
+            $this->phones[$index]['is_primary'] = $isPrimary && ! $primaryFound;
+            $primaryFound = $primaryFound || $this->phones[$index]['is_primary'];
+        }
+
+        if (! $primaryFound && isset($this->phones[0])) {
+            $this->phones[0]['is_primary'] = true;
         }
     }
 

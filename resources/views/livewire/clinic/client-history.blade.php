@@ -124,22 +124,43 @@
                     </label>
 
                     <div class="rm-field rm-phone-editor">
-                        <span>Telefonos</span>
-                        <label class="rm-field rm-field-compact">
-                            <span>Pais</span>
-                            <select wire:model="phoneCountry">
-                                @foreach ($phoneCountries as $countryCode => $countryRule)
-                                    <option value="{{ $countryCode }}">{{ $countryRule['name'] }} (+{{ $countryRule['code'] }})</option>
-                                @endforeach
-                            </select>
-                            @error('phoneCountry') <small>{{ $message }}</small> @enderror
-                        </label>
+                        <div class="rm-phone-header">
+                            <div>
+                                <span>Telefonos</span>
+                                <strong>{{ collect($phones)->firstWhere('is_primary', true)['phone'] ?? 'Sin numero principal' }}</strong>
+                                <small>Marca cual sera el numero principal del cliente.</small>
+                            </div>
+                            <label class="rm-field rm-field-compact">
+                                <span>Pais</span>
+                                <select wire:model="phoneCountry">
+                                    @foreach ($phoneCountries as $countryCode => $countryRule)
+                                        <option value="{{ $countryCode }}">{{ $countryRule['name'] }} (+{{ $countryRule['code'] }})</option>
+                                    @endforeach
+                                </select>
+                                @error('phoneCountry') <small>{{ $message }}</small> @enderror
+                            </label>
+                        </div>
                         <div class="rm-phone-list">
                             @foreach ($phones as $index => $phoneRow)
-                                <div class="rm-phone-row" wire:key="client-phone-{{ $index }}">
-                                    <input wire:model="phones.{{ $index }}.phone" type="text" placeholder="70000000">
-                                    <input wire:model="phones.{{ $index }}.label" type="text" placeholder="{{ $index === 0 ? 'Principal' : 'Casa, trabajo, familiar' }}">
-                                    <button class="rm-button rm-button-outline" type="button" wire:click="removePhone({{ $index }})">Quitar</button>
+                                <div class="rm-phone-row {{ ! empty($phoneRow['is_primary']) ? 'is-primary' : '' }}" wire:key="client-phone-{{ $index }}">
+                                    <button class="rm-phone-primary" type="button" wire:click="setPrimaryPhone({{ $index }})" aria-label="Marcar telefono principal">
+                                        @if (! empty($phoneRow['is_primary']))
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6">
+                                                <path d="m5 12 4 4L19 6" />
+                                            </svg>
+                                        @else
+                                            <span></span>
+                                        @endif
+                                    </button>
+                                    <label>
+                                        <span>Numero</span>
+                                        <input wire:model="phones.{{ $index }}.phone" type="text" placeholder="70000000">
+                                    </label>
+                                    <label>
+                                        <span>Etiqueta</span>
+                                        <input wire:model="phones.{{ $index }}.label" type="text" placeholder="{{ ! empty($phoneRow['is_primary']) ? 'Principal' : 'Casa, trabajo, familiar' }}">
+                                    </label>
+                                    <button class="rm-phone-remove" type="button" wire:click="removePhone({{ $index }})">Quitar</button>
                                 </div>
                             @endforeach
                         </div>
