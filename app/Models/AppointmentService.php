@@ -12,6 +12,7 @@ class AppointmentService extends Model
         'appointment_id',
         'service_id',
         'performed_by_user_id',
+        'referred_by_user_id',
         'name',
         'price',
         'duration_minutes',
@@ -41,6 +42,11 @@ class AppointmentService extends Model
     public function performedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'performed_by_user_id');
+    }
+
+    public function referredBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'referred_by_user_id');
     }
 
     public function clinicalRecords(): HasMany

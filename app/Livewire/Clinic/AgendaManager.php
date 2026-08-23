@@ -98,6 +98,7 @@ class AgendaManager extends Component
     public string $addServicesSearch = '';
     public string $addPackagesSearch = '';
     public array $addServiceIds = [];
+    public ?int $addServicesReferredByUserId = null;
     public string $editingAppointmentTime = '';
     public string $historyTab = 'appointments';
 
@@ -172,7 +173,7 @@ class AgendaManager extends Component
         $branch = $this->activeBranch();
         $clientIds = $company->clients()->pluck('id')->all();
         $serviceIds = $company->services()->pluck('id')->all();
-        $staffUserIds = $company->users()->pluck('id')->all();
+        $staffUserIds = $company->users()->pluck('users.id')->all();
 
         $rules = [
             'clientMode' => ['required', 'in:existing,new'],
@@ -1297,6 +1298,7 @@ class AgendaManager extends Component
         $this->addServicesSearch = '';
         $this->addPackagesSearch = '';
         $this->addServiceIds = [];
+        $this->addServicesReferredByUserId = null;
         $this->showAddServicesModal = true;
     }
 
@@ -1306,10 +1308,12 @@ class AgendaManager extends Component
         $company = $this->company();
         $branch = $this->activeBranch();
         $serviceIds = $this->availableServiceIds($company, $branch);
+        $userIds = $company->users()->pluck('users.id')->all();
 
         $validated = $this->validate([
             'addServiceIds' => ['required', 'array', 'min:1'],
             'addServiceIds.*' => [Rule::in($serviceIds)],
+            'addServicesReferredByUserId' => ['nullable', Rule::in($userIds)],
         ]);
 
         $existingIds = $appointment->services()->pluck('service_id')->filter()->all();
@@ -1322,7 +1326,9 @@ class AgendaManager extends Component
             ->get();
 
         foreach ($services as $service) {
-            $appointment->services()->create($this->appointmentServicePayload($service));
+            $appointment->services()->create($this->appointmentServicePayload($service, [
+                'referred_by_user_id' => $validated['addServicesReferredByUserId'] ?? null,
+            ]));
         }
 
         if ($services->isEmpty()) {
@@ -1333,6 +1339,7 @@ class AgendaManager extends Component
 
         $this->showAddServicesModal = false;
         $this->addServiceIds = [];
+        $this->addServicesReferredByUserId = null;
     }
 
     public function completeAppointmentService(int $appointmentServiceId): void
@@ -1385,7 +1392,7 @@ class AgendaManager extends Component
             ->with([
                 'client.phones',
                 'client.primaryPhone',
-                'services',
+                'services.referredBy',
                 'payments.splits',
                 'payments.items',
                 'treatmentPlan',
@@ -2280,7 +2287,7 @@ class AgendaManager extends Component
             ->all();
     }
 
-    private function appointmentServicePayload(Service $service): array
+    private function appointmentServicePayload(Service $service, array $overrides = []): array
     {
         return [
             'service_id' => $service->id,
@@ -2288,7 +2295,7 @@ class AgendaManager extends Component
             'price' => $service->price,
             'duration_minutes' => $service->duration_minutes,
             'status' => 'pending',
-        ];
+        ] + $overrides;
     }
 
     private function initialAppointmentPaymentAmount(array $data): float

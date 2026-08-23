@@ -3,9 +3,9 @@
         <div>
             <span class="rm-kicker">Gerencia</span>
             <h1>Reportes del negocio</h1>
-            <p>Resumen general y por sucursal con ingresos, egresos, deudas, asistencia y comisiones.</p>
+            <p>Resumen general y por sucursal con ingresos, egresos, cuentas por cobrar, asistencia y comisiones.</p>
         </div>
-        <a class="rm-button rm-button-primary" href="{{ $pdfUrl }}" target="_blank">Exportar PDF</a>
+        <a class="rm-button rm-button-primary" href="{{ $pdfUrl }}" download>Descargar PDF</a>
     </section>
 
     <section class="rm-panel rm-report-filters">
@@ -30,7 +30,7 @@
         <div class="rm-kpi"><strong>{{ $currency }} {{ number_format((float) $kpis['products'], 2) }}</strong><span>Productos</span></div>
         <div class="rm-kpi"><strong>{{ $currency }} {{ number_format((float) $kpis['expenses'], 2) }}</strong><span>Egresos</span></div>
         <div class="rm-kpi"><strong>{{ $currency }} {{ number_format((float) $kpis['net'], 2) }}</strong><span>Neto</span></div>
-        <div class="rm-kpi"><strong>{{ $currency }} {{ number_format((float) $kpis['debts'], 2) }}</strong><span>Deudas</span></div>
+        <div class="rm-kpi"><strong>{{ $currency }} {{ number_format((float) $kpis['debts'], 2) }}</strong><span>Por cobrar</span></div>
         <div class="rm-kpi"><strong>{{ $currency }} {{ number_format((float) $kpis['commissions'], 2) }}</strong><span>Comisiones</span></div>
         <div class="rm-kpi"><strong>{{ $kpis['attended'] }}/{{ $kpis['appointments'] }}</strong><span>Asistencia</span></div>
     </section>
@@ -39,7 +39,7 @@
         <div class="rm-panel-title"><div><h2>Resumen por sucursal</h2><p>{{ $rangeLabel }}</p></div></div>
         <div class="rm-report-table">
             <div class="rm-report-table-head">
-                <span>Sucursal</span><span>Servicios</span><span>Productos</span><span>Gastos</span><span>Neto</span><span>Asistencia</span><span>Deudas</span>
+                <span>Sucursal</span><span>Servicios</span><span>Productos</span><span>Gastos</span><span>Neto</span><span>Asistencia</span><span>Por cobrar</span>
             </div>
             @foreach ($branchRows as $row)
                 <div class="rm-report-table-row">
@@ -80,6 +80,15 @@
                 <div class="rm-report-mini-row"><span>{{ $row['name'] }}</span><strong>{{ $currency }} {{ number_format((float) ($row['services'] + $row['products']), 2) }}</strong><small>Comision {{ $currency }} {{ number_format((float) $row['commission'], 2) }}</small></div>
             @empty
                 <div class="rm-empty-state">Sin personal.</div>
+            @endforelse
+        </section>
+
+        <section class="rm-panel rm-report-section">
+            <div class="rm-panel-title"><div><h2>Servicios referidos</h2><p>Servicios extra agregados a una cita y atribuidos a un profesional.</p></div></div>
+            @forelse ($referredServiceRows as $row)
+                <div class="rm-report-mini-row"><span>{{ $row['name'] }}</span><strong>{{ $currency }} {{ number_format((float) $row['total'], 2) }}</strong><small>{{ $row['completed'] }}/{{ $row['count'] }} realizado(s)</small></div>
+            @empty
+                <div class="rm-empty-state">Sin servicios referidos.</div>
             @endforelse
         </section>
     </div>

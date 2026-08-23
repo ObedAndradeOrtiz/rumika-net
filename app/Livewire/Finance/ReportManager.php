@@ -49,7 +49,7 @@ class ReportManager extends Component
             : $this->branches($company)->pluck('id')->all();
 
         $payments = $company->treatmentPayments()
-            ->with(['branch', 'client', 'performedBy', 'items.soldBy', 'items.appointmentService.performedBy'])
+            ->with(['branch', 'client', 'performedBy', 'items.soldBy', 'items.appointmentService.performedBy', 'items.appointmentService.referredBy'])
             ->whereIn('branch_id', $branchIds)
             ->whereBetween('paid_at', $range)
             ->get();
@@ -67,7 +67,7 @@ class ReportManager extends Component
             ->get();
 
         $appointments = $company->appointments()
-            ->with(['branch', 'client', 'services'])
+            ->with(['branch', 'client', 'services.referredBy'])
             ->whereIn('branch_id', $branchIds)
             ->whereBetween('scheduled_at', $range)
             ->get();
@@ -119,6 +119,7 @@ class ReportManager extends Component
                 ->take(10)
                 ->values(),
             'staffRows' => $this->staffRows($serviceItems, $productItems),
+            'referredServiceRows' => $this->referredServiceRows($appointments),
         ];
     }
 
@@ -153,7 +154,9 @@ class ReportManager extends Component
         $rows = collect();
 
         $serviceItems->each(function ($row) use ($rows) {
-            $staff = $row['item']->appointmentService?->performedBy ?? $row['payment']->performedBy;
+            $staff = $row['item']->appointmentService?->referredBy
+                ?? $row['item']->appointmentService?->performedBy
+                ?? $row['payment']->performedBy;
             $key = $staff?->id ? 'u'.$staff->id : 'none';
             $current = $rows->get($key, ['name' => $staff?->name ?? 'Sin responsable', 'services' => 0, 'products' => 0, 'commission' => 0]);
             $current['services'] += (float) $row['item']->total;
@@ -173,6 +176,27 @@ class ReportManager extends Component
         });
 
         return $rows->values()->sortByDesc(fn ($row) => $row['services'] + $row['products'])->values();
+    }
+
+    private function referredServiceRows($appointments)
+    {
+        return $appointments
+            ->flatMap(fn ($appointment) => $appointment->services
+                ->filter(fn ($service) => $service->referredBy)
+                ->map(fn ($service) => ['appointment' => $appointment, 'service' => $service]))
+            ->groupBy(fn ($row) => $row['service']->referredBy->id)
+            ->map(function ($rows) {
+                $staff = $rows->first()['service']->referredBy;
+
+                return [
+                    'name' => $staff->name,
+                    'count' => $rows->count(),
+                    'completed' => $rows->where('service.status', 'completed')->count(),
+                    'total' => (float) $rows->sum(fn ($row) => (float) $row['service']->price),
+                ];
+            })
+            ->sortByDesc('total')
+            ->values();
     }
 
     private function range(): array

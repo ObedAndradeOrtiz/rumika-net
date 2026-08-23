@@ -88,6 +88,9 @@
                                 <span
                                     class="rm-service-pill {{ $service->status === 'completed' ? 'is-completed' : '' }}">
                                     {{ $service->name }}
+                                    @if ($service->referredBy)
+                                        <em>Referido por {{ $service->referredBy->name }}</em>
+                                    @endif
                                     @if ($service->status === 'completed')
                                         <small>Finalizado</small>
                                     @else

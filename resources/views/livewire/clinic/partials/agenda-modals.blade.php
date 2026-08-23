@@ -714,6 +714,17 @@
         <div class="rm-modal-title"><div><span>Historial clinico</span><h2>Agregar tratamientos</h2></div><button type="button" wire:click="$set('showAddServicesModal', false)">x</button></div>
         <form wire:submit="saveAddedServices" class="rm-form-stack">
             <p>Agrega tratamientos o servicios a la fecha seleccionada sin mover la cita.</p>
+            <label class="rm-field">
+                <span>Referido por</span>
+                <select wire:model="addServicesReferredByUserId">
+                    <option value="">Sin referido</option>
+                    @foreach ($staffUsers as $staff)
+                        <option value="{{ $staff->id }}">{{ $staff->name }}</option>
+                    @endforeach
+                </select>
+                <small>Usa este campo cuando recepcion registra el servicio, pero el servicio fue sugerido por una doctora o profesional.</small>
+                @error('addServicesReferredByUserId')<small>{{ $message }}</small>@enderror
+            </label>
             <div class="rm-field">
                 <span>Servicios / tratamientos</span>
                 <label class="rm-search-field">
