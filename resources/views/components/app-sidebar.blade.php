@@ -337,7 +337,6 @@
             </button>
         </div>
         <div class="rm-mobile-more-scroll">
-            @if ($sidebarCanSeeInventory || $sidebarCanSeeInventoryOperations)
             @if ($sidebarCanSeeClinicalHistory)
             <details class="rm-mobile-menu-group" {{ $active === 'clinical-history' ? 'open' : '' }}>
                 <summary>
