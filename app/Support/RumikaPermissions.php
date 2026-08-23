@@ -48,8 +48,8 @@ class RumikaPermissions
                 'actions' => ['view', 'create', 'edit', 'delete'],
             ],
             'crm' => [
-                'label' => 'CRM y bots',
-                'group' => 'Gestion CRM',
+                'label' => 'Centro de mensajes',
+                'group' => 'Mensajeria',
                 'actions' => ['view', 'create', 'edit', 'delete'],
             ],
             'facturacion' => [

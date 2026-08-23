@@ -1,8 +1,8 @@
 <main class="rm-page rm-crm-page">
     <section class="rm-hero-card rm-crm-hero">
         <div>
-            <span>CRM y WhatsApp</span>
-            <h1>Rumika Bot</h1>
+            <span>Mensajeria</span>
+            <h1>Centro de mensajes</h1>
             <p>Recibe mensajes, responde desde la bandeja y agenda clientes directo al calendario.</p>
         </div>
         <button class="rm-button" type="button" wire:click="openChannelModal">
@@ -110,7 +110,7 @@
                 <div>
                     <span>Configuracion</span>
                     <h2>Numeros de WhatsApp por empresa</h2>
-                    <p>Webhook: <code>{{ $webhookUrl }}</code></p>
+                    <p class="rm-crm-webhook">Webhook: <code>{{ $webhookUrl }}</code></p>
                 </div>
                 <button class="rm-button" type="button" wire:click="openChannelModal">Nuevo canal</button>
             </div>
@@ -120,7 +120,8 @@
                     <article class="rm-crm-channel">
                         <div>
                             <strong>{{ $channel->name }}</strong>
-                            <p>{{ $channel->phone_number ?: 'Sin numero visible' }} · {{ $channel->phone_number_id }}</p>
+                        <p>{{ $channel->phone_number ?: 'Sin numero visible' }}</p>
+                        <code>{{ $channel->phone_number_id }}</code>
                             <span>{{ $channel->branch?->name ?: 'Todas las sucursales' }}</span>
                         </div>
                         <div class="rm-crm-channel-actions">
@@ -143,55 +144,64 @@
 
     @if ($showChannelModal)
         <div class="rm-modal-backdrop">
-            <section class="rm-modal rm-modal-wide">
-                <button class="rm-modal-close" type="button" wire:click="$set('showChannelModal', false)">x</button>
-                <span>WhatsApp API</span>
-                <h2>{{ $editingChannelId ? 'Editar canal' : 'Nuevo canal' }}</h2>
+            <section class="rm-modal-panel rm-modal-panel-xl rm-crm-modal">
+                <div class="rm-modal-title">
+                    <div>
+                        <span>WhatsApp API</span>
+                        <h2>{{ $editingChannelId ? 'Editar canal' : 'Nuevo canal' }}</h2>
+                        <p class="rm-modal-subtitle">Configura el numero de WhatsApp Business que usara esta empresa.</p>
+                    </div>
+                    <button type="button" wire:click="$set('showChannelModal', false)" aria-label="Cerrar">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                            <path d="M18 6 6 18M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
 
                 <div class="rm-form-grid">
-                    <label>
-                        Nombre
-                        <input type="text" wire:model.defer="channelForm.name" placeholder="WhatsApp Central">
+                    <label class="rm-field">
+                        <span class="rm-label">Nombre</span>
+                        <input class="rm-input" type="text" wire:model.defer="channelForm.name" placeholder="WhatsApp Central">
                         @error('channelForm.name') <small class="rm-field-error">{{ $message }}</small> @enderror
                     </label>
-                    <label>
-                        Sucursal
-                        <select wire:model.defer="channelForm.branch_id">
+                    <label class="rm-field">
+                        <span class="rm-label">Sucursal</span>
+                        <select class="rm-input" wire:model.defer="channelForm.branch_id">
                             <option value="">Todas las sucursales</option>
                             @foreach ($branches as $branch)
                                 <option value="{{ $branch->id }}">{{ $branch->name }}</option>
                             @endforeach
                         </select>
                     </label>
-                    <label>
-                        Numero visible
-                        <input type="text" wire:model.defer="channelForm.phone_number" placeholder="59170000000">
+                    <label class="rm-field">
+                        <span class="rm-label">Numero visible</span>
+                        <input class="rm-input" type="text" wire:model.defer="channelForm.phone_number" placeholder="59170000000">
                     </label>
-                    <label>
-                        Phone Number ID
-                        <input type="text" wire:model.defer="channelForm.phone_number_id">
+                    <label class="rm-field">
+                        <span class="rm-label">Phone Number ID</span>
+                        <input class="rm-input" type="text" wire:model.defer="channelForm.phone_number_id">
                         @error('channelForm.phone_number_id') <small class="rm-field-error">{{ $message }}</small> @enderror
                     </label>
-                    <label>
-                        WABA ID
-                        <input type="text" wire:model.defer="channelForm.waba_id">
+                    <label class="rm-field">
+                        <span class="rm-label">WABA ID</span>
+                        <input class="rm-input" type="text" wire:model.defer="channelForm.waba_id">
                     </label>
-                    <label>
-                        Version API
-                        <input type="text" wire:model.defer="channelForm.api_version" placeholder="v23.0">
+                    <label class="rm-field">
+                        <span class="rm-label">Version API</span>
+                        <input class="rm-input" type="text" wire:model.defer="channelForm.api_version" placeholder="v23.0">
                     </label>
-                    <label class="rm-form-span">
-                        Access token {{ $editingChannelId ? '(dejar vacio para no cambiar)' : '' }}
-                        <textarea rows="3" wire:model.defer="channelForm.access_token"></textarea>
+                    <label class="rm-field rm-form-span">
+                        <span class="rm-label">Access token {{ $editingChannelId ? '(dejar vacio para no cambiar)' : '' }}</span>
+                        <textarea class="rm-input rm-crm-token-input" rows="3" wire:model.defer="channelForm.access_token"></textarea>
                         @error('channelForm.access_token') <small class="rm-field-error">{{ $message }}</small> @enderror
                     </label>
-                    <label>
-                        Verify token
-                        <input type="text" wire:model.defer="channelForm.verify_token">
+                    <label class="rm-field">
+                        <span class="rm-label">Verify token</span>
+                        <input class="rm-input" type="text" wire:model.defer="channelForm.verify_token">
                     </label>
-                    <label>
-                        API key audio
-                        <input type="text" wire:model.defer="channelForm.audio_converter_api_key">
+                    <label class="rm-field">
+                        <span class="rm-label">API key audio</span>
+                        <input class="rm-input" type="text" wire:model.defer="channelForm.audio_converter_api_key">
                     </label>
                     <label class="rm-check-line">
                         <input type="checkbox" wire:model.defer="channelForm.is_active">
@@ -199,7 +209,7 @@
                     </label>
                 </div>
 
-                <div class="rm-modal-actions">
+                <div class="rm-form-actions rm-crm-modal-actions">
                     <button class="rm-button rm-button-outline" type="button" wire:click="$set('showChannelModal', false)">Cancelar</button>
                     <button class="rm-button" type="button" wire:click="saveChannel">Guardar canal</button>
                 </div>
@@ -209,55 +219,63 @@
 
     @if ($showAppointmentModal && $selectedConversation)
         <div class="rm-modal-backdrop">
-            <section class="rm-modal rm-modal-wide">
-                <button class="rm-modal-close" type="button" wire:click="$set('showAppointmentModal', false)">x</button>
-                <span>Agenda</span>
-                <h2>Crear cita desde WhatsApp</h2>
-                <p class="rm-muted">Cliente: {{ $selectedConversation->contact?->name ?: $selectedConversation->contact?->phone }}</p>
+            <section class="rm-modal-panel rm-modal-panel-xl rm-crm-modal">
+                <div class="rm-modal-title">
+                    <div>
+                        <span>Agenda</span>
+                        <h2>Crear cita desde WhatsApp</h2>
+                        <p class="rm-modal-subtitle">Cliente: {{ $selectedConversation->contact?->name ?: $selectedConversation->contact?->phone }}</p>
+                    </div>
+                    <button type="button" wire:click="$set('showAppointmentModal', false)" aria-label="Cerrar">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                            <path d="M18 6 6 18M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
 
                 <div class="rm-form-grid">
-                    <label>
-                        Sucursal
-                        <select wire:model.live="appointmentForm.branch_id">
+                    <label class="rm-field">
+                        <span class="rm-label">Sucursal</span>
+                        <select class="rm-input" wire:model.live="appointmentForm.branch_id">
                             @foreach ($branches as $branch)
                                 <option value="{{ $branch->id }}">{{ $branch->name }}</option>
                             @endforeach
                         </select>
                         @error('appointmentForm.branch_id') <small class="rm-field-error">{{ $message }}</small> @enderror
                     </label>
-                    <label>
-                        Atendido por
-                        <select wire:model.defer="appointmentForm.attended_by_user_id">
+                    <label class="rm-field">
+                        <span class="rm-label">Atendido por</span>
+                        <select class="rm-input" wire:model.defer="appointmentForm.attended_by_user_id">
                             <option value="">Sin asignar</option>
                             @foreach ($staffUsers as $staff)
                                 <option value="{{ $staff->id }}">{{ $staff->name }}</option>
                             @endforeach
                         </select>
                     </label>
-                    <label>
-                        Fecha
-                        <input type="date" wire:model.defer="appointmentForm.scheduled_date">
+                    <label class="rm-field">
+                        <span class="rm-label">Fecha</span>
+                        <input class="rm-input" type="date" wire:model.defer="appointmentForm.scheduled_date">
                     </label>
-                    <label>
-                        Hora
-                        <input type="time" wire:model.defer="appointmentForm.scheduled_time">
+                    <label class="rm-field">
+                        <span class="rm-label">Hora</span>
+                        <input class="rm-input" type="time" wire:model.defer="appointmentForm.scheduled_time">
                     </label>
-                    <label class="rm-form-span">
-                        Servicios
-                        <select multiple wire:model.defer="appointmentForm.service_ids" class="rm-crm-service-select">
+                    <label class="rm-field rm-form-span">
+                        <span class="rm-label">Servicios</span>
+                        <select multiple wire:model.defer="appointmentForm.service_ids" class="rm-input rm-crm-service-select">
                             @foreach ($services as $service)
                                 <option value="{{ $service->id }}">{{ $service->name }} · Bs {{ number_format((float) $service->price, 2) }}</option>
                             @endforeach
                         </select>
                         @error('appointmentForm.service_ids') <small class="rm-field-error">{{ $message }}</small> @enderror
                     </label>
-                    <label class="rm-form-span">
-                        Nota interna
-                        <textarea rows="3" wire:model.defer="appointmentForm.notes" placeholder="Motivo, detalle o acuerdo con el cliente"></textarea>
+                    <label class="rm-field rm-form-span">
+                        <span class="rm-label">Nota interna</span>
+                        <textarea class="rm-input rm-crm-token-input" rows="3" wire:model.defer="appointmentForm.notes" placeholder="Motivo, detalle o acuerdo con el cliente"></textarea>
                     </label>
                 </div>
 
-                <div class="rm-modal-actions">
+                <div class="rm-form-actions rm-crm-modal-actions">
                     <button class="rm-button rm-button-outline" type="button" wire:click="$set('showAppointmentModal', false)">Cancelar</button>
                     <button class="rm-button" type="button" wire:click="saveAppointmentFromCrm">Crear cita</button>
                 </div>
