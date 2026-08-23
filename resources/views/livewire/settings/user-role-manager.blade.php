@@ -236,6 +236,24 @@
                     @error('userBranchIds.*') <small>{{ $message }}</small> @enderror
                 </div>
 
+                <div class="rm-field">
+                    <span>Numeros de WhatsApp permitidos</span>
+                    @if ($whatsappChannels->isNotEmpty())
+                        <div class="rm-check-grid">
+                            @foreach ($whatsappChannels as $channel)
+                                <label class="rm-check-option">
+                                    <input wire:model="userWhatsappChannelIds" type="checkbox" value="{{ $channel->id }}">
+                                    <span>{{ $channel->name }}</span>
+                                    <small>{{ $channel->phone_number ?: 'Sin numero visible' }} · {{ $channel->branch?->name ?: 'Todas las sucursales' }}</small>
+                                </label>
+                            @endforeach
+                        </div>
+                    @else
+                        <div class="rm-dashboard-empty">Todavia no hay numeros configurados en Centro de mensajes.</div>
+                    @endif
+                    @error('userWhatsappChannelIds.*') <small>{{ $message }}</small> @enderror
+                </div>
+
                 <div class="rm-form-actions">
                     <button class="rm-button rm-button-primary" type="submit">{{ $editingUserId ? 'Guardar usuario' : 'Crear usuario' }}</button>
                     <button class="rm-button rm-button-outline" type="button" wire:click="closeUserModal">Cancelar</button>

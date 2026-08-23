@@ -59,6 +59,7 @@ class CrmManager extends Component
     public function selectConversation(int $conversationId): void
     {
         $conversation = $this->company()->crmConversations()
+            ->whereIn('whatsapp_channel_id', $this->accessibleChannelIds())
             ->whereKey($conversationId)
             ->firstOrFail();
 
@@ -122,7 +123,10 @@ class CrmManager extends Component
         $this->editingChannelId = $channelId;
 
         if ($channelId) {
-            $channel = $this->company()->whatsappChannels()->whereKey($channelId)->firstOrFail();
+            $channel = $this->company()->whatsappChannels()
+                ->whereIn('id', $this->accessibleChannelIds())
+                ->whereKey($channelId)
+                ->firstOrFail();
             $this->channelForm = [
                 'branch_id' => (string) ($channel->branch_id ?? ''),
                 'name' => $channel->name,
@@ -312,6 +316,7 @@ class CrmManager extends Component
 
         return $this->company()->crmConversations()
             ->with(['contact', 'channel', 'client', 'messages'])
+            ->whereIn('whatsapp_channel_id', $this->accessibleChannelIds())
             ->whereKey($this->selectedConversationId)
             ->first();
     }
@@ -321,6 +326,7 @@ class CrmManager extends Component
         $company = $this->company();
         $conversations = $company->crmConversations()
             ->with(['contact', 'channel'])
+            ->whereIn('whatsapp_channel_id', $this->accessibleChannelIds())
             ->when($this->search, function ($query) {
                 $query->whereHas('contact', function ($contactQuery) {
                     $contactQuery->where('name', 'like', "%{$this->search}%")
@@ -338,7 +344,11 @@ class CrmManager extends Component
 
         return view('livewire.crm.crm-manager', [
             'company' => $company,
-            'channels' => $company->whatsappChannels()->with('branch')->latest()->get(),
+            'channels' => $company->whatsappChannels()
+                ->with('branch')
+                ->whereIn('id', $this->accessibleChannelIds())
+                ->latest()
+                ->get(),
             'branches' => $this->branches(),
             'conversations' => $conversations,
             'selectedConversation' => $this->selectedConversation(),
@@ -351,6 +361,33 @@ class CrmManager extends Component
     private function company()
     {
         return Auth::user()->companies()->firstOrFail();
+    }
+
+    private function accessibleChannelIds(): array
+    {
+        $user = Auth::user();
+        $company = $this->company();
+
+        if ($this->isCompanyAdmin()) {
+            return $company->whatsappChannels()->pluck('id')->all();
+        }
+
+        return $user->whatsappChannels()
+            ->where('whatsapp_channels.company_id', $company->id)
+            ->where('whatsapp_channels.is_active', true)
+            ->pluck('whatsapp_channels.id')
+            ->all();
+    }
+
+    private function isCompanyAdmin(): bool
+    {
+        $user = Auth::user();
+        $company = $this->company();
+        $role = $user->companies()
+            ->where('companies.id', $company->id)
+            ->value('company_user.role');
+
+        return in_array($role, ['owner', 'super_admin', 'super-administrador', 'admin', 'administrator', 'administrador'], true);
     }
 
     private function branches()

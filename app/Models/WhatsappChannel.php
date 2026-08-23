@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class WhatsappChannel extends Model
@@ -50,5 +51,12 @@ class WhatsappChannel extends Model
     public function messages(): HasMany
     {
         return $this->hasMany(CrmMessage::class, 'whatsapp_channel_id');
+    }
+
+    public function users(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'user_whatsapp_channel')
+            ->withPivot(['assigned_at'])
+            ->withTimestamps();
     }
 }

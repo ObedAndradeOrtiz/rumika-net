@@ -48,6 +48,8 @@ class UserRoleManager extends Component
 
     public array $userBranchIds = [];
 
+    public array $userWhatsappChannelIds = [];
+
     public ?int $editingRoleId = null;
 
     public string $roleName = '';
@@ -123,6 +125,8 @@ class UserRoleManager extends Component
             'userRoleId' => ['required', Rule::exists('roles', 'id')->where('company_id', $company->id)],
             'userBranchIds' => ['required', 'array', 'min:1'],
             'userBranchIds.*' => [Rule::exists('branches', 'id')->where('company_id', $company->id)],
+            'userWhatsappChannelIds' => ['array'],
+            'userWhatsappChannelIds.*' => [Rule::exists('whatsapp_channels', 'id')->where('company_id', $company->id)],
         ]);
 
         if (! $this->editingUserId) {
@@ -174,6 +178,14 @@ class UserRoleManager extends Component
                 ->all()
         );
 
+        $user->whatsappChannels()->sync(
+            collect($validated['userWhatsappChannelIds'] ?? [])
+                ->mapWithKeys(fn (string|int $channelId) => [
+                    (int) $channelId => ['assigned_at' => now()],
+                ])
+                ->all()
+        );
+
         $this->resetUserForm($company);
         $this->showUserModal = false;
         $this->dispatch('user-saved');
@@ -195,6 +207,11 @@ class UserRoleManager extends Component
         $this->userStatus = $user->status ?? 'active';
         $this->currentUserPhotoPath = $user->profile_photo_path;
         $this->userBranchIds = $user->branches->pluck('id')->map(fn ($id) => (string) $id)->all();
+        $this->userWhatsappChannelIds = $user->whatsappChannels()
+            ->where('whatsapp_channels.company_id', $company->id)
+            ->pluck('whatsapp_channels.id')
+            ->map(fn ($id) => (string) $id)
+            ->all();
         $this->userRoleId = $user->branches->first()?->pivot?->role_id
             ?? $company->roles()->oldest()->value('id');
         $this->showUserModal = true;
@@ -341,7 +358,7 @@ class UserRoleManager extends Component
     {
         $company ??= $this->company();
 
-        $this->reset(['editingUserId', 'userName', 'userEmail', 'userPassword', 'currentUserPhotoPath', 'userPhoto']);
+        $this->reset(['editingUserId', 'userName', 'userEmail', 'userPassword', 'currentUserPhotoPath', 'userPhoto', 'userWhatsappChannelIds']);
         $this->userStatus = 'active';
         $this->userRoleId = $company->roles()->where('slug', 'recepcion')->value('id')
             ?? $company->roles()->oldest()->value('id');
@@ -390,6 +407,10 @@ class UserRoleManager extends Component
                 ->get(),
             'branches' => $company->branches()
                 ->with('businessType')
+                ->orderBy('name')
+                ->get(),
+            'whatsappChannels' => $company->whatsappChannels()
+                ->with('branch')
                 ->orderBy('name')
                 ->get(),
             'roles' => $company->roles()

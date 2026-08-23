@@ -78,4 +78,11 @@ class User extends Authenticatable
     {
         return $this->hasMany(ClinicalPatientAccess::class);
     }
+
+    public function whatsappChannels(): BelongsToMany
+    {
+        return $this->belongsToMany(WhatsappChannel::class, 'user_whatsapp_channel')
+            ->withPivot(['assigned_at'])
+            ->withTimestamps();
+    }
 }
