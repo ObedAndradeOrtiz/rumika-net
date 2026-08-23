@@ -21,6 +21,12 @@ class CompanySystemManager extends Component
 
     public function requestPlan(string $slug): void
     {
+        $plan = CompanyPlan::query()->where('slug', $slug)->first();
+
+        if (! $plan || ! $this->canRequestPlan($plan)) {
+            return;
+        }
+
         $this->requestedPlanSlug = $slug;
     }
 
@@ -90,6 +96,7 @@ class CompanySystemManager extends Component
         return [
             'plan' => $plan,
             'is_current' => $this->company()->company_plan_id === $plan->id,
+            'can_request' => $this->canRequestPlan($plan),
             'modules' => in_array('*', $modules, true) ? ['Todos los modulos'] : $this->moduleLabels($modules),
             'limits' => [
                 'Sucursales' => $limits['branches'] ?? 'Sin limite',
@@ -133,6 +140,22 @@ class CompanySystemManager extends Component
         $limit = CompanyPlanLimits::limit($company, $key);
 
         return $limit === null ? 'Sin limite' : (string) $limit;
+    }
+
+    private function canRequestPlan(CompanyPlan $plan): bool
+    {
+        $company = $this->company();
+        $currentPlan = $company->plan;
+
+        if (! $currentPlan) {
+            return true;
+        }
+
+        if ($company->company_plan_id === $plan->id) {
+            return false;
+        }
+
+        return (int) $plan->sort_order > (int) $currentPlan->sort_order;
     }
 
     private function accessLabel(Company $company): string

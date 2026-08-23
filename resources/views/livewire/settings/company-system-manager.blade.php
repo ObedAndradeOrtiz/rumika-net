@@ -100,8 +100,10 @@
                         @endforeach
                     </div>
 
-                    @if (! $card['is_current'])
-                        <button class="rm-button rm-button-outline" type="button" wire:click="requestPlan('{{ $card['plan']->slug }}')">
+                    @if ($card['is_current'])
+                        <span class="rm-system-plan-current">Plan activo</span>
+                    @elseif ($card['can_request'])
+                        <button class="rm-button rm-button-primary" type="button" wire:click="requestPlan('{{ $card['plan']->slug }}')">
                             Solicitar plan
                         </button>
                     @endif
@@ -138,13 +140,21 @@
 
     @if ($requestedPlan)
         <div class="rm-modal-backdrop">
-            <section class="rm-modal">
-                <button class="rm-modal-close" type="button" wire:click="closeRequest">x</button>
-                <span>Solicitud de plan</span>
-                <h2>{{ $requestedPlan->name }}</h2>
+            <section class="rm-modal-panel rm-modal-panel-small">
+                <div class="rm-modal-title">
+                    <div>
+                        <span>Solicitud de plan</span>
+                        <h2>{{ $requestedPlan->name }}</h2>
+                    </div>
+                    <button type="button" wire:click="closeRequest" aria-label="Cerrar">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                            <path d="M18 6 6 18M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
                 <p>Tu solicitud queda lista para coordinar activacion con soporte administrativo de Rumika.</p>
-                <div class="rm-modal-actions">
-                    <button class="rm-button" type="button" wire:click="closeRequest">Entendido</button>
+                <div class="rm-form-actions">
+                    <button class="rm-button rm-button-primary" type="button" wire:click="closeRequest">Entendido</button>
                 </div>
             </section>
         </div>
