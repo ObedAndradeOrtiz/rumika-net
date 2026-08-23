@@ -42,6 +42,10 @@ Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified', 'rumika.onboarding', 'rumika.permission:inicio'])
     ->name('dashboard');
 
+Route::view('saas', 'saas.dashboard')
+    ->middleware(['auth', 'verified', 'rumika.saas_admin'])
+    ->name('saas.dashboard');
+
 Route::view('configuracion/comercios', 'settings.commerce')
     ->middleware(['auth', 'verified', 'rumika.onboarding', 'rumika.permission:sucursales'])
     ->name('settings.commerce');

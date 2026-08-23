@@ -7,6 +7,7 @@
 @import './modules/auth/auth.css';
 @import './modules/app-shell/shell.css';
 @import './modules/settings/settings.css';
+@import './modules/saas/saas.css';
 
 @tailwind base;
 @tailwind components;

@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'rumika.permission' => \App\Http\Middleware\EnsureRumikaPermission::class,
             'rumika.onboarding' => \App\Http\Middleware\EnsureCompanyOnboardingIsComplete::class,
+            'rumika.saas_admin' => \App\Http\Middleware\EnsureSaasAdmin::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

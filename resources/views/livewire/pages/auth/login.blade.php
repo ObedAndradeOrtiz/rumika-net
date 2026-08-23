@@ -17,6 +17,12 @@ new #[Layout('layouts.guest')] class extends Component
 
         Session::regenerate();
 
+        if (auth()->user()?->is_saas_admin) {
+            $this->redirect(route('saas.dashboard', absolute: false), navigate: true);
+
+            return;
+        }
+
         $this->redirectIntended(default: route('dashboard', absolute: false), navigate: true);
     }
 }; ?>

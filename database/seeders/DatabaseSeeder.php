@@ -33,6 +33,17 @@ class DatabaseSeeder extends Seeder
             );
         }
 
+        User::query()->updateOrCreate(
+            ['email' => 'saas@rumika.app'],
+            [
+                'name' => 'Administrador Rumika SaaS',
+                'password' => 'Rumika2026!',
+                'email_verified_at' => now(),
+                'status' => 'active',
+                'is_saas_admin' => true,
+            ],
+        );
+
         $businessTypes = [
             [
                 'name' => 'Clinica',
