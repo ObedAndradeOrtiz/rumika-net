@@ -154,6 +154,16 @@ class RumikaPermissions
                 ],
             ],
             [
+                'name' => 'Doctor',
+                'slug' => 'doctor',
+                'description' => 'Atiende citas asignadas y registra historia clinica solo de sus pacientes.',
+                'permissions' => [
+                    'inicio' => ['view'],
+                    'agenda' => ['view', 'edit'],
+                    'historia_clinica' => ['view', 'create'],
+                ],
+            ],
+            [
                 'name' => 'Caja',
                 'slug' => 'caja',
                 'description' => 'Rol base para cobros y lectura de clientes. Pagos se activara luego.',

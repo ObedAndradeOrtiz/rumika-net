@@ -74,7 +74,12 @@ class ClinicalHistoryManager extends Component
     public function mount(): void
     {
         $this->prescriptionIssuedAt = now()->format('Y-m-d');
-        $this->selectedClientId = $this->visibleClientsQuery()->oldest('full_name')->value('id');
+        $requestedClientId = (int) request()->query('cliente', 0);
+        $this->selectedClientId = $requestedClientId > 0
+            ? $this->visibleClientsQuery()->whereKey($requestedClientId)->value('id')
+            : null;
+
+        $this->selectedClientId ??= $this->visibleClientsQuery()->oldest('full_name')->value('id');
         $this->accessClientId = $this->selectedClientId;
     }
 

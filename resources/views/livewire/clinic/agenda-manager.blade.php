@@ -32,15 +32,17 @@
                         <path d="m9 18 6-6-6-6" />
                     </svg>
                 </button>
-                <button class="rm-button rm-button-primary rm-icon-button" type="button" wire:click="createAppointment"
-                    aria-label="Nueva cita" title="Nueva cita">
-                    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="2.4">
-                        <path d="M8 2v4M16 2v4M3 10h18" />
-                        <rect x="3" y="4" width="18" height="18" rx="3" />
-                        <path d="M12 14v5M9.5 16.5h5" />
-                    </svg>
-                </button>
+                @if ($canCreateAppointments)
+                    <button class="rm-button rm-button-primary rm-icon-button" type="button" wire:click="createAppointment"
+                        aria-label="Nueva cita" title="Nueva cita">
+                        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.4">
+                            <path d="M8 2v4M16 2v4M3 10h18" />
+                            <rect x="3" y="4" width="18" height="18" rx="3" />
+                            <path d="M12 14v5M9.5 16.5h5" />
+                        </svg>
+                    </button>
+                @endif
             </div>
         </div>
 
@@ -209,6 +211,16 @@
                             </button>
                         </div>
                         <div class="rm-secondary-actions">
+                            @if ($canViewClinicalHistory)
+                                <a class="rm-icon-button is-history" href="{{ route('clinic.clinical-history', ['cliente' => $appointment->client_id]) }}" wire:navigate title="Historia clinica">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2.3">
+                                        <path d="M4 19.5V5a2 2 0 0 1 2-2h11l3 3v13.5a1.5 1.5 0 0 1-1.5 1.5H6a2 2 0 0 1-2-1.5Z" />
+                                        <path d="M14 3v5h5M9 13h6M9 17h4" />
+                                    </svg>
+                                    <span>Historia clinica</span>
+                                </a>
+                            @endif
                             <button class="rm-icon-button is-history" type="button"
                                 wire:click="openHistory({{ $appointment->client_id }})" aria-label="Ver historial"
                                 title="Ver historial">

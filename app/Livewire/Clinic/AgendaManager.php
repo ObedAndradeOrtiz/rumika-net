@@ -18,6 +18,7 @@ use App\Models\TreatmentPlan;
 use App\Support\Money;
 use App\Support\PhoneNumber;
 use App\Support\PaymentTicketBuilder;
+use App\Support\RumikaAccess;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -1349,6 +1350,14 @@ class AgendaManager extends Component
             ])
             ->where('branch_id', $branch->id)
             ->whereBetween('scheduled_at', [$day->copy()->startOfDay(), $day->copy()->endOfDay()])
+            ->when(! $this->canViewFullAgenda($company), function ($query) {
+                $userId = Auth::id();
+
+                $query->where(function ($query) use ($userId) {
+                    $query->where('attended_by_user_id', $userId)
+                        ->orWhereHas('services', fn ($serviceQuery) => $serviceQuery->where('performed_by_user_id', $userId));
+                });
+            })
             ->when(trim($this->appointmentSearch) !== '', function ($query) {
                 $search = '%' . trim($this->appointmentSearch) . '%';
 
@@ -1393,6 +1402,8 @@ class AgendaManager extends Component
         return view('livewire.clinic.agenda-manager', [
             'branch' => $branch,
             'appointments' => $appointments,
+            'canCreateAppointments' => RumikaAccess::can(Auth::user(), 'agenda', 'create', company: $company),
+            'canViewClinicalHistory' => RumikaAccess::can(Auth::user(), 'historia_clinica', 'view', company: $company),
             'clients' => $this->filteredClients($company),
             'staffUsers' => $company->users()->orderBy('name')->get(),
             'phoneCountries' => PhoneNumber::countries(),
@@ -1424,6 +1435,14 @@ class AgendaManager extends Component
             'historyPendingServiceCharges' => $historyPendingCharges->where('type', 'service')->values(),
             'canDeleteAppointments' => $this->canDeleteAppointments(),
         ]);
+    }
+
+    private function canViewFullAgenda(Company $company): bool
+    {
+        return RumikaAccess::can(Auth::user(), 'agenda', 'create', company: $company)
+            || RumikaAccess::can(Auth::user(), 'agenda', 'delete', company: $company)
+            || RumikaAccess::can(Auth::user(), 'historia_clinica', 'view_full', company: $company)
+            || RumikaAccess::can(Auth::user(), 'historia_clinica', 'manage_access', company: $company);
     }
 
     private function storePayment(Company $company, Branch $branch, Client $client, Appointment $appointment, ?TreatmentPlan $plan, float $amount, array $data): int
