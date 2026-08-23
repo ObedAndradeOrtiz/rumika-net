@@ -1,4 +1,4 @@
-<div class="rm-settings-page">
+<div class="rm-content rm-settings-page">
     <section class="rm-settings-hero rm-clinical-hero">
         <div>
             <span>Historia clinica</span>
