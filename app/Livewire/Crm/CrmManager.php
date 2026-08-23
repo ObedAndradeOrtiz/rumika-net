@@ -22,6 +22,7 @@ class CrmManager extends Component
     public string $tab = 'inbox';
     public string $search = '';
     public ?int $selectedConversationId = null;
+    public bool $mobileListMode = true;
     public string $replyText = '';
 
     public bool $showChannelModal = false;
@@ -67,8 +68,14 @@ class CrmManager extends Component
         $conversation->update(['unread_count' => 0]);
 
         $this->selectedConversationId = $conversation->id;
+        $this->mobileListMode = false;
         $this->replyText = '';
         $this->tab = 'inbox';
+    }
+
+    public function showConversationList(): void
+    {
+        $this->mobileListMode = true;
     }
 
     public function sendReply(WhatsappMessageSender $sender): void
@@ -135,7 +142,7 @@ class CrmManager extends Component
                 'waba_id' => $channel->waba_id ?: '',
                 'api_version' => $channel->api_version ?: 'v23.0',
                 'access_token' => '',
-                'verify_token' => '',
+                'verify_token' => $channel->verify_token ?: $this->makeVerifyToken(),
                 'audio_converter_api_key' => '',
                 'is_active' => $channel->is_active,
             ];
@@ -148,7 +155,7 @@ class CrmManager extends Component
                 'waba_id' => '',
                 'api_version' => 'v23.0',
                 'access_token' => '',
-                'verify_token' => Str::slug($this->company()->slug ?: $this->company()->name) . '_crm_verify',
+                'verify_token' => $this->makeVerifyToken(),
                 'audio_converter_api_key' => '',
                 'is_active' => true,
             ];
@@ -180,6 +187,10 @@ class CrmManager extends Component
             'channelForm.is_active' => ['boolean'],
         ])['channelForm'];
 
+        $existingChannel = $this->editingChannelId
+            ? $company->whatsappChannels()->whereKey($this->editingChannelId)->firstOrFail()
+            : null;
+
         $payload = [
             'company_id' => $company->id,
             'branch_id' => $validated['branch_id'] ?: null,
@@ -188,7 +199,7 @@ class CrmManager extends Component
             'phone_number_id' => $validated['phone_number_id'],
             'waba_id' => $validated['waba_id'] ?: null,
             'api_version' => $validated['api_version'],
-            'verify_token' => $validated['verify_token'] ?: null,
+            'verify_token' => $existingChannel?->verify_token ?: ($validated['verify_token'] ?: $this->makeVerifyToken()),
             'audio_converter_api_key' => $validated['audio_converter_api_key'] ?: null,
             'is_active' => (bool) $validated['is_active'],
         ];
@@ -198,7 +209,7 @@ class CrmManager extends Component
         }
 
         $this->editingChannelId
-            ? $company->whatsappChannels()->whereKey($this->editingChannelId)->firstOrFail()->update($payload)
+            ? $existingChannel->update($payload)
             : WhatsappChannel::query()->create($payload);
 
         $this->showChannelModal = false;
@@ -427,5 +438,13 @@ class CrmManager extends Component
             })
             ->orderBy('name')
             ->get();
+    }
+
+    private function makeVerifyToken(): string
+    {
+        $company = $this->company();
+        $slug = Str::slug($company->slug ?: $company->name ?: 'empresa');
+
+        return 'rumika_' . $company->id . '_' . $slug . '_verify_' . Str::lower(Str::random(10));
     }
 }

@@ -16,7 +16,7 @@
     </section>
 
     @if ($tab === 'inbox')
-        <section class="rm-crm-layout">
+        <section class="rm-crm-layout {{ $mobileListMode ? 'is-mobile-list' : 'is-mobile-thread' }}">
             <aside class="rm-crm-conversations">
                 <div class="rm-crm-search">
                     <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
@@ -53,6 +53,12 @@
 
             <section class="rm-crm-thread">
                 @if ($selectedConversation)
+                    <button class="rm-crm-mobile-back" type="button" wire:click="showConversationList">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                            <path d="m15 18-6-6 6-6" />
+                        </svg>
+                        Bandeja
+                    </button>
                     <header class="rm-crm-thread-head">
                         <div>
                             <span>{{ $selectedConversation->channel?->name }}</span>
@@ -138,13 +144,31 @@
                     <div>
                         <span>WhatsApp API</span>
                         <h2>{{ $editingChannelId ? 'Editar canal' : 'Nuevo canal' }}</h2>
-                        <p class="rm-modal-subtitle">Configura el numero de WhatsApp Business que usara esta empresa.</p>
+                        <p class="rm-modal-subtitle">Configura el numero de WhatsApp Business que usara esta empresa. El Verify token lo genera Rumika.</p>
                     </div>
                     <button type="button" wire:click="$set('showChannelModal', false)" aria-label="Cerrar">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
                             <path d="M18 6 6 18M6 6l12 12" />
                         </svg>
                     </button>
+                </div>
+
+                <div class="rm-crm-channel-guide">
+                    <div>
+                        <span>1</span>
+                        <strong>Crea el canal</strong>
+                        <p>Registra nombre, sucursal, numero visible, Phone Number ID, WABA ID y Access token.</p>
+                    </div>
+                    <div>
+                        <span>2</span>
+                        <strong>Verifica en Meta</strong>
+                        <p>En Webhooks pega la URL callback y el Verify token generado por Rumika.</p>
+                    </div>
+                    <div>
+                        <span>3</span>
+                        <strong>Prueba la bandeja</strong>
+                        <p>Cuando llegue el primer mensaje aparecera en Bandeja y podras agendar desde el chat.</p>
+                    </div>
                 </div>
 
                 <div class="rm-form-grid">
@@ -185,8 +209,9 @@
                         @error('channelForm.access_token') <small class="rm-field-error">{{ $message }}</small> @enderror
                     </label>
                     <label class="rm-field">
-                        <span class="rm-label">Verify token</span>
-                        <input class="rm-input" type="text" wire:model.defer="channelForm.verify_token">
+                        <span class="rm-label">Verify token Rumika</span>
+                        <input class="rm-input" type="text" wire:model.defer="channelForm.verify_token" readonly>
+                        <small class="rm-field-hint">Copialo en Meta cuando solicite verificar el webhook.</small>
                     </label>
                     <label class="rm-field">
                         <span class="rm-label">API key audio</span>
