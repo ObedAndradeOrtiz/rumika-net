@@ -148,6 +148,23 @@ class ProductSalesManager extends Component
             return;
         }
 
+        foreach ($validated['lines'] as $index => $line) {
+            $quantity = round((float) $line['quantity'], 2);
+            $batch = $line['batch_id']
+                ? $company->inventoryBatches()
+                    ->where('branch_id', $branch->id)
+                    ->whereKey($line['batch_id'])
+                    ->first()
+                : null;
+            $available = max(0, (float) ($batch?->current_quantity ?? 0));
+
+            if ($quantity > $available && trim((string) ($line['missing_reason'] ?? '')) === '') {
+                $this->addError("lines.$index.missing_reason", 'Coloca el motivo del faltante para vender sin stock.');
+
+                return;
+            }
+        }
+
         DB::transaction(function () use ($company, $branch, $validated, $subtotal, $cash, $qr, $paid) {
             $buyer = $this->buyerForSale($company);
             $sale = ProductSale::query()->create([

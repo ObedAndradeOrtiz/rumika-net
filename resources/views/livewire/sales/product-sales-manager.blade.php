@@ -64,12 +64,12 @@
                 <div class="rm-commerce-list compact">
                     @foreach ($products as $product)
                         @php $stock = (float) $product->batches->sum('current_quantity'); @endphp
-                        <button class="rm-commerce-row rm-product-result" type="button" wire:click="addProduct({{ $product->id }})">
+                        <button class="rm-commerce-row rm-product-result {{ $stock <= 0 ? 'is-stock-empty' : '' }}" type="button" wire:click="addProduct({{ $product->id }})">
                             <div class="rm-row-main">
                                 <strong>{{ $product->name }}</strong>
                                 <span>{{ $product->code }} - {{ $product->brand?->name ?? 'Sin marca' }} - {{ $product->useArea?->name ?? 'Sin zona' }} - Stock {{ number_format($stock, 2) }}</span>
                             </div>
-                            <span class="rm-soft-pill">{{ $product->useArea?->name ?? 'Sin area' }}</span>
+                            <span class="rm-soft-pill">{{ $stock <= 0 ? 'Sin stock' : ($product->useArea?->name ?? 'Sin area') }}</span>
                         </button>
                     @endforeach
                 </div>
@@ -77,14 +77,19 @@
 
             <div class="rm-sale-lines">
                 @forelse ($lines as $index => $line)
-                    <div class="rm-sale-line">
+                    @php
+                        $lineQuantity = (float) ($line['quantity'] ?: 0);
+                        $lineAvailable = (float) ($line['available'] ?? 0);
+                        $hasStockShortage = $lineQuantity > $lineAvailable;
+                    @endphp
+                    <div class="rm-sale-line {{ $hasStockShortage ? 'is-stock-short' : '' }}">
                         <div>
                             <strong>{{ $line['name'] }}</strong>
                             <span>{{ $line['code'] }} - {{ $line['brand'] }} - {{ $line['area'] }} - {{ $line['lot'] }} - Stock {{ number_format((float) $line['available'], 2) }}</span>
                         </div>
                         <label class="rm-field"><span>Cantidad</span><input wire:model.live="lines.{{ $index }}.quantity" type="number" min="0.01" step="0.01"></label>
                         <label class="rm-field"><span>Precio</span><input wire:model.live="lines.{{ $index }}.unit_price" type="number" min="0" step="0.01"></label>
-                        <label class="rm-field"><span>Motivo faltante</span><input wire:model="lines.{{ $index }}.missing_reason" type="text" placeholder="Si no alcanza stock"></label>
+                        <label class="rm-field"><span>Motivo faltante</span><input wire:model="lines.{{ $index }}.missing_reason" type="text" placeholder="{{ $hasStockShortage ? 'Obligatorio por falta de stock' : 'Si no alcanza stock' }}">@error("lines.$index.missing_reason") <small>{{ $message }}</small> @enderror</label>
                         <button class="rm-button rm-button-outline" type="button" wire:click="removeLine({{ $index }})">Quitar</button>
                     </div>
                 @empty
