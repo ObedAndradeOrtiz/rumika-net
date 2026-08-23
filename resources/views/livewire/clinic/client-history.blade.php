@@ -36,17 +36,19 @@
             </label>
         </div>
 
-        <div class="rm-settings-grid">
+        <div class="rm-client-list-shell">
             <section class="rm-panel rm-nested-panel">
                 <div class="rm-commerce-list">
                     @forelse ($clients as $client)
                         <article class="rm-commerce-row rm-client-list-row {{ $selectedClient?->id === $client->id ? 'is-selected' : '' }}">
-                            <div class="rm-user-avatar">{{ strtoupper(substr($client->full_name, 0, 1)) }}</div>
                             <div class="rm-row-main">
                                 <strong>{{ $client->full_name }}</strong>
-                                <span>CI {{ $client->identity_number ?? 'N/A' }} - {{ $client->phone ?? 'Sin telefono' }}</span>
+                                <span>CI {{ $client->identity_number ?? 'N/A' }} - {{ $client->displayPhone() ?? 'Sin telefono' }}</span>
                                 <div class="rm-commerce-meta">
                                     <span>{{ $client->status === 'active' ? 'Activo' : 'Inactivo' }}</span>
+                                    @foreach ($client->phones->take(3) as $phone)
+                                        <span>{{ $phone->label ? $phone->label.': ' : '' }}{{ $phone->phone }}</span>
+                                    @endforeach
                                     @if ($client->email)
                                         <span>{{ $client->email }}</span>
                                     @endif
@@ -91,40 +93,6 @@
                     </div>
                 @endif
             </section>
-
-            <section class="rm-panel rm-nested-panel">
-                @if ($selectedClient)
-                    <div class="rm-panel-title"><div><h2>{{ $selectedClient->full_name }}</h2></div></div>
-                    <div class="rm-commerce-meta">
-                        <span>CI {{ $selectedClient->identity_number ?? 'N/A' }}</span>
-                        <span>{{ $selectedClient->phone ?? 'Sin telefono' }}</span>
-                        <span>{{ $selectedClient->email ?? 'Sin email' }}</span>
-                        <span>{{ $selectedClient->status === 'active' ? 'Activo' : 'Inactivo' }}</span>
-                    </div>
-                    <div class="rm-commerce-list">
-                        @forelse ($selectedClient->appointments->sortByDesc('scheduled_at') as $appointment)
-                            <article class="rm-commerce-row">
-                                <div class="rm-commerce-icon">{{ $appointment->scheduled_at->format('d/m') }}</div>
-                                <div class="rm-row-main">
-                                    <strong>{{ $appointment->services->pluck('name')->join(' + ') }}</strong>
-                                    <span>{{ $appointment->scheduled_at->format('d/m/Y H:i') }} - {{ ucfirst(str_replace('_', ' ', $appointment->status)) }}</span>
-                                    <div class="rm-commerce-meta">
-                                        <span>{{ $appointment->attended ? 'Asistio' : 'Sin asistencia' }}</span>
-                                        <span>Pagos Bs {{ number_format((float) $appointment->payments->sum('amount'), 2) }}</span>
-                                        @if ($appointment->reschedule_reason)
-                                            <span>Motivo: {{ $appointment->reschedule_reason }}</span>
-                                        @endif
-                                    </div>
-                                </div>
-                            </article>
-                        @empty
-                            <div class="rm-empty-state"><strong>Sin historial</strong><span>Este cliente aun no tiene citas registradas.</span></div>
-                        @endforelse
-                    </div>
-                @else
-                    <div class="rm-empty-state"><strong>Selecciona un cliente</strong><span>Aqui veras tratamientos, citas y pagos.</span></div>
-                @endif
-            </section>
         </div>
     </section>
 
@@ -155,11 +123,29 @@
                         @error('identityNumber') <small>{{ $message }}</small> @enderror
                     </label>
 
-                    <label class="rm-field">
-                        <span>Telefono</span>
-                        <input wire:model="phone" type="text" placeholder="70000000">
-                        @error('phone') <small>{{ $message }}</small> @enderror
-                    </label>
+                    <div class="rm-field rm-phone-editor">
+                        <span>Telefonos</span>
+                        <label class="rm-field rm-field-compact">
+                            <span>Pais</span>
+                            <select wire:model="phoneCountry">
+                                @foreach ($phoneCountries as $countryCode => $countryRule)
+                                    <option value="{{ $countryCode }}">{{ $countryRule['name'] }} (+{{ $countryRule['code'] }})</option>
+                                @endforeach
+                            </select>
+                            @error('phoneCountry') <small>{{ $message }}</small> @enderror
+                        </label>
+                        <div class="rm-phone-list">
+                            @foreach ($phones as $index => $phoneRow)
+                                <div class="rm-phone-row" wire:key="client-phone-{{ $index }}">
+                                    <input wire:model="phones.{{ $index }}.phone" type="text" placeholder="70000000">
+                                    <input wire:model="phones.{{ $index }}.label" type="text" placeholder="{{ $index === 0 ? 'Principal' : 'Casa, trabajo, familiar' }}">
+                                    <button class="rm-button rm-button-outline" type="button" wire:click="removePhone({{ $index }})">Quitar</button>
+                                </div>
+                            @endforeach
+                        </div>
+                        <button class="rm-button rm-button-outline" type="button" wire:click="addPhone">Agregar telefono</button>
+                        @error('phones.*.phone') <small>{{ $message }}</small> @enderror
+                    </div>
                 </div>
 
                 <div class="rm-form-row">
@@ -196,6 +182,122 @@
                     <button class="rm-button rm-button-outline" type="button" wire:click="closeClientModal">Cancelar</button>
                 </div>
             </form>
+        </section>
+    @endif
+
+    @if ($showHistoryModal && $selectedClient)
+        <div class="rm-modal-backdrop" wire:click="closeHistoryModal"></div>
+        <section class="rm-modal-panel rm-modal-panel-xl" role="dialog" aria-modal="true">
+            <div class="rm-modal-title">
+                <div>
+                    <span>Historial clinico</span>
+                    <h2>{{ $selectedClient->full_name }}</h2>
+                </div>
+                <button type="button" wire:click="closeHistoryModal">x</button>
+            </div>
+
+            <div class="rm-form-stack">
+                <div class="rm-commerce-meta">
+                    <span>CI {{ $selectedClient->identity_number ?? 'N/A' }}</span>
+                    @forelse ($selectedClient->phones as $phone)
+                        <span>{{ $phone->label ? $phone->label.': ' : '' }}{{ $phone->phone }}</span>
+                    @empty
+                        <span>{{ $selectedClient->phone ?? 'Sin telefono' }}</span>
+                    @endforelse
+                    <span>{{ $selectedClient->email ?? 'Sin email' }}</span>
+                    <span>{{ $selectedClient->status === 'active' ? 'Activo' : 'Inactivo' }}</span>
+                </div>
+
+                <div class="rm-tab-switcher rm-tab-switcher-four rm-history-tabs">
+                    <button class="{{ $historyTab === 'appointments' ? 'is-active' : '' }}" type="button" wire:click="setHistoryTab('appointments')">Citas <span>{{ $selectedClient->appointments->count() }}</span></button>
+                    <button class="{{ $historyTab === 'products' ? 'is-active' : '' }}" type="button" wire:click="setHistoryTab('products')">Productos <span>{{ $historyProductItems->count() }}</span></button>
+                    <button class="{{ $historyTab === 'service_debts' ? 'is-active' : '' }}" type="button" wire:click="setHistoryTab('service_debts')">Tratamientos <span>{{ $historyPendingServiceCharges->count() }}</span></button>
+                    <button class="{{ $historyTab === 'product_debts' ? 'is-active' : '' }}" type="button" wire:click="setHistoryTab('product_debts')">A cuenta <span>{{ $historyPendingProductCharges->count() }}</span></button>
+                </div>
+
+                @if ($historyTab === 'appointments')
+                    <div class="rm-history-section">
+                        <div class="rm-commerce-list">
+                            @forelse ($selectedClient->appointments->sortByDesc('scheduled_at') as $appointment)
+                                <article class="rm-commerce-row">
+                                    <div class="rm-commerce-icon">{{ $appointment->scheduled_at->format('d/m') }}</div>
+                                    <div class="rm-row-main">
+                                        <strong>{{ $appointment->services->pluck('name')->join(' + ') ?: 'Atencion programada' }}</strong>
+                                        <span>{{ $appointment->scheduled_at->format('d/m/Y H:i') }} - {{ match($appointment->status) { 'scheduled' => 'Programada', 'rescheduled' => 'Reagendada', 'completed' => 'Finalizada', 'no_show' => 'No asistio', default => 'Pendiente' } }}</span>
+                                        <div class="rm-service-scroll">
+                                            @foreach ($appointment->services as $service)
+                                                <span class="rm-service-pill {{ $service->status === 'completed' ? 'is-completed' : '' }}">
+                                                    {{ $service->name }}
+                                                    <small>{{ $service->status === 'completed' ? 'Finalizado' : 'Pendiente' }}</small>
+                                                </span>
+                                            @endforeach
+                                        </div>
+                                        <div class="rm-commerce-meta">
+                                            <span>{{ $appointment->attended ? 'Asistio' : 'Sin asistencia' }}</span>
+                                            @if ($appointment->attendedBy)
+                                                <span>Doctor {{ $appointment->attendedBy->name }}</span>
+                                            @endif
+                                            <span>Pagos Bs {{ number_format((float) $appointment->payments->sum('amount'), 2) }}</span>
+                                            @if ($appointment->reschedule_reason)
+                                                <span>Motivo: {{ $appointment->reschedule_reason }}</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </article>
+                            @empty
+                                <div class="rm-empty-state"><strong>Sin historial</strong><span>Este cliente aun no tiene citas registradas.</span></div>
+                            @endforelse
+                        </div>
+                    </div>
+                @endif
+
+                @if ($historyTab === 'products')
+                    <div class="rm-history-section">
+                        <div class="rm-commerce-list">
+                            @forelse ($historyProductItems as $item)
+                                <article class="rm-commerce-row">
+                                    <div class="rm-commerce-icon">{{ $item->payment?->paid_at?->format('d/m') ?? $item->created_at->format('d/m') }}</div>
+                                    <div class="rm-row-main">
+                                        <strong>{{ $item->name }}</strong>
+                                        <span>{{ $item->quantity }} x Bs {{ number_format((float) $item->unit_price, 2) }} - Pagado Bs {{ number_format((float) $item->total, 2) }}</span>
+                                        <div class="rm-commerce-meta">
+                                            <span>Total Bs {{ number_format((float) ($item->charged_total ?: $item->total), 2) }}</span>
+                                            @if ($item->batch)<span>Lote {{ $item->batch->lot_code }}</span>@endif
+                                            @if ($item->soldBy)<span>Vendido por {{ $item->soldBy->name }}</span>@endif
+                                        </div>
+                                    </div>
+                                </article>
+                            @empty
+                                <div class="rm-empty-state"><strong>Sin productos</strong><span>Las compras de productos apareceran aqui.</span></div>
+                            @endforelse
+                        </div>
+                    </div>
+                @endif
+
+                @if ($historyTab === 'service_debts' || $historyTab === 'product_debts')
+                    @php
+                        $debtRows = $historyTab === 'service_debts' ? $historyPendingServiceCharges : $historyPendingProductCharges;
+                    @endphp
+                    <div class="rm-history-section">
+                        <div class="rm-history-debt-card">
+                            @forelse ($debtRows as $charge)
+                                <div class="rm-pending-charge-row">
+                                    <div>
+                                        <strong>{{ $charge->name }}</strong>
+                                        <span>Total Bs {{ number_format((float) $charge->total_amount, 2) }} - Pagado Bs {{ number_format((float) $charge->paid_amount, 2) }}</span>
+                                        @if ($charge->type === 'product' && $charge->soldBy)
+                                            <span>Vendido por {{ $charge->soldBy->name }}</span>
+                                        @endif
+                                    </div>
+                                    <span class="rm-debt-balance">Saldo Bs {{ number_format((float) $charge->balance_amount, 2) }}</span>
+                                </div>
+                            @empty
+                                <div class="rm-empty-state"><strong>Sin pendientes</strong><span>No hay saldos pendientes en esta seccion.</span></div>
+                            @endforelse
+                        </div>
+                    </div>
+                @endif
+            </div>
         </section>
     @endif
 

@@ -202,7 +202,14 @@
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m3 17 6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>
                     <h2>{{ $activeTab === 'waste' ? 'Historial de desechos' : 'Movimientos del inventario' }}</h2>
                 </div>
-                <div class="rm-export-controls">
+                <div class="rm-export-controls rm-movement-export-controls">
+                    <label class="rm-field rm-movement-search-field">
+                        <span>Producto</span>
+                        <div class="rm-search-field">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+                            <input wire:model.live.debounce.300ms="movementListSearch" type="search" placeholder="Buscar producto, codigo o lote">
+                        </div>
+                    </label>
                     <label class="rm-field">
                         <span>Desde</span>
                         <input type="date" wire:model="movementExportFrom">
@@ -211,7 +218,7 @@
                         <span>Hasta</span>
                         <input type="date" wire:model="movementExportTo">
                     </label>
-                    <button class="rm-button rm-button-outline" type="button" wire:click="exportMovements">Descargar Excel</button>
+                    <button class="rm-button rm-button-success rm-export-excel-button" type="button" wire:click="exportMovements">Descargar Excel</button>
                 </div>
             </div>
 

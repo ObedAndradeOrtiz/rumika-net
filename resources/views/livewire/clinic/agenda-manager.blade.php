@@ -72,8 +72,8 @@
                                 >{{ $appointment->scheduled_at->format('H:i') }}</button>
                             @endif
                             <strong>{{ $appointment->client->full_name }}</strong>
-                            @if ($appointment->client->phone)
-                                <span class="rm-appointment-phone">{{ $appointment->client->phone }}</span>
+                            @if ($appointment->client->displayPhone())
+                                <span class="rm-appointment-phone">{{ $appointment->client->displayPhone() }}</span>
                             @endif
                         </div>
                         @error('editingAppointmentTime')
@@ -127,6 +127,11 @@
                                 <span class="rm-attendance-chip">
                                     Pendiente
                                 </span>
+                                @if ($appointment->attendedBy)
+                                    <span class="rm-attendance-chip">
+                                        Doctor: {{ $appointment->attendedBy->name }}
+                                    </span>
+                                @endif
                             @endif
                             <span>Pagado Bs
                                 {{ number_format((float) $appointment->payments->sum('amount'), 2) }}</span>

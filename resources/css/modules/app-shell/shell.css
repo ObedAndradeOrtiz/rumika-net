@@ -799,10 +799,10 @@
 }
 
 .rm-statistics-hero {
-    align-items: end;
+    align-items: start;
     display: grid;
-    gap: 18px;
-    grid-template-columns: minmax(0, 1fr) minmax(320px, 0.72fr);
+    gap: 20px;
+    grid-template-columns: 1fr;
 }
 
 .rm-statistics-hero > div:first-child > span {
@@ -828,8 +828,13 @@
 
 .rm-stat-filters {
     display: grid;
-    gap: 10px;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    grid-template-columns: repeat(4, minmax(180px, 1fr));
+    width: 100%;
+}
+
+.rm-stat-filters .rm-field {
+    min-width: 0;
 }
 
 .rm-stat-grid {
@@ -1463,6 +1468,12 @@
 
     .rm-dashboard-kpis {
         grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 1280px) {
+    .rm-stat-filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 

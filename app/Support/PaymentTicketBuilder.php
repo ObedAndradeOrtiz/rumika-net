@@ -67,6 +67,9 @@ class PaymentTicketBuilder
         return [
             'title' => 'Ticket de cobro',
             'branch' => $branch->name,
+            'country_code' => $branch->country_code ?? 'BO',
+            'currency_code' => $branch->currency_code ?? 'BOB',
+            'currency_symbol' => $branch->currency_symbol ?? 'Bs',
             'business_date' => $payment->paid_at->format('d/m/Y H:i'),
             'client' => $payment->client?->full_name ?? 'Cliente',
             'performed_by' => $payment->performedBy?->name ?? 'Sin profesional',

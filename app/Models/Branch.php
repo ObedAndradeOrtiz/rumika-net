@@ -14,6 +14,9 @@ class Branch extends Model
         'business_type_id',
         'name',
         'slug',
+        'country_code',
+        'currency_code',
+        'currency_symbol',
         'phone',
         'address',
         'logo_path',
@@ -28,6 +31,11 @@ class Branch extends Model
         return [
             'uses_ticket_printer' => 'boolean',
         ];
+    }
+
+    public function moneySymbol(): string
+    {
+        return $this->currency_symbol ?: 'Bs';
     }
 
     public function company(): BelongsTo

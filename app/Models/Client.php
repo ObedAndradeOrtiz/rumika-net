@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Client extends Model
 {
@@ -50,6 +51,21 @@ class Client extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(TreatmentPayment::class);
+    }
+
+    public function phones(): HasMany
+    {
+        return $this->hasMany(ClientPhone::class);
+    }
+
+    public function primaryPhone(): HasOne
+    {
+        return $this->hasOne(ClientPhone::class)->where('is_primary', true);
+    }
+
+    public function displayPhone(): ?string
+    {
+        return $this->primaryPhone?->phone ?? $this->phone;
     }
 
     public function charges(): HasMany

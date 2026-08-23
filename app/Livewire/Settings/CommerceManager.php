@@ -7,6 +7,7 @@ use App\Models\BusinessType;
 use App\Models\Company;
 use App\Models\Role;
 use App\Support\ActiveBranch;
+use App\Support\PhoneNumber;
 use App\Support\RumikaPermissions;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -24,6 +25,8 @@ class CommerceManager extends Component
     public string $name = '';
 
     public ?int $businessTypeId = null;
+
+    public string $countryCode = 'BO';
 
     public string $phone = '';
 
@@ -71,13 +74,28 @@ class CommerceManager extends Component
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:120'],
             'businessTypeId' => ['required', 'exists:business_types,id'],
-            'phone' => ['nullable', 'string', 'max:40'],
+            'countryCode' => ['required', 'in:'.implode(',', array_keys(PhoneNumber::countries()))],
+            'phone' => ['nullable', 'string', 'max:60'],
             'address' => ['nullable', 'string', 'max:180'],
             'status' => ['required', 'in:active,inactive'],
             'usesTicketPrinter' => ['boolean'],
             'printerName' => ['nullable', 'string', 'max:120'],
             'logo' => ['nullable', 'image', 'max:4096'],
         ]);
+
+        $phone = null;
+
+        if (trim($validated['phone']) !== '') {
+            $phone = PhoneNumber::normalize($validated['phone'], $validated['countryCode']);
+
+            if (! $phone) {
+                $this->addError('phone', PhoneNumber::hint($validated['countryCode']));
+
+                return;
+            }
+        }
+
+        $currency = PhoneNumber::currencyFor($validated['countryCode']);
 
         $branch = $this->editingId
             ? $company->branches()->whereKey($this->editingId)->firstOrFail()
@@ -87,7 +105,10 @@ class CommerceManager extends Component
             'business_type_id' => $validated['businessTypeId'],
             'name' => $validated['name'],
             'slug' => $this->uniqueSlug($company, $validated['name'], $branch->id),
-            'phone' => $validated['phone'] ?: null,
+            'country_code' => $validated['countryCode'],
+            'currency_code' => $currency['currency_code'],
+            'currency_symbol' => $currency['currency_symbol'],
+            'phone' => $phone,
             'address' => $validated['address'] ?: null,
             'status' => $validated['status'],
             'uses_ticket_printer' => $validated['usesTicketPrinter'],
@@ -125,6 +146,7 @@ class CommerceManager extends Component
         $this->editingId = $branch->id;
         $this->name = $branch->name;
         $this->businessTypeId = $branch->business_type_id;
+        $this->countryCode = $branch->country_code ?? 'BO';
         $this->phone = $branch->phone ?? '';
         $this->address = $branch->address ?? '';
         $this->status = $branch->status;
@@ -186,7 +208,8 @@ class CommerceManager extends Component
 
     public function resetForm(): void
     {
-        $this->reset(['editingId', 'name', 'businessTypeId', 'phone', 'address', 'usesTicketPrinter', 'printerName', 'printerBridgeUrl', 'currentLogoPath', 'logo']);
+        $this->reset(['editingId', 'name', 'businessTypeId', 'countryCode', 'phone', 'address', 'usesTicketPrinter', 'printerName', 'printerBridgeUrl', 'currentLogoPath', 'logo']);
+        $this->countryCode = 'BO';
         $this->status = 'active';
         $this->resetErrorBag();
     }
@@ -212,6 +235,7 @@ class CommerceManager extends Component
                 ->orderBy('name')
                 ->get(),
             'roles' => $company->roles()->orderBy('id')->get(),
+            'phoneCountries' => PhoneNumber::countries(),
         ]);
     }
 

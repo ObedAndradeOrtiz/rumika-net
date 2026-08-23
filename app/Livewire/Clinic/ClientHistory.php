@@ -4,8 +4,12 @@ namespace App\Livewire\Clinic;
 
 use App\Models\Branch;
 use App\Models\Client;
+use App\Models\ClientCharge;
 use App\Models\Company;
+use App\Models\TreatmentPaymentItem;
+use App\Support\PhoneNumber;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -20,10 +24,14 @@ class ClientHistory extends Component
     public ?int $editingClientId = null;
     public ?int $confirmingInactiveClientId = null;
     public bool $showClientModal = false;
+    public bool $showHistoryModal = false;
+    public string $historyTab = 'appointments';
 
     public string $fullName = '';
     public string $identityNumber = '';
     public string $phone = '';
+    public string $phoneCountry = 'BO';
+    public array $phones = [['phone' => '', 'label' => 'Principal']];
     public string $email = '';
     public string $birthDate = '';
     public string $clinicalNotes = '';
@@ -42,17 +50,27 @@ class ClientHistory extends Component
     public function createClient(): void
     {
         $this->resetClientForm();
+        $this->phoneCountry = $this->activeBranch()->country_code ?? 'BO';
         $this->showClientModal = true;
     }
 
     public function editClient(int $clientId): void
     {
-        $client = $this->clientQuery()->whereKey($clientId)->firstOrFail();
+        $client = $this->clientQuery()->with('phones')->whereKey($clientId)->firstOrFail();
 
         $this->editingClientId = $client->id;
+        $this->phoneCountry = $this->activeBranch()->country_code ?? 'BO';
         $this->fullName = $client->full_name;
         $this->identityNumber = $client->identity_number ?? '';
         $this->phone = $client->phone ?? '';
+        $this->phones = $client->phones
+            ->sortByDesc('is_primary')
+            ->map(fn ($phone) => [
+                'phone' => $phone->phone,
+                'label' => $phone->label ?: '',
+            ])
+            ->values()
+            ->all() ?: [['phone' => $client->phone ?? '', 'label' => 'Principal']];
         $this->email = $client->email ?? '';
         $this->birthDate = $client->birth_date?->format('Y-m-d') ?? '';
         $this->clinicalNotes = $client->clinical_notes ?? '';
@@ -68,30 +86,45 @@ class ClientHistory extends Component
         $validated = $this->validate([
             'fullName' => ['required', 'string', 'max:160'],
             'identityNumber' => ['nullable', 'string', 'max:40'],
-            'phone' => ['nullable', 'string', 'max:40'],
+            'phoneCountry' => ['required', Rule::in(array_keys(PhoneNumber::countries()))],
+            'phones' => ['array', 'max:6'],
+            'phones.*.phone' => ['nullable', 'string', 'max:60'],
+            'phones.*.label' => ['nullable', 'string', 'max:40'],
             'email' => ['nullable', 'email', 'max:140'],
             'birthDate' => ['nullable', 'date'],
             'clinicalNotes' => ['nullable', 'string', 'max:2000'],
             'status' => ['required', Rule::in(['active', 'inactive'])],
         ]);
 
-        $client = $this->editingClientId
-            ? $this->clientQuery()->whereKey($this->editingClientId)->firstOrFail()
-            : new Client([
-                'company_id' => $company->id,
-                'branch_id' => $branch->id,
-            ]);
+        $phoneRows = $this->normalizedPhoneRows($validated['phones'] ?? [], $validated['phoneCountry']);
 
-        $client->fill([
-            'full_name' => $validated['fullName'],
-            'identity_number' => $validated['identityNumber'] ?: null,
-            'phone' => $validated['phone'] ?: null,
-            'email' => $validated['email'] ?: null,
-            'birth_date' => $validated['birthDate'] ?: null,
-            'clinical_notes' => $validated['clinicalNotes'] ?: null,
-            'status' => $validated['status'],
-        ]);
-        $client->save();
+        if ($this->getErrorBag()->isNotEmpty()) {
+            return;
+        }
+
+        $client = DB::transaction(function () use ($company, $branch, $validated, $phoneRows) {
+            $client = $this->editingClientId
+                ? $this->clientQuery()->whereKey($this->editingClientId)->firstOrFail()
+                : new Client([
+                    'company_id' => $company->id,
+                    'branch_id' => $branch->id,
+                ]);
+
+            $client->fill([
+                'full_name' => $validated['fullName'],
+                'identity_number' => $validated['identityNumber'] ?: null,
+                'phone' => $phoneRows[0]['phone'] ?? null,
+                'email' => $validated['email'] ?: null,
+                'birth_date' => $validated['birthDate'] ?: null,
+                'clinical_notes' => $validated['clinicalNotes'] ?: null,
+                'status' => $validated['status'],
+            ]);
+            $client->save();
+
+            $this->syncClientPhones($client, $phoneRows);
+
+            return $client;
+        });
 
         $this->selectedClientId = $client->id;
         $this->closeClientModal();
@@ -122,6 +155,40 @@ class ClientHistory extends Component
     public function selectClient(int $clientId): void
     {
         $this->selectedClientId = $this->clientQuery()->whereKey($clientId)->value('id');
+        $this->historyTab = 'appointments';
+        $this->showHistoryModal = (bool) $this->selectedClientId;
+    }
+
+    public function closeHistoryModal(): void
+    {
+        $this->showHistoryModal = false;
+        $this->selectedClientId = null;
+    }
+
+    public function setHistoryTab(string $tab): void
+    {
+        if (in_array($tab, ['appointments', 'products', 'service_debts', 'product_debts'], true)) {
+            $this->historyTab = $tab;
+        }
+    }
+
+    public function addPhone(): void
+    {
+        if (count($this->phones) >= 6) {
+            return;
+        }
+
+        $this->phones[] = ['phone' => '', 'label' => ''];
+    }
+
+    public function removePhone(int $index): void
+    {
+        unset($this->phones[$index]);
+        $this->phones = array_values($this->phones);
+
+        if ($this->phones === []) {
+            $this->phones = [['phone' => '', 'label' => 'Principal']];
+        }
     }
 
     public function closeClientModal(): void
@@ -140,19 +207,25 @@ class ClientHistory extends Component
                 ->where('full_name', 'like', "%{$search}%")
                 ->orWhere('identity_number', 'like', "%{$search}%")
                 ->orWhere('phone', 'like', "%{$search}%")
+                ->orWhereHas('phones', fn ($phoneQuery) => $phoneQuery->where('phone', 'like', "%{$search}%"))
                 ->orWhere('email', 'like', "%{$search}%")));
 
         return view('livewire.clinic.client-history', [
             'clients' => $clientsQuery
+                ->with(['phones', 'primaryPhone'])
                 ->orderBy('full_name')
                 ->paginate(15),
             'clientCount' => (clone $this->clientQuery())->where('status', 'active')->count(),
             'selectedClient' => $this->selectedClientId
                 ? $this->clientQuery()
-                    ->with(['appointments.services', 'appointments.payments', 'treatmentPlans.payments'])
+                    ->with(['phones', 'appointments.services', 'appointments.payments', 'appointments.attendedBy', 'treatmentPlans.payments'])
                     ->whereKey($this->selectedClientId)
                     ->first()
                 : null,
+            'historyProductItems' => $this->historyProductItems($company),
+            'historyPendingServiceCharges' => $this->historyPendingCharges($company, 'service'),
+            'historyPendingProductCharges' => $this->historyPendingCharges($company, 'product'),
+            'phoneCountries' => PhoneNumber::countries(),
         ]);
     }
 
@@ -177,10 +250,7 @@ class ClientHistory extends Component
         $company = $this->company();
         $branch = $this->activeBranch();
 
-        return $company->clients()
-            ->where(function ($query) use ($branch) {
-                $query->whereNull('branch_id')->orWhere('branch_id', $branch->id);
-            });
+        return $company->clients();
     }
 
     private function resetClientForm(): void
@@ -190,11 +260,87 @@ class ClientHistory extends Component
             'fullName',
             'identityNumber',
             'phone',
+            'phones',
             'email',
             'birthDate',
             'clinicalNotes',
         ]);
+        $this->phones = [['phone' => '', 'label' => 'Principal']];
+        $this->phoneCountry = $this->activeBranch()->country_code ?? 'BO';
         $this->status = 'active';
         $this->resetErrorBag();
+    }
+
+    private function normalizedPhoneRows(array $phones, string $country): array
+    {
+        $rows = [];
+
+        foreach ($phones as $index => $phone) {
+            $rawPhone = trim((string) ($phone['phone'] ?? ''));
+
+            if ($rawPhone === '') {
+                continue;
+            }
+
+            $normalized = PhoneNumber::normalize($rawPhone, $country);
+
+            if (! $normalized) {
+                $this->addError("phones.{$index}.phone", PhoneNumber::hint($country));
+
+                continue;
+            }
+
+            $rows[] = [
+                'phone' => $normalized,
+                'label' => trim((string) ($phone['label'] ?? '')),
+            ];
+        }
+
+        return collect($rows)->unique('phone')->values()->all();
+    }
+
+    private function syncClientPhones(Client $client, array $phones): void
+    {
+        $client->phones()->delete();
+
+        foreach ($phones as $index => $phone) {
+            $client->phones()->create([
+                'phone' => $phone['phone'],
+                'label' => $phone['label'] ?: ($index === 0 ? 'Principal' : null),
+                'is_primary' => $index === 0,
+            ]);
+        }
+    }
+
+    private function historyProductItems(Company $company)
+    {
+        if (! $this->selectedClientId) {
+            return collect();
+        }
+
+        return TreatmentPaymentItem::query()
+            ->with(['payment', 'product', 'batch', 'soldBy'])
+            ->where('type', 'product')
+            ->whereHas('payment', fn ($query) => $query
+                ->where('company_id', $company->id)
+                ->where('client_id', $this->selectedClientId))
+            ->latest()
+            ->get();
+    }
+
+    private function historyPendingCharges(Company $company, string $type)
+    {
+        if (! $this->selectedClientId) {
+            return collect();
+        }
+
+        return ClientCharge::query()
+            ->with('soldBy')
+            ->where('company_id', $company->id)
+            ->where('client_id', $this->selectedClientId)
+            ->where('type', $type)
+            ->whereIn('status', ['pending', 'partial'])
+            ->orderBy('charged_at')
+            ->get();
     }
 }

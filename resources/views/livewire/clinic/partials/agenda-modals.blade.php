@@ -198,16 +198,36 @@
 
             @if ($clientMode === 'existing')
                 <label class="rm-field"><span>Buscar cliente</span><input wire:model.live.debounce.300ms="clientSearch" type="search" placeholder="Nombre, CI o telefono"></label>
-                <label class="rm-field"><span>Cliente</span><select wire:model="clientId"><option value="">Seleccionar cliente</option>@foreach ($clients as $client)<option value="{{ $client->id }}">{{ $client->full_name }} {{ $client->identity_number ? '- '.$client->identity_number : '' }} {{ $client->phone ? '- '.$client->phone : '' }}</option>@endforeach</select>@error('clientId')<small>{{ $message }}</small>@enderror</label>
+                <label class="rm-field"><span>Cliente</span><select wire:model="clientId"><option value="">Seleccionar cliente</option>@foreach ($clients as $client)<option value="{{ $client->id }}">{{ $client->full_name }} {{ $client->identity_number ? '- '.$client->identity_number : '' }} {{ $client->displayPhone() ? '- '.$client->displayPhone() : '' }}</option>@endforeach</select>@error('clientId')<small>{{ $message }}</small>@enderror</label>
             @else
                 <div class="rm-form-row">
                     <label class="rm-field"><span>Nombre completo</span><input wire:model="clientName" type="text">@error('clientName')<small>{{ $message }}</small>@enderror</label>
                     <label class="rm-field"><span>CI</span><input wire:model="clientCi" type="text"></label>
                 </div>
-                <div class="rm-form-row">
-                    <label class="rm-field"><span>Telefono</span><input wire:model="clientPhone" type="text"></label>
-                    <label class="rm-field"><span>Email</span><input wire:model="clientEmail" type="email">@error('clientEmail')<small>{{ $message }}</small>@enderror</label>
+                <div class="rm-field rm-phone-editor">
+                    <span>Telefonos</span>
+                    <label class="rm-field rm-field-compact">
+                        <span>Pais</span>
+                        <select wire:model="clientPhoneCountry">
+                            @foreach ($phoneCountries as $countryCode => $countryRule)
+                                <option value="{{ $countryCode }}">{{ $countryRule['name'] }} (+{{ $countryRule['code'] }})</option>
+                            @endforeach
+                        </select>
+                        @error('clientPhoneCountry')<small>{{ $message }}</small>@enderror
+                    </label>
+                    <div class="rm-phone-list">
+                        @foreach ($clientPhones as $index => $phoneRow)
+                            <div class="rm-phone-row" wire:key="agenda-client-phone-{{ $index }}">
+                                <input wire:model="clientPhones.{{ $index }}.phone" type="text" placeholder="70000000">
+                                <input wire:model="clientPhones.{{ $index }}.label" type="text" placeholder="{{ $index === 0 ? 'Principal' : 'Casa, trabajo, familiar' }}">
+                                <button class="rm-button rm-button-outline" type="button" wire:click="removeClientPhone({{ $index }})">Quitar</button>
+                            </div>
+                        @endforeach
+                    </div>
+                    <button class="rm-button rm-button-outline" type="button" wire:click="addClientPhone">Agregar telefono</button>
+                    @error('clientPhones.*.phone')<small>{{ $message }}</small>@enderror
                 </div>
+                <label class="rm-field"><span>Email</span><input wire:model="clientEmail" type="email">@error('clientEmail')<small>{{ $message }}</small>@enderror</label>
                 <label class="rm-field"><span>Notas clinicas iniciales</span><input wire:model="clientNotes" type="text"></label>
             @endif
 
@@ -220,6 +240,17 @@
                 <label class="rm-field"><span>Duracion</span><input wire:model="durationMinutes" type="number" min="10"></label>
                 <label class="rm-field"><span>Sesiones pactadas</span><input wire:model="plannedSessions" type="number" min="1"></label>
             </div>
+
+            <label class="rm-field">
+                <span>Doctor / profesional opcional</span>
+                <select wire:model="appointmentAttendedByUserId">
+                    <option value="">Sin asignar por ahora</option>
+                    @foreach ($staffUsers as $staff)
+                        <option value="{{ $staff->id }}">{{ $staff->name }}</option>
+                    @endforeach
+                </select>
+                @error('appointmentAttendedByUserId')<small>{{ $message }}</small>@enderror
+            </label>
 
             <div class="rm-field">
                 <span>Servicios / tratamientos</span>
@@ -703,7 +734,11 @@
         <div class="rm-form-stack">
             <div class="rm-commerce-meta">
                 <span>CI {{ $historyClient->identity_number ?? 'N/A' }}</span>
-                <span>{{ $historyClient->phone ?? 'Sin telefono' }}</span>
+                @forelse ($historyClient->phones as $phone)
+                    <span>{{ $phone->label ? $phone->label.': ' : '' }}{{ $phone->phone }}</span>
+                @empty
+                    <span>{{ $historyClient->phone ?? 'Sin telefono' }}</span>
+                @endforelse
                 <span>{{ $historyClient->email ?? 'Sin email' }}</span>
             </div>
 

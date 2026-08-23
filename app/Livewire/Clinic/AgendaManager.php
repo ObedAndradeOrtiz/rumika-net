@@ -15,6 +15,7 @@ use App\Models\Service;
 use App\Models\TreatmentPayment;
 use App\Models\TreatmentPaymentItem;
 use App\Models\TreatmentPlan;
+use App\Support\PhoneNumber;
 use App\Support\PaymentTicketBuilder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -49,11 +50,14 @@ class AgendaManager extends Component
     public string $clientName = '';
     public string $clientCi = '';
     public string $clientPhone = '';
+    public string $clientPhoneCountry = 'BO';
+    public array $clientPhones = [['phone' => '', 'label' => 'Principal']];
     public string $clientEmail = '';
     public string $clientNotes = '';
 
     public string $scheduledDate = '';
     public string $scheduledTime = '09:00';
+    public ?int $appointmentAttendedByUserId = null;
     public string $durationMinutes = '60';
     public string $serviceSearch = '';
     public string $packageSearch = '';
@@ -134,7 +138,27 @@ class AgendaManager extends Component
     public function createAppointment(): void
     {
         $this->resetAppointmentForm();
+        $this->clientPhoneCountry = $this->activeBranch()->country_code ?? 'BO';
         $this->showAppointmentModal = true;
+    }
+
+    public function addClientPhone(): void
+    {
+        if (count($this->clientPhones) >= 6) {
+            return;
+        }
+
+        $this->clientPhones[] = ['phone' => '', 'label' => ''];
+    }
+
+    public function removeClientPhone(int $index): void
+    {
+        unset($this->clientPhones[$index]);
+        $this->clientPhones = array_values($this->clientPhones);
+
+        if ($this->clientPhones === []) {
+            $this->clientPhones = [['phone' => '', 'label' => 'Principal']];
+        }
     }
 
     public function saveAppointment(): void
@@ -143,11 +167,13 @@ class AgendaManager extends Component
         $branch = $this->activeBranch();
         $clientIds = $company->clients()->pluck('id')->all();
         $serviceIds = $company->services()->pluck('id')->all();
+        $staffUserIds = $company->users()->pluck('id')->all();
 
         $rules = [
             'clientMode' => ['required', 'in:existing,new'],
             'scheduledDate' => ['required', 'date'],
             'scheduledTime' => ['required', 'date_format:H:i'],
+            'appointmentAttendedByUserId' => ['nullable', Rule::in($staffUserIds)],
             'durationMinutes' => ['required', 'integer', 'min:10', 'max:480'],
             'serviceIds' => ['required', 'array', 'min:1'],
             'serviceIds.*' => [Rule::in($serviceIds)],
@@ -170,7 +196,10 @@ class AgendaManager extends Component
             $rules += [
                 'clientName' => ['required', 'string', 'max:160'],
                 'clientCi' => ['nullable', 'string', 'max:40'],
-                'clientPhone' => ['nullable', 'string', 'max:40'],
+                'clientPhoneCountry' => ['required', Rule::in(array_keys(PhoneNumber::countries()))],
+                'clientPhones' => ['array', 'max:6'],
+                'clientPhones.*.phone' => ['nullable', 'string', 'max:60'],
+                'clientPhones.*.label' => ['nullable', 'string', 'max:40'],
                 'clientEmail' => ['nullable', 'email', 'max:140'],
                 'clientNotes' => ['nullable', 'string', 'max:800'],
             ];
@@ -178,17 +207,28 @@ class AgendaManager extends Component
 
         $validated = $this->validate($rules);
 
-        $paymentId = DB::transaction(function () use ($company, $branch, $validated) {
-            $client = $this->clientMode === 'existing'
-                ? $company->clients()->whereKey($validated['clientId'])->firstOrFail()
-                : $company->clients()->create([
+        $newClientPhoneRows = $this->clientMode === 'new'
+            ? $this->normalizedPhoneRows($validated['clientPhones'] ?? [], $validated['clientPhoneCountry'])
+            : [];
+
+        if ($this->getErrorBag()->isNotEmpty()) {
+            return;
+        }
+
+        $paymentId = DB::transaction(function () use ($company, $branch, $validated, $newClientPhoneRows) {
+            if ($this->clientMode === 'existing') {
+                $client = $company->clients()->whereKey($validated['clientId'])->firstOrFail();
+            } else {
+                $client = $company->clients()->create([
                     'branch_id' => $branch->id,
                     'full_name' => $validated['clientName'],
                     'identity_number' => $validated['clientCi'] ?: null,
-                    'phone' => $validated['clientPhone'] ?: null,
+                    'phone' => $newClientPhoneRows[0]['phone'] ?? null,
                     'email' => $validated['clientEmail'] ?: null,
                     'clinical_notes' => $validated['clientNotes'] ?: null,
                 ]);
+                $this->syncClientPhones($client, $newClientPhoneRows);
+            }
 
             $services = $company->services()->whereIn('id', $validated['serviceIds'])->get();
             $totalAmount = $services->sum(fn(Service $service) => (float) $service->price);
@@ -210,6 +250,7 @@ class AgendaManager extends Component
                 'company_id' => $company->id,
                 'branch_id' => $branch->id,
                 'client_id' => $client->id,
+                'attended_by_user_id' => $validated['appointmentAttendedByUserId'] ?? null,
                 'treatment_plan_id' => $plan?->id,
                 'scheduled_at' => Carbon::parse($validated['scheduledDate'] . ' ' . $validated['scheduledTime']),
                 'duration_minutes' => $validated['durationMinutes'],
@@ -223,6 +264,7 @@ class AgendaManager extends Component
                     'name' => $service->name,
                     'price' => $service->price,
                     'duration_minutes' => $service->duration_minutes,
+                    'performed_by_user_id' => $validated['appointmentAttendedByUserId'] ?? null,
                 ]);
             }
 
@@ -1295,7 +1337,8 @@ class AgendaManager extends Component
 
         $appointments = $company->appointments()
             ->with([
-                'client',
+                'client.phones',
+                'client.primaryPhone',
                 'services',
                 'payments.splits',
                 'payments.items',
@@ -1312,7 +1355,8 @@ class AgendaManager extends Component
                     $query->whereHas('client', function ($query) use ($search) {
                         $query->where('full_name', 'like', $search)
                             ->orWhere('identity_number', 'like', $search)
-                            ->orWhere('phone', 'like', $search);
+                            ->orWhere('phone', 'like', $search)
+                            ->orWhereHas('phones', fn ($phoneQuery) => $phoneQuery->where('phone', 'like', $search));
                     })->orWhereHas('services', function ($query) use ($search) {
                         $query->where('name', 'like', $search);
                     });
@@ -1322,7 +1366,7 @@ class AgendaManager extends Component
             ->get();
 
         $historyClient = $this->historyClientId
-            ? $company->clients()->with(['appointments.services', 'appointments.payments', 'treatmentPlans.payments'])->whereKey($this->historyClientId)->first()
+            ? $company->clients()->with(['phones', 'appointments.services', 'appointments.payments', 'treatmentPlans.payments'])->whereKey($this->historyClientId)->first()
             : null;
 
         $historyProductItems = $historyClient
@@ -1350,6 +1394,7 @@ class AgendaManager extends Component
             'appointments' => $appointments,
             'clients' => $this->filteredClients($company),
             'staffUsers' => $company->users()->orderBy('name')->get(),
+            'phoneCountries' => PhoneNumber::countries(),
             'services' => $this->filteredServices($company, $branch),
             'packages' => $this->filteredPackages($company, $branch, $this->packageSearch),
             'rescheduleServices' => $this->filteredModalServices($company, $branch, $this->rescheduleServiceSearch),
@@ -1994,8 +2039,10 @@ class AgendaManager extends Component
 
     private function resetAppointmentForm(): void
     {
-        $this->reset(['clientSearch', 'clientId', 'clientName', 'clientCi', 'clientPhone', 'clientEmail', 'clientNotes', 'serviceSearch', 'packageSearch', 'serviceIds', 'treatmentName', 'appointmentNotes', 'paymentAmount', 'paymentCashAmount', 'paymentQrAmount', 'paymentReference', 'paymentNotes', 'paymentServiceLinePrices', 'paymentServiceLinePayments', 'paymentProductLines', 'paymentProductSoldByUserId', 'pendingChargePayments', 'productSearch']);
+        $this->reset(['clientSearch', 'clientId', 'clientName', 'clientCi', 'clientPhone', 'clientPhoneCountry', 'clientPhones', 'clientEmail', 'clientNotes', 'appointmentAttendedByUserId', 'serviceSearch', 'packageSearch', 'serviceIds', 'treatmentName', 'appointmentNotes', 'paymentAmount', 'paymentCashAmount', 'paymentQrAmount', 'paymentReference', 'paymentNotes', 'paymentServiceLinePrices', 'paymentServiceLinePayments', 'paymentProductLines', 'paymentProductSoldByUserId', 'pendingChargePayments', 'productSearch']);
         $this->clientMode = 'existing';
+        $this->clientPhoneCountry = $this->activeBranch()->country_code ?? 'BO';
+        $this->clientPhones = [['phone' => '', 'label' => 'Principal']];
         $this->scheduledDate = $this->selectedDate;
         $this->scheduledTime = '09:00';
         $this->durationMinutes = '60';
@@ -2006,15 +2053,58 @@ class AgendaManager extends Component
         $this->resetErrorBag();
     }
 
+    private function normalizedPhoneRows(array $phones, string $country): array
+    {
+        $rows = [];
+
+        foreach ($phones as $index => $phone) {
+            $rawPhone = trim((string) ($phone['phone'] ?? ''));
+
+            if ($rawPhone === '') {
+                continue;
+            }
+
+            $normalized = PhoneNumber::normalize($rawPhone, $country);
+
+            if (! $normalized) {
+                $this->addError("clientPhones.{$index}.phone", PhoneNumber::hint($country));
+
+                continue;
+            }
+
+            $rows[] = [
+                'phone' => $normalized,
+                'label' => trim((string) ($phone['label'] ?? '')),
+            ];
+        }
+
+        return collect($rows)->unique('phone')->values()->all();
+    }
+
+    private function syncClientPhones(Client $client, array $phones): void
+    {
+        $client->phones()->delete();
+
+        foreach ($phones as $index => $phone) {
+            $client->phones()->create([
+                'phone' => $phone['phone'],
+                'label' => $phone['label'] ?: ($index === 0 ? 'Principal' : null),
+                'is_primary' => $index === 0,
+            ]);
+        }
+    }
+
     private function filteredClients(Company $company)
     {
         $search = trim($this->clientSearch);
 
         return $company->clients()
+            ->with(['phones', 'primaryPhone'])
             ->when($search !== '', fn($query) => $query->where(fn($nested) => $nested
                 ->where('full_name', 'like', "%{$search}%")
                 ->orWhere('identity_number', 'like', "%{$search}%")
-                ->orWhere('phone', 'like', "%{$search}%")))
+                ->orWhere('phone', 'like', "%{$search}%")
+                ->orWhereHas('phones', fn ($phoneQuery) => $phoneQuery->where('phone', 'like', "%{$search}%"))))
             ->orderBy('full_name')
             ->limit($search === '' ? 8 : 15)
             ->get();

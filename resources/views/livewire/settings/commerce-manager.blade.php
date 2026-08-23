@@ -37,6 +37,7 @@
                         <span>{{ $branch->businessType?->name ?? 'Sin tipo' }}{{ $branch->address ? ' - '.$branch->address : '' }}</span>
                         <div class="rm-commerce-meta">
                             <span>{{ $branch->status === 'active' ? 'Activo' : 'Inactivo' }}</span>
+                            <span>{{ $branch->country_code ?? 'BO' }} - {{ $branch->currency_code ?? 'BOB' }}</span>
                             <span>{{ $branch->uses_ticket_printer ? 'Impresora activa' : 'Sin impresora' }}</span>
                             @if ($activeBranchId === $branch->id)
                                 <span>Panel actual</span>
@@ -122,11 +123,23 @@
 
                 <div class="rm-form-row">
                     <label class="rm-field">
-                        <span>Telefono</span>
-                        <input wire:model="phone" type="text" placeholder="70000000">
-                        @error('phone') <small>{{ $message }}</small> @enderror
+                        <span>Pais y moneda</span>
+                        <select wire:model.live="countryCode">
+                            @foreach ($phoneCountries as $countryCodeOption => $countryRule)
+                                <option value="{{ $countryCodeOption }}">{{ $countryRule['name'] }} - {{ $countryRule['currency'] }}</option>
+                            @endforeach
+                        </select>
+                        @error('countryCode') <small>{{ $message }}</small> @enderror
                     </label>
 
+                    <label class="rm-field">
+                        <span>Telefono</span>
+                        <input wire:model="phone" type="text" placeholder="Con codigo pais o numero local">
+                        @error('phone') <small>{{ $message }}</small> @enderror
+                    </label>
+                </div>
+
+                <div class="rm-form-row">
                     <label class="rm-field">
                         <span>Estado</span>
                         <select wire:model="status">

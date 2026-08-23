@@ -102,6 +102,7 @@ class InventoryManager extends Component
     public string $movementReason = '';
     public string $movementExportFrom = '';
     public string $movementExportTo = '';
+    public string $movementListSearch = '';
 
     public string $assetName = '';
     public string $assetCategory = '';
@@ -156,6 +157,11 @@ class InventoryManager extends Component
     }
 
     public function updatedUseAreaFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedMovementListSearch(): void
     {
         $this->resetPage();
     }
@@ -962,13 +968,23 @@ class InventoryManager extends Component
         $to = $this->movementExportTo
             ? Carbon::parse($this->movementExportTo)->endOfDay()
             : now()->endOfDay();
+        $movementListSearch = trim($this->movementListSearch);
         $filename = 'inventario-movimientos-'.$branch->slug.'-'.$from->format('Ymd').'-'.$to->format('Ymd').'.xls';
 
-        return response()->streamDownload(function () use ($company, $branch, $from, $to) {
+        return response()->streamDownload(function () use ($company, $branch, $from, $to, $movementListSearch) {
             $movements = $company->inventoryMovements()
                 ->with(['product.brand', 'product.useArea', 'batch', 'branch', 'relatedBranch'])
                 ->where('branch_id', $branch->id)
                 ->whereBetween('moved_at', [$from, $to])
+                ->when($movementListSearch !== '', fn ($query) => $query->where(function ($nested) use ($movementListSearch) {
+                    $nested
+                        ->whereHas('product', fn ($productQuery) => $productQuery->where(function ($productNested) use ($movementListSearch) {
+                            $productNested
+                                ->where('name', 'like', "%{$movementListSearch}%")
+                                ->orWhere('code', 'like', "%{$movementListSearch}%");
+                        }))
+                        ->orWhereHas('batch', fn ($batchQuery) => $batchQuery->where('lot_code', 'like', "%{$movementListSearch}%"));
+                }))
                 ->orderBy('moved_at')
                 ->get();
 
@@ -1186,6 +1202,7 @@ class InventoryManager extends Component
         $branch = $this->activeBranch();
         $search = trim($this->search);
         $movementSearch = trim($this->movementProductSearch);
+        $movementListSearch = trim($this->movementListSearch);
         $brandFilter = $this->brandFilter !== '' ? (int) $this->brandFilter : null;
         $useAreaFilter = $this->useAreaFilter !== '' ? (int) $this->useAreaFilter : null;
 
@@ -1259,6 +1276,15 @@ class InventoryManager extends Component
                 ->with(['product', 'batch', 'branch', 'relatedBranch'])
                 ->where('branch_id', $branch->id)
                 ->when($this->activeTab === 'waste', fn ($query) => $query->where('type', 'waste'))
+                ->when($movementListSearch !== '', fn ($query) => $query->where(function ($nested) use ($movementListSearch) {
+                    $nested
+                        ->whereHas('product', fn ($productQuery) => $productQuery->where(function ($productNested) use ($movementListSearch) {
+                            $productNested
+                                ->where('name', 'like', "%{$movementListSearch}%")
+                                ->orWhere('code', 'like', "%{$movementListSearch}%");
+                        }))
+                        ->orWhereHas('batch', fn ($batchQuery) => $batchQuery->where('lot_code', 'like', "%{$movementListSearch}%"));
+                }))
                 ->latest('moved_at')
                 ->paginate(15),
             'assets' => $company->inventoryAssets()

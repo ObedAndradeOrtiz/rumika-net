@@ -36,10 +36,13 @@
                 <input wire:model.live="dateTo" type="date">
             </label>
             @if (in_array($activeTab, ['history', 'staff'], true))
-                <label class="rm-search-field">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-                    <input wire:model.live.debounce.300ms="search" type="search" placeholder="Buscar gasto, tipo o personal">
-                </label>
+                <div class="rm-field rm-labeled-search-field">
+                    <span>Buscador</span>
+                    <label class="rm-search-field">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+                        <input wire:model.live.debounce.300ms="search" type="search" placeholder="Buscar gasto, tipo o personal">
+                    </label>
+                </div>
             @endif
         </div>
 
