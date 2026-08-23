@@ -212,11 +212,14 @@
                         </div>
                         <div class="rm-secondary-actions">
                             @if ($canViewClinicalHistory)
-                                <a class="rm-icon-button is-history" href="{{ route('clinic.clinical-history', ['cliente' => $appointment->client_id]) }}" wire:navigate title="Historia clinica">
+                                <a class="rm-icon-button is-clinical-history" href="{{ route('clinic.clinical-history', ['cliente' => $appointment->client_id]) }}" wire:navigate aria-label="Historia clinica" title="Historia clinica">
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
                                         stroke="currentColor" stroke-width="2.3">
-                                        <path d="M4 19.5V5a2 2 0 0 1 2-2h11l3 3v13.5a1.5 1.5 0 0 1-1.5 1.5H6a2 2 0 0 1-2-1.5Z" />
-                                        <path d="M14 3v5h5M9 13h6M9 17h4" />
+                                        <path d="M8 4v16" />
+                                        <path d="M16 4v16" />
+                                        <path d="M4 8h16" />
+                                        <path d="M4 16h16" />
+                                        <path d="M9 12h6" />
                                     </svg>
                                     <span>Historia clinica</span>
                                 </a>

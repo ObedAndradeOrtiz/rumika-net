@@ -11,35 +11,37 @@
         </div>
     </section>
 
-    <section class="rm-clinical-layout">
-        <aside class="rm-panel rm-clinical-patients">
-            <header>
-                <h2>Pacientes</h2>
-                <span>{{ $canViewFullHistory ? 'Historial completo' : 'Solo autorizados' }}</span>
-            </header>
+    <section class="rm-clinical-layout {{ $lockedToClient ? 'is-client-locked' : '' }}">
+        @unless ($lockedToClient)
+            <aside class="rm-panel rm-clinical-patients">
+                <header>
+                    <h2>Pacientes</h2>
+                    <span>{{ $canViewFullHistory ? 'Historial completo' : 'Solo autorizados' }}</span>
+                </header>
 
-            <label class="rm-search-field">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    stroke-width="2.2">
-                    <circle cx="11" cy="11" r="7" />
-                    <path d="m20 20-3.5-3.5" />
-                </svg>
-                <input wire:model.live.debounce.350ms="clientSearch" type="search"
-                    placeholder="Buscar por nombre, CI o telefono">
-            </label>
+                <label class="rm-search-field">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.2">
+                        <circle cx="11" cy="11" r="7" />
+                        <path d="m20 20-3.5-3.5" />
+                    </svg>
+                    <input wire:model.live.debounce.350ms="clientSearch" type="search"
+                        placeholder="Buscar por nombre, CI o telefono">
+                </label>
 
-            <div class="rm-clinical-client-list" aria-label="Lista de pacientes">
-                @forelse ($clients as $client)
-                    <button type="button" wire:click="selectClient({{ $client->id }})"
-                        class="{{ $selectedClient?->id === $client->id ? 'is-active' : '' }}">
-                        <strong>{{ $client->full_name }}</strong>
-                        <span>{{ $client->displayContact() ?? 'Sin telefono ni CI' }}</span>
-                    </button>
-                @empty
-                    <div class="rm-empty-state">No hay pacientes visibles para tu rol.</div>
-                @endforelse
-            </div>
-        </aside>
+                <div class="rm-clinical-client-list" aria-label="Lista de pacientes">
+                    @forelse ($clients as $client)
+                        <button type="button" wire:click="selectClient({{ $client->id }})"
+                            class="{{ $selectedClient?->id === $client->id ? 'is-active' : '' }}">
+                            <strong>{{ $client->full_name }}</strong>
+                            <span>{{ $client->displayContact() ?? 'Sin telefono ni CI' }}</span>
+                        </button>
+                    @empty
+                        <div class="rm-empty-state">No hay pacientes visibles para tu rol.</div>
+                    @endforelse
+                </div>
+            </aside>
+        @endunless
 
         <div class="rm-clinical-content">
             <div class="rm-tab-switcher rm-tab-switcher-five">

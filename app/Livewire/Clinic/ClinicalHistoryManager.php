@@ -29,6 +29,7 @@ class ClinicalHistoryManager extends Component
     public string $tab = 'records';
     public string $clientSearch = '';
     public ?int $selectedClientId = null;
+    public bool $lockedToClient = false;
 
     public ?int $templateId = null;
     public string $recordTitle = '';
@@ -75,9 +76,12 @@ class ClinicalHistoryManager extends Component
     {
         $this->prescriptionIssuedAt = now()->format('Y-m-d');
         $requestedClientId = (int) request()->query('cliente', 0);
-        $this->selectedClientId = $requestedClientId > 0
-            ? $this->visibleClientsQuery()->whereKey($requestedClientId)->value('id')
-            : null;
+
+        if ($requestedClientId > 0) {
+            $this->selectedClientId = $this->visibleClientsQuery()->whereKey($requestedClientId)->value('id');
+            abort_unless($this->selectedClientId, 403);
+            $this->lockedToClient = true;
+        }
 
         $this->selectedClientId ??= $this->visibleClientsQuery()->oldest('full_name')->value('id');
         $this->accessClientId = $this->selectedClientId;
@@ -98,6 +102,10 @@ class ClinicalHistoryManager extends Component
 
     public function selectClient(int $clientId): void
     {
+        if ($this->lockedToClient && $clientId !== $this->selectedClientId) {
+            return;
+        }
+
         $this->selectedClientId = $this->visibleClientsQuery()->whereKey($clientId)->value('id');
         $this->accessClientId = $this->selectedClientId;
         $this->recordAppointmentId = null;

@@ -186,6 +186,10 @@
     grid-template-columns: minmax(280px, 380px) minmax(0, 1fr);
 }
 
+.rm-clinical-layout.is-client-locked {
+    grid-template-columns: minmax(0, 1fr);
+}
+
 .rm-clinical-hero {
     padding-block: clamp(16px, 2.2vw, 24px);
 }
@@ -1832,7 +1836,8 @@
     display: contents;
 }
 
-.rm-commerce-actions button {
+.rm-commerce-actions button,
+.rm-commerce-actions a.rm-icon-button {
     align-items: center;
     background: #ffffff;
     border: 1px solid var(--rumika-border);
@@ -1845,6 +1850,7 @@
     justify-content: center;
     min-height: 34px;
     padding: 0 11px;
+    text-decoration: none;
 }
 
 .rm-commerce-actions .rm-icon-button {
@@ -1877,6 +1883,12 @@
     color: #6d28d9;
 }
 
+.rm-commerce-actions .rm-icon-button.is-clinical-history {
+    background: #ecfdf5;
+    border-color: #bbf7d0;
+    color: #047857;
+}
+
 .rm-commerce-actions .rm-icon-button.is-history {
     background: #f8fafc;
     border-color: #dbe3ee;
@@ -1889,7 +1901,8 @@
     color: #be123c;
 }
 
-.rm-commerce-actions .rm-icon-button.is-history span {
+.rm-commerce-actions .rm-icon-button.is-history span,
+.rm-commerce-actions .rm-icon-button.is-clinical-history span {
     display: none;
 }
 
@@ -1897,7 +1910,8 @@
     display: none;
 }
 
-.rm-commerce-actions button:hover {
+.rm-commerce-actions button:hover,
+.rm-commerce-actions a.rm-icon-button:hover {
     background: #f6f8fb;
     color: var(--rumika-teal-dark);
 }
@@ -2938,7 +2952,8 @@
         width: 100%;
     }
 
-    .rm-appointment-row .rm-secondary-actions .rm-icon-button.is-history {
+    .rm-appointment-row .rm-secondary-actions .rm-icon-button.is-history,
+    .rm-appointment-row .rm-secondary-actions .rm-icon-button.is-clinical-history {
         aspect-ratio: auto;
         font-size: 11px;
         gap: 5px;
@@ -2948,7 +2963,8 @@
         white-space: nowrap;
     }
 
-    .rm-appointment-row .rm-secondary-actions .rm-icon-button.is-history span {
+    .rm-appointment-row .rm-secondary-actions .rm-icon-button.is-history span,
+    .rm-appointment-row .rm-secondary-actions .rm-icon-button.is-clinical-history span {
         display: inline;
     }
 
