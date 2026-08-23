@@ -11,6 +11,7 @@
     $sidebarCanSeeAgenda = $canAccess('agenda');
     $sidebarCanSeeClients = $canAccess('clientes');
     $sidebarCanSeeClinicalHistory = $canAccess('historia_clinica');
+    $sidebarCanSeeCrm = $canAccess('crm');
     $sidebarCanSeeInventory = $canAccess('inventario');
     $sidebarCanSeeInventoryOperations = $canAccess('inventario_operaciones');
     $sidebarCanSeeCashbox = $canAccess('caja');
@@ -101,6 +102,30 @@
                     <span data-sidebar-label>Historia clinica</span>
                 </a>
                 @endif
+            </div>
+        </details>
+        @endif
+
+        @if ($sidebarCanSeeCrm)
+        <details class="rm-menu-group" {{ $active === 'crm' ? 'open' : '' }}>
+            <summary>
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2.2">
+                    <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
+                    <path d="M8 9h8M8 13h5" />
+                </svg>
+                <span data-sidebar-label>Gestion CRM</span>
+                <svg class="rm-menu-chevron" data-sidebar-label width="16" height="16" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2.4">
+                    <path d="m6 9 6 6 6-6" />
+                </svg>
+            </summary>
+            <div class="rm-menu-list">
+                <a class="rm-side-link rm-side-sub-link {{ $active === 'crm' ? 'is-active' : '' }}"
+                    href="{{ route('crm.index') }}">
+                    <i aria-hidden="true"></i>
+                    <span data-sidebar-label>Rumika Bot</span>
+                </a>
             </div>
         </details>
         @endif
@@ -401,6 +426,21 @@
                     @if ($sidebarCanSeeClinicalHistory)
                     <a href="{{ route('clinic.clinical-history') }}">Historia clinica</a>
                     @endif
+                </div>
+            </details>
+            @endif
+
+            @if ($sidebarCanSeeCrm)
+            <details class="rm-mobile-menu-group" {{ $active === 'crm' ? 'open' : '' }}>
+                <summary>
+                    <span>Gestion CRM</span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.4">
+                        <path d="m6 9 6 6 6-6" />
+                    </svg>
+                </summary>
+                <div>
+                    <a href="{{ route('crm.index') }}">Rumika Bot</a>
                 </div>
             </details>
             @endif

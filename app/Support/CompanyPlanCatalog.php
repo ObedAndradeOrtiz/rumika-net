@@ -55,7 +55,7 @@ class CompanyPlanCatalog
                 'currency' => 'USD',
                 'sort_order' => 3,
                 'features' => [
-                    'modules' => ['inicio', 'agenda', 'clientes', 'historia_clinica', 'servicios', 'caja', 'facturacion', 'deudas', 'reportes', 'comisiones', 'sucursales', 'usuarios', 'roles', 'inventario', 'inventario_operaciones', 'gastos', 'estadisticas'],
+                    'modules' => ['inicio', 'agenda', 'clientes', 'historia_clinica', 'servicios', 'caja', 'facturacion', 'deudas', 'reportes', 'comisiones', 'sucursales', 'usuarios', 'roles', 'inventario', 'inventario_operaciones', 'gastos', 'estadisticas', 'crm'],
                     'limits' => [
                         'branches' => 3,
                         'users' => 10,

@@ -11,6 +11,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->validateCsrfTokens(except: [
+            'webhook/whatsapp',
+        ]);
+
         $middleware->alias([
             'rumika.permission' => \App\Http\Middleware\EnsureRumikaPermission::class,
             'rumika.onboarding' => \App\Http\Middleware\EnsureCompanyOnboardingIsComplete::class,

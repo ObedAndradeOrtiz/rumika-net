@@ -172,6 +172,26 @@ class Company extends Model
         return $this->hasMany(AuditLog::class);
     }
 
+    public function whatsappChannels(): HasMany
+    {
+        return $this->hasMany(WhatsappChannel::class);
+    }
+
+    public function crmContacts(): HasMany
+    {
+        return $this->hasMany(CrmContact::class);
+    }
+
+    public function crmConversations(): HasMany
+    {
+        return $this->hasMany(CrmConversation::class);
+    }
+
+    public function crmMessages(): HasMany
+    {
+        return $this->hasMany(CrmMessage::class);
+    }
+
     public function billingPayments(): HasMany
     {
         return $this->hasMany(CompanyBillingPayment::class);

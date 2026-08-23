@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\FinanceReportExportController;
 use App\Http\Controllers\RumikaBotController;
+use App\Http\Controllers\WhatsappWebhookController;
 use App\Livewire\Onboarding\CompanySetup;
 
 use Illuminate\Support\Facades\Http;
@@ -33,6 +34,12 @@ Route::get('/test-gemini-directo', function () {
 
 Route::post('/rumika-bot', [RumikaBotController::class, 'ask'])
     ->name('rumika.bot');
+
+Route::get('/webhook/whatsapp', [WhatsappWebhookController::class, 'verify'])
+    ->name('webhook.whatsapp.verify');
+
+Route::post('/webhook/whatsapp', [WhatsappWebhookController::class, 'receive'])
+    ->name('webhook.whatsapp.receive');
 
 
 Route::get('/', function () {
@@ -86,6 +93,10 @@ Route::view('caja', 'clinic.cashbox')
 Route::view('ventas/productos', 'sales.products')
     ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.permission:ventas_productos'])
     ->name('sales.products');
+
+Route::view('crm', 'crm.index')
+    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.permission:crm'])
+    ->name('crm.index');
 
 Route::view('inventario', 'inventory.index')
     ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.permission:inventario'])

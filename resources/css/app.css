@@ -8,6 +8,7 @@
 @import './modules/app-shell/shell.css';
 @import './modules/settings/settings.css';
 @import './modules/saas/saas.css';
+@import './modules/crm/crm.css';
 
 @tailwind base;
 @tailwind components;

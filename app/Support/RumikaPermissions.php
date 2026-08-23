@@ -47,6 +47,11 @@ class RumikaPermissions
                 'group' => 'Gestion financiera',
                 'actions' => ['view', 'create', 'edit', 'delete'],
             ],
+            'crm' => [
+                'label' => 'CRM y bots',
+                'group' => 'Gestion CRM',
+                'actions' => ['view', 'create', 'edit', 'delete'],
+            ],
             'facturacion' => [
                 'label' => 'Facturacion',
                 'group' => 'Gestion financiera',
@@ -165,6 +170,7 @@ class RumikaPermissions
                     'agenda' => ['view', 'create', 'edit'],
                     'clientes' => ['view', 'create', 'edit'],
                     'historia_clinica' => ['view', 'create'],
+                    'crm' => ['view', 'create', 'edit'],
                 ],
             ],
             [
