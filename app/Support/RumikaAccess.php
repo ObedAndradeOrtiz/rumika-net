@@ -94,6 +94,7 @@ class RumikaAccess
             'dashboard' => 'inicio',
             'clinic.agenda' => 'agenda',
             'clinic.clients' => 'clientes',
+            'clinic.clinical-history' => 'historia_clinica',
             'clinic.cashbox' => 'caja',
             'inventory.index' => 'inventario',
             'inventory.operations' => 'inventario_operaciones',

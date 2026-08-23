@@ -22,6 +22,11 @@ class RumikaPermissions
                 'group' => 'Gestion de clientes',
                 'actions' => ['view', 'create', 'edit', 'delete'],
             ],
+            'historia_clinica' => [
+                'label' => 'Historia clinica',
+                'group' => 'Gestion de clientes',
+                'actions' => ['view', 'create', 'edit', 'delete', 'view_full', 'manage_access'],
+            ],
             'inventario' => [
                 'label' => 'Productos y activos',
                 'group' => 'Gestion de inventario',
@@ -87,6 +92,8 @@ class RumikaPermissions
             'create' => 'Crear',
             'edit' => 'Editar',
             'delete' => 'Eliminar',
+            'view_full' => 'Ver historial completo',
+            'manage_access' => 'Autorizar doctores',
         ];
     }
 
@@ -132,6 +139,7 @@ class RumikaPermissions
                     'inicio' => ['view'],
                     'agenda' => ['view', 'create', 'edit'],
                     'clientes' => ['view', 'create', 'edit'],
+                    'historia_clinica' => ['view', 'create'],
                 ],
             ],
             [
@@ -142,6 +150,7 @@ class RumikaPermissions
                     'inicio' => ['view'],
                     'agenda' => ['view', 'edit'],
                     'clientes' => ['view'],
+                    'historia_clinica' => ['view', 'create'],
                 ],
             ],
             [

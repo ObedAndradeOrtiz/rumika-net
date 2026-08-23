@@ -70,6 +70,10 @@ Route::view('clientes', 'clinic.clients')
     ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.permission:clientes'])
     ->name('clinic.clients');
 
+Route::view('historia-clinica', 'clinic.clinical-history')
+    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.permission:historia_clinica'])
+    ->name('clinic.clinical-history');
+
 Route::view('caja', 'clinic.cashbox')
     ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.permission:caja'])
     ->name('clinic.cashbox');

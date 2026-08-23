@@ -36,7 +36,7 @@ class CompanyPlanCatalog
                 'currency' => 'USD',
                 'sort_order' => 2,
                 'features' => [
-                    'modules' => ['inicio', 'agenda', 'clientes', 'servicios', 'caja', 'sucursales'],
+                    'modules' => ['inicio', 'agenda', 'clientes', 'historia_clinica', 'servicios', 'caja', 'sucursales'],
                     'limits' => [
                         'branches' => 1,
                         'users' => 3,
@@ -55,7 +55,7 @@ class CompanyPlanCatalog
                 'currency' => 'USD',
                 'sort_order' => 3,
                 'features' => [
-                    'modules' => ['inicio', 'agenda', 'clientes', 'servicios', 'caja', 'sucursales', 'usuarios', 'roles', 'inventario', 'inventario_operaciones', 'gastos', 'estadisticas'],
+                    'modules' => ['inicio', 'agenda', 'clientes', 'historia_clinica', 'servicios', 'caja', 'sucursales', 'usuarios', 'roles', 'inventario', 'inventario_operaciones', 'gastos', 'estadisticas'],
                     'limits' => [
                         'branches' => 3,
                         'users' => 10,

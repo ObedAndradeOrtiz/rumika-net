@@ -152,6 +152,36 @@ class Company extends Model
         return $this->hasMany(CashboxTicket::class);
     }
 
+    public function clinicalSpecialties(): HasMany
+    {
+        return $this->hasMany(ClinicalSpecialty::class);
+    }
+
+    public function clinicalTemplates(): HasMany
+    {
+        return $this->hasMany(ClinicalTemplate::class);
+    }
+
+    public function clinicalRecords(): HasMany
+    {
+        return $this->hasMany(ClinicalRecord::class);
+    }
+
+    public function clinicalDocuments(): HasMany
+    {
+        return $this->hasMany(ClinicalDocument::class);
+    }
+
+    public function clinicalPrescriptions(): HasMany
+    {
+        return $this->hasMany(ClinicalPrescription::class);
+    }
+
+    public function clinicalPatientAccesses(): HasMany
+    {
+        return $this->hasMany(ClinicalPatientAccess::class);
+    }
+
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class)

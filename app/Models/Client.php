@@ -72,4 +72,24 @@ class Client extends Model
     {
         return $this->hasMany(ClientCharge::class);
     }
+
+    public function clinicalRecords(): HasMany
+    {
+        return $this->hasMany(ClinicalRecord::class);
+    }
+
+    public function clinicalDocuments(): HasMany
+    {
+        return $this->hasMany(ClinicalDocument::class);
+    }
+
+    public function clinicalPrescriptions(): HasMany
+    {
+        return $this->hasMany(ClinicalPrescription::class);
+    }
+
+    public function clinicalAccesses(): HasMany
+    {
+        return $this->hasMany(ClinicalPatientAccess::class);
+    }
 }

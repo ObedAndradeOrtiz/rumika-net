@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -66,5 +67,15 @@ class User extends Authenticatable
         return $this->belongsToMany(Branch::class)
             ->withPivot(['role_id', 'assigned_at'])
             ->withTimestamps();
+    }
+
+    public function clinicalSpecialties(): BelongsToMany
+    {
+        return $this->belongsToMany(ClinicalSpecialty::class, 'clinical_specialty_user')->withTimestamps();
+    }
+
+    public function clinicalPatientAccesses(): HasMany
+    {
+        return $this->hasMany(ClinicalPatientAccess::class);
     }
 }

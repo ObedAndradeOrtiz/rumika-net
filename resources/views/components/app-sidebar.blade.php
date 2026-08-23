@@ -10,6 +10,7 @@
     $sidebarCanSeeHome = $canAccess('inicio');
     $sidebarCanSeeAgenda = $canAccess('agenda');
     $sidebarCanSeeClients = $canAccess('clientes');
+    $sidebarCanSeeClinicalHistory = $canAccess('historia_clinica');
     $sidebarCanSeeInventory = $canAccess('inventario');
     $sidebarCanSeeInventoryOperations = $canAccess('inventario_operaciones');
     $sidebarCanSeeCashbox = $canAccess('caja');
@@ -50,8 +51,8 @@
         </a>
         @endif
 
-        @if ($sidebarCanSeeAgenda || $sidebarCanSeeClients)
-        <details class="rm-menu-group" {{ in_array($active, ['agenda', 'clients'], true) ? 'open' : '' }}>
+        @if ($sidebarCanSeeAgenda || $sidebarCanSeeClients || $sidebarCanSeeClinicalHistory)
+        <details class="rm-menu-group" {{ in_array($active, ['agenda', 'clients', 'clinical-history'], true) ? 'open' : '' }}>
             <summary>
                 <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     stroke-width="2.2">
@@ -78,6 +79,13 @@
                     href="{{ route('clinic.clients') }}">
                     <i aria-hidden="true"></i>
                     <span data-sidebar-label>Clientes</span>
+                </a>
+                @endif
+                @if ($sidebarCanSeeClinicalHistory)
+                <a class="rm-side-link rm-side-sub-link {{ $active === 'clinical-history' ? 'is-active' : '' }}"
+                    href="{{ route('clinic.clinical-history') }}">
+                    <i aria-hidden="true"></i>
+                    <span data-sidebar-label>Historia clinica</span>
                 </a>
                 @endif
             </div>
@@ -329,6 +337,22 @@
             </button>
         </div>
         <div class="rm-mobile-more-scroll">
+            @if ($sidebarCanSeeInventory || $sidebarCanSeeInventoryOperations)
+            @if ($sidebarCanSeeClinicalHistory)
+            <details class="rm-mobile-menu-group" {{ $active === 'clinical-history' ? 'open' : '' }}>
+                <summary>
+                    <span>Gestion de clientes</span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.4">
+                        <path d="m6 9 6 6 6-6" />
+                    </svg>
+                </summary>
+                <div>
+                    <a href="{{ route('clinic.clinical-history') }}">Historia clinica</a>
+                </div>
+            </details>
+            @endif
+
             @if ($sidebarCanSeeInventory || $sidebarCanSeeInventoryOperations)
             <details class="rm-mobile-menu-group"
                 {{ in_array($active, ['inventory', 'inventory-operations'], true) ? 'open' : '' }}>
