@@ -1,17 +1,16 @@
 <div class="rm-content rm-report-page rm-commission-page">
-    <section class="rm-panel rm-report-head">
+    <section class="rm-settings-hero">
         <div>
             <span class="rm-kicker">Administracion</span>
             <h1>Metas y comisiones</h1>
             <p>Controla ventas de productos, servicios agregados y comisiones por personal.</p>
         </div>
-        <button class="rm-button rm-button-primary" type="button" wire:click="createTarget">Nueva meta</button>
     </section>
 
     <section class="rm-panel rm-report-filters">
         <div class="rm-filter-row rm-commission-filter-row">
             <label class="rm-field"><span>Desde</span><input wire:model.live="dateFrom" type="date"></label>
-            <label class="rm-field"><span>Hasta</span><input wire:model.live="dateTo" type="date"></label>
+            <label class="rm-field"><span>Hasta opcional</span><input wire:model.live="dateTo" type="date"></label>
             <label class="rm-field">
                 <span>Sucursal</span>
                 <select wire:model.live="branchFilter">
@@ -29,6 +28,7 @@
                     @endforeach
                 </select>
             </label>
+            <button class="rm-button rm-button-primary rm-report-download-button" type="button" wire:click="createTarget">Nueva meta</button>
         </div>
     </section>
 

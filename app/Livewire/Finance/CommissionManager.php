@@ -127,20 +127,19 @@ class CommissionManager extends Component
             'rows' => $data['rows'],
             'targets' => $company->commissionTargets()->with(['user', 'branch'])->latest()->get(),
             'totals' => $data['totals'],
-            'rangeLabel' => Carbon::parse($this->dateFrom)->format('d/m/Y').' - '.Carbon::parse($this->dateTo)->format('d/m/Y'),
+            'rangeLabel' => $this->rangeLabel(),
         ]);
     }
 
     private function commissionData(Company $company, array $branchIds): array
     {
-        $range = $this->range();
         $rows = collect();
 
-        $payments = $company->treatmentPayments()
+        $paymentsQuery = $company->treatmentPayments()
             ->with(['branch', 'performedBy', 'items.product', 'items.soldBy', 'items.appointmentService.service', 'items.appointmentService.performedBy', 'items.appointmentService.referredBy'])
-            ->whereIn('branch_id', $branchIds)
-            ->whereBetween('paid_at', $range)
-            ->get();
+            ->whereIn('branch_id', $branchIds);
+
+        $payments = $this->applyDateRange($paymentsQuery, 'paid_at')->get();
 
         $payments->flatMap(fn ($payment) => $payment->items->map(fn ($item) => ['payment' => $payment, 'item' => $item]))
             ->each(function (array $row) use ($rows) {
@@ -154,11 +153,11 @@ class CommissionManager extends Component
                     : $this->productCommissionValue($row));
             });
 
-        $company->productSales()
+        $productSalesQuery = $company->productSales()
             ->with(['branch', 'soldBy', 'items.product'])
-            ->whereIn('branch_id', $branchIds)
-            ->whereBetween('sold_at', $range)
-            ->get()
+            ->whereIn('branch_id', $branchIds);
+
+        $this->applyDateRange($productSalesQuery, 'sold_at')->get()
             ->flatMap(fn ($sale) => $sale->items->map(fn ($item) => ['sale' => $sale, 'item' => $item]))
             ->each(fn (array $row) => $this->putRow(
                 $rows,
@@ -296,12 +295,25 @@ class CommissionManager extends Component
         return $percent > 0 && $amount >= $minimum ? round($amount * $percent / 100, 2) : 0.0;
     }
 
-    private function range(): array
+    private function applyDateRange($query, string $column)
     {
-        return [
-            Carbon::parse($this->dateFrom ?: now()->startOfMonth())->startOfDay(),
-            Carbon::parse($this->dateTo ?: now())->endOfDay(),
-        ];
+        $query->where($column, '>=', Carbon::parse($this->dateFrom ?: now()->startOfMonth())->startOfDay());
+
+        if ($this->dateTo !== '') {
+            $query->where($column, '<=', Carbon::parse($this->dateTo)->endOfDay());
+        }
+
+        return $query;
+    }
+
+    private function rangeLabel(): string
+    {
+        $from = Carbon::parse($this->dateFrom ?: now()->startOfMonth())->format('d/m/Y');
+        $to = $this->dateTo !== ''
+            ? Carbon::parse($this->dateTo)->format('d/m/Y')
+            : 'en adelante';
+
+        return $from.' - '.$to;
     }
 
     private function periodOptions(): array
