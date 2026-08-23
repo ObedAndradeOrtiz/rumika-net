@@ -30,12 +30,16 @@
                 Productos <span>{{ $historyRows['products']->count() }}</span>
             </button>
             <button class="{{ $historyTab === 'expenses' ? 'is-active' : '' }}" type="button" wire:click="setHistoryTab('expenses')">
-                Gastos del mes <span>{{ $historyRows['expenses']->count() }}</span>
+                Gastos del dia <span>{{ $historyRows['expenses']->count() }}</span>
             </button>
         </div>
 
         <div class="rm-cashbox-history-filters">
             @if (in_array($historyTab, ['services', 'products'], true))
+                <label class="rm-search-field">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+                    <input wire:model.live.debounce.300ms="clientSearch" type="search" placeholder="Buscar cliente por nombre, CI o telefono">
+                </label>
                 <label class="rm-field">
                     <span>Tipo de ingreso</span>
                     <select wire:model.live="paymentMethodFilter">
@@ -136,7 +140,7 @@
                         @endif
                     </article>
                 @empty
-                    <div class="rm-empty-state"><strong>Sin gastos</strong><span>No hay gastos para este mes o filtro.</span></div>
+                    <div class="rm-empty-state"><strong>Sin gastos</strong><span>No hay gastos para este dia o filtro.</span></div>
                 @endforelse
             @endif
         </div>

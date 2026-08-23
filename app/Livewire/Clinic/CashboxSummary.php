@@ -24,6 +24,7 @@ class CashboxSummary extends Component
     public string $historyTab = 'services';
     public string $paymentMethodFilter = '';
     public string $expenseSourceFilter = '';
+    public string $clientSearch = '';
     public ?int $confirmingPaymentDeleteId = null;
     public ?int $confirmingExpenseDeleteId = null;
     public bool $showExpenseModal = false;
@@ -237,23 +238,28 @@ class CashboxSummary extends Component
         $company = $this->company();
         $branch = $this->activeBranch();
         $day = Carbon::parse($this->selectedDate);
-        $expenseRange = $this->expenseMonthRange($day);
+        $dayRange = [$day->copy()->startOfDay(), $day->copy()->endOfDay()];
+        $clientSearch = trim($this->clientSearch);
         $payments = $company->treatmentPayments()
             ->with(['client', 'appointment.services', 'treatmentPlan', 'splits', 'items', 'performedBy'])
             ->where('branch_id', $branch->id)
-            ->whereBetween('paid_at', [$day->copy()->startOfDay(), $day->copy()->endOfDay()])
+            ->whereBetween('paid_at', $dayRange)
+            ->when($clientSearch !== '', fn ($query) => $query->whereHas('client', fn ($clientQuery) => $clientQuery
+                ->where('full_name', 'like', "%{$clientSearch}%")
+                ->orWhere('identity_number', 'like', "%{$clientSearch}%")
+                ->orWhere('phone', 'like', "%{$clientSearch}%")))
             ->latest('paid_at')
             ->get();
         $expenses = $company->expenses()
             ->with(['type', 'staffUser', 'createdBy'])
             ->where('branch_id', $branch->id)
-            ->whereBetween('spent_at', $expenseRange)
+            ->whereBetween('spent_at', $dayRange)
             ->latest('spent_at')
             ->get();
         $cashboxExpenseTotal = (float) $company->expenses()
             ->where('branch_id', $branch->id)
             ->where('source', 'cashbox')
-            ->whereBetween('spent_at', $expenseRange)
+            ->whereBetween('spent_at', $dayRange)
             ->sum('amount');
         $cashTotal = (float) $payments->flatMap->splits->where('method', 'cash')->sum('amount');
         $qrTotal = (float) $payments->flatMap->splits->where('method', 'qr')->sum('amount');
@@ -336,14 +342,6 @@ class CashboxSummary extends Component
     private function linePaymentMethod(float $cash, float $qr): string
     {
         return $cash > 0 && $qr > 0 ? 'mixed' : ($qr > 0 ? 'qr' : 'cash');
-    }
-
-    private function expenseMonthRange(Carbon $day): array
-    {
-        return [
-            $day->copy()->startOfMonth()->toDateString(),
-            $day->copy()->endOfMonth()->toDateString(),
-        ];
     }
 
     public function paymentMethodLabel(string $method): string

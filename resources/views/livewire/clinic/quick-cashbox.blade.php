@@ -142,6 +142,10 @@
 
                 <div class="rm-cashbox-history-filters">
                     @if (in_array($historyTab, ['services', 'products'], true))
+                        <label class="rm-search-field">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+                            <input wire:model.live.debounce.300ms="clientSearch" type="search" placeholder="Buscar cliente por nombre, CI o telefono">
+                        </label>
                         <label class="rm-field">
                             <span>Tipo de ingreso</span>
                             <select wire:model.live="paymentMethodFilter">

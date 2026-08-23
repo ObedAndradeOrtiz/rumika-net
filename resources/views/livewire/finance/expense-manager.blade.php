@@ -28,24 +28,13 @@
 
         <div class="rm-action-row">
             <label class="rm-field">
-                <span>Ver por</span>
-                <select wire:model.live="periodMode">
-                    <option value="date">Fecha</option>
-                    <option value="month">Mes</option>
-                    <option value="all">Todos</option>
-                </select>
+                <span>Desde</span>
+                <input wire:model.live="dateFrom" type="date">
             </label>
-            @if ($periodMode === 'date')
-                <label class="rm-field">
-                    <span>Fecha</span>
-                    <input wire:model.live="selectedDate" type="date">
-                </label>
-            @elseif ($periodMode === 'month')
-                <label class="rm-field">
-                    <span>Mes</span>
-                    <input wire:model.live="month" type="month">
-                </label>
-            @endif
+            <label class="rm-field">
+                <span>Hasta</span>
+                <input wire:model.live="dateTo" type="date">
+            </label>
             @if (in_array($activeTab, ['history', 'staff'], true))
                 <label class="rm-search-field">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -95,7 +84,7 @@
                     <div class="rm-empty-state"><strong>Sin gastos</strong><span>Registra gastos de caja, externos o relacionados con personal.</span></div>
                 @endforelse
             </div>
-            <div class="rm-pagination-wrap">{{ $expenses->links() }}</div>
+            <div class="rm-pagination-wrap">{{ $expenses->links('vendor.pagination.rumika') }}</div>
         @endif
 
         @if ($activeTab === 'types')

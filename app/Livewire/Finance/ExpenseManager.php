@@ -19,9 +19,8 @@ class ExpenseManager extends Component
 
     public string $activeTab = 'register';
     public string $search = '';
-    public string $periodMode = 'month';
-    public string $selectedDate = '';
-    public string $month = '';
+    public string $dateFrom = '';
+    public string $dateTo = '';
 
     public bool $showExpenseModal = false;
     public bool $showTypeModal = false;
@@ -46,8 +45,8 @@ class ExpenseManager extends Component
 
     public function mount(): void
     {
-        $this->selectedDate = now()->format('Y-m-d');
-        $this->month = now()->format('Y-m');
+        $this->dateFrom = now()->startOfMonth()->format('Y-m-d');
+        $this->dateTo = now()->format('Y-m-d');
         $this->expenseSpentAt = now()->format('Y-m-d');
         $this->ensureDefaultTypes();
     }
@@ -67,21 +66,12 @@ class ExpenseManager extends Component
         $this->resetPage();
     }
 
-    public function updatedPeriodMode(): void
-    {
-        if (! in_array($this->periodMode, ['date', 'month', 'all'], true)) {
-            $this->periodMode = 'month';
-        }
-
-        $this->resetPage();
-    }
-
-    public function updatedSelectedDate(): void
+    public function updatedDateFrom(): void
     {
         $this->resetPage();
     }
 
-    public function updatedMonth(): void
+    public function updatedDateTo(): void
     {
         $this->resetPage();
     }
@@ -317,29 +307,20 @@ class ExpenseManager extends Component
 
     private function periodRange(): ?array
     {
-        if ($this->periodMode === 'all') {
-            return null;
+        $from = Carbon::parse($this->dateFrom ?: now()->startOfMonth()->format('Y-m-d'))->startOfDay();
+        $to = Carbon::parse($this->dateTo ?: now()->format('Y-m-d'))->endOfDay();
+
+        if ($to->lt($from)) {
+            $to = $from->copy()->endOfDay();
+            $this->dateTo = $from->toDateString();
         }
 
-        if ($this->periodMode === 'date') {
-            $date = Carbon::parse($this->selectedDate ?: now()->format('Y-m-d'));
-
-            return [$date->copy()->startOfDay(), $date->copy()->endOfDay()];
-        }
-
-        $month = $this->month ?: now()->format('Y-m');
-        $start = Carbon::createFromFormat('Y-m-d', "{$month}-01")->startOfMonth();
-
-        return [$start->copy()->startOfDay(), $start->copy()->endOfMonth()->endOfDay()];
+        return [$from, $to];
     }
 
     private function periodLabel(): string
     {
-        return match ($this->periodMode) {
-            'date' => 'del dia',
-            'all' => 'total general',
-            default => 'del mes',
-        };
+        return 'del rango';
     }
 
     private function company(): Company

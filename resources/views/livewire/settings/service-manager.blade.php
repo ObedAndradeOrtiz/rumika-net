@@ -78,7 +78,7 @@
             </div>
 
             <div class="rm-pagination-wrap">
-                {{ $services->links() }}
+                {{ $services->links('vendor.pagination.rumika') }}
             </div>
             </section>
         @endif
@@ -126,7 +126,7 @@
             </div>
 
             <div class="rm-pagination-wrap">
-                {{ $packages->links() }}
+                {{ $packages->links('vendor.pagination.rumika') }}
             </div>
             </section>
         @endif

@@ -205,18 +205,11 @@
                     <span data-sidebar-label>Registros</span>
                 </a>
                 @endif
-                @if ($sidebarCanSeeUsers)
+                @if ($sidebarCanSeeUsers || $sidebarCanSeeRoles)
                 <a class="rm-side-link rm-side-sub-link {{ $active === 'users' ? 'is-active' : '' }}"
                     href="{{ route('settings.users') }}">
                     <i aria-hidden="true"></i>
-                    <span data-sidebar-label>Usuarios</span>
-                </a>
-                @endif
-                @if ($sidebarCanSeeRoles)
-                <a class="rm-side-link rm-side-sub-link {{ $active === 'roles' ? 'is-active' : '' }}"
-                    href="{{ route('settings.users') }}#roles">
-                    <i aria-hidden="true"></i>
-                    <span data-sidebar-label>Roles</span>
+                    <span data-sidebar-label>Usuarios y roles</span>
                 </a>
                 @endif
             </div>
@@ -412,11 +405,8 @@
                     @if ($sidebarCanSeeRecords)
                     <a href="{{ route('settings.records') }}">Registros</a>
                     @endif
-                    @if ($sidebarCanSeeUsers)
-                    <a href="{{ route('settings.users') }}">Usuarios</a>
-                    @endif
-                    @if ($sidebarCanSeeRoles)
-                    <a href="{{ route('settings.users') }}#roles">Roles</a>
+                    @if ($sidebarCanSeeUsers || $sidebarCanSeeRoles)
+                    <a href="{{ route('settings.users') }}">Usuarios y roles</a>
                     @endif
                 </div>
             </details>

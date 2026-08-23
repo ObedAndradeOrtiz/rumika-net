@@ -22,6 +22,7 @@ class QuickCashbox extends Component
     public string $historyTab = 'services';
     public string $paymentMethodFilter = '';
     public string $expenseSourceFilter = '';
+    public string $clientSearch = '';
     public string $openingAmount = '0';
     public string $countedCashAmount = '';
     public string $openingNotes = '';
@@ -334,6 +335,7 @@ class QuickCashbox extends Component
         $company = $this->company();
         $branch = $this->activeBranch();
         $day = Carbon::parse($this->selectedDate);
+        $clientSearch = trim($this->clientSearch);
 
         $sessions = $company->cashboxSessions()
             ->with(['openedBy', 'closedBy'])
@@ -374,7 +376,11 @@ class QuickCashbox extends Component
                 ->whereBetween(
                     'created_at',
                     [$start, $end]
-                );
+                )
+                ->when($clientSearch !== '', fn ($query) => $query->whereHas('client', fn ($clientQuery) => $clientQuery
+                    ->where('full_name', 'like', "%{$clientSearch}%")
+                    ->orWhere('identity_number', 'like', "%{$clientSearch}%")
+                    ->orWhere('phone', 'like', "%{$clientSearch}%")));
             $expenses = $company
                 ->expenses()
                 ->with([
@@ -405,7 +411,11 @@ class QuickCashbox extends Component
                         $day->copy()->startOfDay(),
                         $day->copy()->endOfDay()
                     ]
-                );
+                )
+                ->when($clientSearch !== '', fn ($query) => $query->whereHas('client', fn ($clientQuery) => $clientQuery
+                    ->where('full_name', 'like', "%{$clientSearch}%")
+                    ->orWhere('identity_number', 'like', "%{$clientSearch}%")
+                    ->orWhere('phone', 'like', "%{$clientSearch}%")));
 
             $expenses = collect();
         }

@@ -56,6 +56,7 @@ class AgendaManager extends Component
     public string $scheduledTime = '09:00';
     public string $durationMinutes = '60';
     public string $serviceSearch = '';
+    public string $packageSearch = '';
     public array $serviceIds = [];
     public bool $createTreatmentPlan = true;
     public string $treatmentName = '';
@@ -83,8 +84,10 @@ class AgendaManager extends Component
     public string $rescheduleTime = '09:00';
     public string $rescheduleReason = '';
     public string $rescheduleServiceSearch = '';
+    public string $reschedulePackageSearch = '';
     public array $rescheduleServiceIds = [];
     public string $addServicesSearch = '';
+    public string $addPackagesSearch = '';
     public array $addServiceIds = [];
     public string $editingAppointmentTime = '';
     public string $historyTab = 'appointments';
@@ -237,6 +240,34 @@ class AgendaManager extends Component
 
         if ($paymentId) {
             $this->openPaymentTicket((int) $paymentId, true);
+        }
+    }
+
+    public function addPackageServices(string $target, int $packageId): void
+    {
+        if (! in_array($target, ['appointment', 'reschedule', 'add'], true)) {
+            return;
+        }
+
+        $package = $this->packageQuery($this->company(), $this->activeBranch())
+            ->whereKey($packageId)
+            ->firstOrFail();
+
+        $serviceIds = $package->services
+            ->pluck('id')
+            ->map(fn ($id) => (string) $id)
+            ->all();
+
+        if ($target === 'appointment') {
+            $this->serviceIds = collect($this->serviceIds)->merge($serviceIds)->unique()->values()->all();
+        }
+
+        if ($target === 'reschedule') {
+            $this->rescheduleServiceIds = collect($this->rescheduleServiceIds)->merge($serviceIds)->unique()->values()->all();
+        }
+
+        if ($target === 'add') {
+            $this->addServiceIds = collect($this->addServiceIds)->merge($serviceIds)->unique()->values()->all();
         }
     }
 
@@ -1111,6 +1142,7 @@ class AgendaManager extends Component
         $this->rescheduleTime = $appointment->scheduled_at->format('H:i');
         $this->rescheduleReason = '';
         $this->rescheduleServiceSearch = '';
+        $this->reschedulePackageSearch = '';
         $this->rescheduleServiceIds = $appointment->services
             ->pluck('service_id')
             ->filter()
@@ -1175,6 +1207,7 @@ class AgendaManager extends Component
 
         $this->addServicesAppointmentId = $appointment->id;
         $this->addServicesSearch = '';
+        $this->addPackagesSearch = '';
         $this->addServiceIds = [];
         $this->showAddServicesModal = true;
     }
@@ -1318,8 +1351,11 @@ class AgendaManager extends Component
             'clients' => $this->filteredClients($company),
             'staffUsers' => $company->users()->orderBy('name')->get(),
             'services' => $this->filteredServices($company, $branch),
+            'packages' => $this->filteredPackages($company, $branch, $this->packageSearch),
             'rescheduleServices' => $this->filteredModalServices($company, $branch, $this->rescheduleServiceSearch),
+            'reschedulePackages' => $this->filteredPackages($company, $branch, $this->reschedulePackageSearch),
             'addServices' => $this->filteredModalServices($company, $branch, $this->addServicesSearch),
+            'addPackages' => $this->filteredPackages($company, $branch, $this->addPackagesSearch),
             'productBatches' => $this->paymentProductBatches($company, $branch),
             'paymentChargeSummary' => $this->paymentChargeSummary($company, $branch),
             'paymentAppointment' => $this->paymentAppointmentId
@@ -1958,7 +1994,7 @@ class AgendaManager extends Component
 
     private function resetAppointmentForm(): void
     {
-        $this->reset(['clientSearch', 'clientId', 'clientName', 'clientCi', 'clientPhone', 'clientEmail', 'clientNotes', 'serviceSearch', 'serviceIds', 'treatmentName', 'appointmentNotes', 'paymentAmount', 'paymentCashAmount', 'paymentQrAmount', 'paymentReference', 'paymentNotes', 'paymentServiceLinePrices', 'paymentServiceLinePayments', 'paymentProductLines', 'paymentProductSoldByUserId', 'pendingChargePayments', 'productSearch']);
+        $this->reset(['clientSearch', 'clientId', 'clientName', 'clientCi', 'clientPhone', 'clientEmail', 'clientNotes', 'serviceSearch', 'packageSearch', 'serviceIds', 'treatmentName', 'appointmentNotes', 'paymentAmount', 'paymentCashAmount', 'paymentQrAmount', 'paymentReference', 'paymentNotes', 'paymentServiceLinePrices', 'paymentServiceLinePayments', 'paymentProductLines', 'paymentProductSoldByUserId', 'pendingChargePayments', 'productSearch']);
         $this->clientMode = 'existing';
         $this->scheduledDate = $this->selectedDate;
         $this->scheduledTime = '09:00';
@@ -1998,6 +2034,37 @@ class AgendaManager extends Component
             ->orderBy('name')
             ->limit($search === '' ? 3 : 15)
             ->get();
+    }
+
+    private function filteredPackages(Company $company, Branch $branch, string $search)
+    {
+        $search = trim($search);
+
+        return $this->packageQuery($company, $branch)
+            ->when($search !== '', fn($query) => $query->where(fn($nested) => $nested
+                ->where('name', 'like', "%{$search}%")
+                ->orWhere('description', 'like', "%{$search}%")))
+            ->orderBy('name')
+            ->limit($search === '' ? 3 : 15)
+            ->get();
+    }
+
+    private function packageQuery(Company $company, Branch $branch)
+    {
+        $today = now()->toDateString();
+
+        return $company->servicePackages()
+            ->with('services')
+            ->where('status', 'available')
+            ->where(function ($query) use ($branch) {
+                $query->whereNull('branch_id')->orWhere('branch_id', $branch->id);
+            })
+            ->where(function ($query) use ($today) {
+                $query->whereNull('starts_at')->orWhereDate('starts_at', '<=', $today);
+            })
+            ->where(function ($query) use ($today) {
+                $query->whereNull('expires_at')->orWhereDate('expires_at', '>=', $today);
+            });
     }
 
     private function filteredModalServices(Company $company, Branch $branch, string $search)

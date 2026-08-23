@@ -1503,7 +1503,25 @@
     align-items: end;
     display: grid;
     gap: 12px;
-    grid-template-columns: minmax(180px, 280px);
+    grid-template-columns: minmax(220px, 1fr) minmax(180px, 280px);
+}
+
+.rm-cashbox-history-filters .rm-search-field {
+    margin: 0;
+    width: 100%;
+}
+
+.rm-package-pick {
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
+    width: 100%;
+}
+
+.rm-package-pick:hover {
+    border-color: #a7ddd6;
+    color: var(--rumika-teal-dark);
+    transform: translateY(-1px);
 }
 
 .rm-quick-cashbox-body {
@@ -2105,6 +2123,12 @@
         grid-template-columns: 1fr;
     }
 
+    .rm-finance-range-row .rm-field,
+    .rm-finance-range-label {
+        min-width: 0;
+        width: 100%;
+    }
+
     .rm-finance-summary-table {
         display: grid;
         gap: 12px;
@@ -2554,6 +2578,10 @@
     }
 
     .rm-payment-split-row {
+        grid-template-columns: 1fr;
+    }
+
+    .rm-cashbox-history-filters {
         grid-template-columns: 1fr;
     }
 

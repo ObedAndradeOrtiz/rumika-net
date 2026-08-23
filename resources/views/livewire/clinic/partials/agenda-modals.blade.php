@@ -241,6 +241,24 @@
                 @error('serviceIds')<small>{{ $message }}</small>@enderror
             </div>
 
+            <div class="rm-field">
+                <span>Paquetes disponibles</span>
+                <label class="rm-search-field">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+                    <input wire:model.live.debounce.300ms="packageSearch" type="search" placeholder="Buscar paquete o promocion">
+                </label>
+                <div class="rm-check-grid">
+                    @forelse ($packages as $package)
+                        <button class="rm-check-option rm-package-pick" type="button" wire:click="addPackageServices('appointment', {{ $package->id }})">
+                            <span>{{ $package->name }}</span>
+                            <small>Bs {{ $package->price }} - {{ $package->services->count() }} servicio(s)</small>
+                        </button>
+                    @empty
+                        <div class="rm-empty-state"><strong>Sin paquetes</strong><span>Prueba con otro nombre o crea paquetes en Servicios.</span></div>
+                    @endforelse
+                </div>
+            </div>
+
             <label class="rm-field"><span>Nombre del tratamiento/plan</span><input wire:model="treatmentName" type="text" placeholder="Automatico segun servicios si queda vacio"></label>
             <label class="rm-field"><span>Notas de la cita</span><input wire:model="appointmentNotes" type="text"></label>
 
@@ -608,6 +626,23 @@
                 </div>
                 @error('rescheduleServiceIds')<small>{{ $message }}</small>@enderror
             </div>
+            <div class="rm-field">
+                <span>Paquetes para la nueva cita</span>
+                <label class="rm-search-field">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+                    <input wire:model.live.debounce.300ms="reschedulePackageSearch" type="search" placeholder="Buscar paquete o promocion">
+                </label>
+                <div class="rm-check-grid">
+                    @forelse ($reschedulePackages as $package)
+                        <button class="rm-check-option rm-package-pick" type="button" wire:click="addPackageServices('reschedule', {{ $package->id }})">
+                            <span>{{ $package->name }}</span>
+                            <small>Bs {{ $package->price }} - {{ $package->services->count() }} servicio(s)</small>
+                        </button>
+                    @empty
+                        <div class="rm-empty-state"><strong>Sin paquetes</strong><span>Prueba con otro nombre.</span></div>
+                    @endforelse
+                </div>
+            </div>
             <label class="rm-field"><span>Motivo</span><input wire:model="rescheduleReason" type="text"></label>
             <div class="rm-form-actions"><button class="rm-button rm-button-primary" type="submit">Crear nueva cita</button></div>
         </form>
@@ -638,6 +673,23 @@
                     @endforelse
                 </div>
                 @error('addServiceIds')<small>{{ $message }}</small>@enderror
+            </div>
+            <div class="rm-field">
+                <span>Paquetes</span>
+                <label class="rm-search-field">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+                    <input wire:model.live.debounce.300ms="addPackagesSearch" type="search" placeholder="Buscar paquete o promocion">
+                </label>
+                <div class="rm-check-grid">
+                    @forelse ($addPackages as $package)
+                        <button class="rm-check-option rm-package-pick" type="button" wire:click="addPackageServices('add', {{ $package->id }})">
+                            <span>{{ $package->name }}</span>
+                            <small>Bs {{ $package->price }} - {{ $package->services->count() }} servicio(s)</small>
+                        </button>
+                    @empty
+                        <div class="rm-empty-state"><strong>Sin paquetes</strong><span>Prueba con otro nombre.</span></div>
+                    @endforelse
+                </div>
             </div>
             <div class="rm-form-actions"><button class="rm-button rm-button-primary" type="submit">Agregar a la cita</button></div>
         </form>
