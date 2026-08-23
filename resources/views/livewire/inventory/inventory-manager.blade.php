@@ -100,7 +100,7 @@
                     <div class="rm-empty-state"><strong>Sin productos</strong><span>Crea productos y registra entradas con lote para empezar.</span></div>
                 @endforelse
             </div>
-            <div class="rm-pagination-wrap">{{ $products->links() }}</div>
+            <div class="rm-pagination-wrap">{{ $products->links('vendor.pagination.rumika') }}</div>
         @endif
 
         @if ($activeTab === 'suppliers')
@@ -250,7 +250,7 @@
                     <div class="rm-empty-state"><strong>Sin movimientos</strong><span>Las entradas, ventas, traspasos y desechos apareceran aqui.</span></div>
                 @endforelse
             </div>
-            <div class="rm-pagination-wrap">{{ $movements->links() }}</div>
+            <div class="rm-pagination-wrap">{{ $movements->links('vendor.pagination.rumika') }}</div>
         @endif
 
         @if ($activeTab === 'assets')
@@ -285,7 +285,7 @@
                     <div class="rm-empty-state"><strong>Sin activos</strong><span>Registra equipos, camillas, maquinas, muebles y herramientas.</span></div>
                 @endforelse
             </div>
-            <div class="rm-pagination-wrap">{{ $assets->links() }}</div>
+            <div class="rm-pagination-wrap">{{ $assets->links('vendor.pagination.rumika') }}</div>
         @endif
 
         @if ($activeTab === 'counts')
@@ -340,7 +340,7 @@
                     <div class="rm-empty-state"><strong>Sin cierres</strong><span>El inventario actual se genera automaticamente por sucursal.</span></div>
                 @endforelse
             </div>
-            <div class="rm-pagination-wrap">{{ $counts->links() }}</div>
+            <div class="rm-pagination-wrap">{{ $counts->links('vendor.pagination.rumika') }}</div>
         @endif
     </section>
 
