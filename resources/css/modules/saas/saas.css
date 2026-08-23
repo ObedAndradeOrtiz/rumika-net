@@ -257,6 +257,7 @@
 
 .rm-saas-card-actions {
     display: flex;
+    gap: 10px;
     justify-content: flex-end;
 }
 
@@ -288,6 +289,68 @@
 .rm-saas-company-users small {
     color: inherit;
     opacity: 0.78;
+}
+
+.rm-saas-system-detail {
+    background: #f8fbfd;
+    border: 1px solid var(--rumika-border);
+    border-radius: 18px;
+    display: grid;
+    gap: 14px;
+    padding: 14px;
+}
+
+.rm-saas-system-detail h3 {
+    font-size: 18px;
+    font-weight: 950;
+}
+
+.rm-saas-system-detail p {
+    color: var(--rumika-muted);
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.rm-saas-system-grid,
+.rm-saas-usage-grid {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.rm-saas-usage-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.rm-saas-system-grid span,
+.rm-saas-usage-grid span,
+.rm-saas-payment-list span {
+    background: #ffffff;
+    border: 1px solid var(--rumika-border);
+    border-radius: 14px;
+    color: var(--rumika-muted);
+    display: grid;
+    font-size: 12px;
+    font-weight: 850;
+    gap: 5px;
+    padding: 11px;
+}
+
+.rm-saas-system-grid b,
+.rm-saas-usage-grid b {
+    color: var(--rumika-ink);
+    font-size: 15px;
+    font-weight: 950;
+}
+
+.rm-saas-payment-list {
+    display: grid;
+    gap: 8px;
+}
+
+.rm-saas-payment-list > strong {
+    font-size: 14px;
+    font-weight: 950;
 }
 
 .rm-saas-editor-modal {
@@ -359,6 +422,23 @@
 
 .rm-saas-plan-list small {
     line-height: 1.35;
+}
+
+.rm-saas-plan-limits {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.rm-saas-plan-limits em {
+    background: #f0f3f6;
+    border-radius: 999px;
+    color: var(--rumika-muted);
+    font-size: 11px;
+    font-style: normal;
+    font-weight: 900;
+    padding: 6px 8px;
 }
 
 .rm-billing-blocked {
@@ -449,6 +529,11 @@
     .rm-saas-split {
         grid-template-columns: 1fr;
     }
+
+    .rm-saas-system-grid,
+    .rm-saas-usage-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }
 
 @media (max-width: 620px) {
@@ -488,6 +573,16 @@
     .rm-saas-card-actions,
     .rm-saas-card-actions .rm-button {
         width: 100%;
+    }
+
+    .rm-saas-card-actions,
+    .rm-saas-system-grid,
+    .rm-saas-usage-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .rm-saas-card-actions {
+        display: grid;
     }
 
     .rm-saas-editor-actions {

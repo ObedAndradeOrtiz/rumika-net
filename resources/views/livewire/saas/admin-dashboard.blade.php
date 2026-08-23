@@ -115,12 +115,46 @@
                             <span>{{ $company->plan?->name ?? 'Sin plan' }} · ${{ number_format((float) ($company->plan?->monthly_price ?? 0), 0) }}</span>
                             <span class="is-{{ $company->status }}">{{ ucfirst($company->status) }}</span>
                             <span>{{ $company->billing_status ?: 'Sin pago' }}</span>
+                            <span>{{ $this->accessLabel($company) }}</span>
                             <span>Acceso hasta {{ $company->access_expires_at?->format('d/m/Y') ?? ($company->trial_ends_at?->format('d/m/Y') ?? 'Sin fecha') }}</span>
+                            <span>Proximo pago {{ $company->next_payment_due_at?->format('d/m/Y') ?? 'Sin fecha' }}</span>
+                            <span>{{ $company->billing_payments_count }} pago(s)</span>
                             <span>{{ $company->branches_count }} sucursales</span>
                             <span>{{ $company->users_count }} usuarios</span>
                             <span>{{ $company->clients_count }} clientes</span>
                             <span>{{ $company->appointments_count }} citas</span>
                         </div>
+
+                        @if ($expandedCompanyId === $company->id)
+                            @php($usage = $this->companyUsage($company))
+                            <div class="rm-saas-system-detail">
+                                <div>
+                                    <h3>Mi sistema</h3>
+                                    <p>Plan actual, fechas de pago y uso contra limites contratados.</p>
+                                </div>
+                                <div class="rm-saas-system-grid">
+                                    <span><b>Plan</b>{{ $company->plan?->name ?? 'Sin plan' }} · ${{ number_format((float) ($company->plan?->monthly_price ?? 0), 0) }}</span>
+                                    <span><b>Ultimo pago</b>{{ $company->last_paid_at?->format('d/m/Y') ?? 'Sin pago' }}</span>
+                                    <span><b>Vence</b>{{ $company->access_expires_at?->format('d/m/Y') ?? ($company->trial_ends_at?->format('d/m/Y') ?? 'Sin fecha') }}</span>
+                                    <span><b>Meses pagados</b>{{ $company->billing_payments_count }}</span>
+                                </div>
+                                <div class="rm-saas-usage-grid">
+                                    <span>Sucursales <b>{{ $usage['branches'] }}/{{ $this->companyLimit($company, 'branches') }}</b></span>
+                                    <span>Usuarios <b>{{ $usage['users'] }}/{{ $this->companyLimit($company, 'users') }}</b></span>
+                                    <span>Clientes <b>{{ $usage['clients'] }}/{{ $this->companyLimit($company, 'clients') }}</b></span>
+                                    <span>Productos <b>{{ $usage['products'] }}/{{ $this->companyLimit($company, 'products') }}</b></span>
+                                    <span>Citas del mes <b>{{ $usage['appointments_per_month'] }}/{{ $this->companyLimit($company, 'appointments_per_month') }}</b></span>
+                                </div>
+                                <div class="rm-saas-payment-list">
+                                    <strong>Ultimos pagos</strong>
+                                    @forelse ($company->billingPayments as $payment)
+                                        <span>{{ $payment->paid_at->format('d/m/Y') }} · {{ $payment->currency }} {{ number_format((float) $payment->amount, 2) }} · hasta {{ $payment->period_ends_at?->format('d/m/Y') ?? 'Sin fecha' }}</span>
+                                    @empty
+                                        <span>Sin pagos registrados todavia.</span>
+                                    @endforelse
+                                </div>
+                            </div>
+                        @endif
 
                         <div class="rm-saas-company-users">
                             @forelse ($company->users as $user)
@@ -131,6 +165,9 @@
                         </div>
 
                         <div class="rm-saas-card-actions">
+                            <button class="rm-button rm-button-muted" type="button" wire:click="toggleCompanySystem({{ $company->id }})">
+                                {{ $expandedCompanyId === $company->id ? 'Ocultar mi sistema' : 'Ver mi sistema' }}
+                            </button>
                             <button class="rm-button rm-button-outline" type="button" wire:click="editCompany({{ $company->id }})">
                                 Editar acceso y plan
                             </button>
@@ -155,21 +192,21 @@
                 </div>
 
                 <div class="rm-saas-plan-list">
-                    @foreach ($plans as $companyPlan)
+                    @foreach ($planCards as $card)
+                        @php($companyPlan = $card['plan'])
                         <article>
                             <div>
                                 <strong>{{ $companyPlan->name }}</strong>
                                 <span>{{ $companyPlan->description }}</span>
-                                @php
-                                    $features = $companyPlan->features ?? [];
-                                    $limits = $features['limits'] ?? [];
-                                    $modules = $features['modules'] ?? [];
-                                @endphp
-                                <small>
-                                    {{ in_array('*', $modules, true) ? 'Todos los modulos' : count($modules).' modulos' }}
-                                    · Sucursales {{ $limits['branches'] ?? 'sin limite' }}
-                                    · Usuarios {{ $limits['users'] ?? 'sin limite' }}
-                                </small>
+                                <small>{{ implode(', ', array_slice($card['modules'], 0, 8)) }}{{ count($card['modules']) > 8 ? '...' : '' }}</small>
+                                <div class="rm-saas-plan-limits">
+                                    @foreach ($card['limits'] as $label => $limit)
+                                        <em>{{ $label }}: {{ $limit }}</em>
+                                    @endforeach
+                                </div>
+                                @foreach ($card['notes'] as $note)
+                                    <small>{{ $note }}</small>
+                                @endforeach
                             </div>
                             <b>$ {{ number_format((float) $companyPlan->monthly_price, 0) }}</b>
                         </article>

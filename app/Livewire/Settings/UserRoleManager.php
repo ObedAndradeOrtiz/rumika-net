@@ -5,6 +5,7 @@ namespace App\Livewire\Settings;
 use App\Models\Company;
 use App\Models\Role;
 use App\Models\User;
+use App\Support\CompanyPlanLimits;
 use App\Support\RumikaAccess;
 use App\Support\RumikaPermissions;
 use Illuminate\Support\Facades\Auth;
@@ -123,6 +124,10 @@ class UserRoleManager extends Component
             'userBranchIds' => ['required', 'array', 'min:1'],
             'userBranchIds.*' => [Rule::exists('branches', 'id')->where('company_id', $company->id)],
         ]);
+
+        if (! $this->editingUserId) {
+            CompanyPlanLimits::assertCanCreate($company, 'users', 'usuarios');
+        }
 
         $user = $this->editingUserId
             ? $company->users()->whereKey($this->editingUserId)->firstOrFail()

@@ -7,6 +7,7 @@ use App\Models\BusinessType;
 use App\Models\Company;
 use App\Models\Role;
 use App\Support\ActiveBranch;
+use App\Support\CompanyPlanLimits;
 use App\Support\PhoneNumber;
 use App\Support\RumikaPermissions;
 use Illuminate\Support\Facades\Auth;
@@ -94,6 +95,10 @@ class CommerceManager extends Component
             'serviceCommissionMinSale' => ['nullable', 'numeric', 'min:0', 'max:99999999.99'],
             'logo' => ['nullable', 'image', 'max:4096'],
         ]);
+
+        if (! $this->editingId) {
+            CompanyPlanLimits::assertCanCreate($company, 'branches', 'sucursales');
+        }
 
         $phone = null;
 

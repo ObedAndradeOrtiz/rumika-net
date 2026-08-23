@@ -17,6 +17,7 @@ use App\Models\TreatmentPayment;
 use App\Models\TreatmentPaymentItem;
 use App\Models\TreatmentPlan;
 use App\Support\Money;
+use App\Support\CompanyPlanLimits;
 use App\Support\PhoneNumber;
 use App\Support\PaymentTicketBuilder;
 use App\Support\RumikaAccess;
@@ -238,6 +239,12 @@ class AgendaManager extends Component
             return;
         }
 
+        if ($this->clientMode !== 'existing') {
+            CompanyPlanLimits::assertCanCreate($company, 'clients', 'clientes');
+        }
+
+        CompanyPlanLimits::assertCanCreate($company, 'appointments_per_month', 'citas por mes');
+
         $paymentId = DB::transaction(function () use ($company, $branch, $validated, $newClientPhoneRows) {
             if ($this->clientMode === 'existing') {
                 $client = $company->clients()->whereKey($validated['clientId'])->firstOrFail();
@@ -440,6 +447,10 @@ class AgendaManager extends Component
             $this->showNoShowModal = false;
 
             return;
+        }
+
+        if ($validated['noShowReschedule']) {
+            CompanyPlanLimits::assertCanCreate($appointment->company, 'appointments_per_month', 'citas por mes');
         }
 
         DB::transaction(function () use ($appointment, $validated) {
@@ -1278,6 +1289,8 @@ class AgendaManager extends Component
             'rescheduleServiceIds' => ['required', 'array', 'min:1'],
             'rescheduleServiceIds.*' => [Rule::in($serviceIds)],
         ]);
+
+        CompanyPlanLimits::assertCanCreate($company, 'appointments_per_month', 'citas por mes');
 
         DB::transaction(function () use ($appointment, $validated, $company, $branch) {
             $new = Appointment::query()->create([

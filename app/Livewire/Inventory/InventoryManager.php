@@ -16,6 +16,7 @@ use App\Models\InventorySupplier;
 use App\Models\TreatmentPaymentItem;
 use App\Models\TreatmentPayment;
 use App\Models\InventoryUseArea;
+use App\Support\CompanyPlanLimits;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -378,6 +379,10 @@ class InventoryManager extends Component
             'purchaseCost' => ['required', 'numeric', 'min:0', 'max:99999999.99'],
             'minimumStock' => ['required', 'integer', 'min:0', 'max:1000000'],
         ]);
+
+        if (! $this->editingProductId) {
+            CompanyPlanLimits::assertCanCreate($company, 'products', 'productos');
+        }
 
         $product = $this->editingProductId
             ? $company->inventoryProducts()->whereKey($this->editingProductId)->firstOrFail()

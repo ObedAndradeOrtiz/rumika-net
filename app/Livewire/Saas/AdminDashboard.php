@@ -5,6 +5,7 @@ namespace App\Livewire\Saas;
 use App\Models\Company;
 use App\Models\CompanyPlan;
 use App\Models\User;
+use App\Support\CompanyPlanLimits;
 use Illuminate\Database\Eloquent\Builder;
 use Livewire\Component;
 
@@ -15,6 +16,8 @@ class AdminDashboard extends Component
     public string $status = 'all';
 
     public string $plan = 'all';
+
+    public ?int $expandedCompanyId = null;
 
     public ?int $editingCompanyId = null;
 
@@ -64,6 +67,11 @@ class AdminDashboard extends Component
         ]);
     }
 
+    public function toggleCompanySystem(int $companyId): void
+    {
+        $this->expandedCompanyId = $this->expandedCompanyId === $companyId ? null : $companyId;
+    }
+
     public function saveCompanyBilling(): void
     {
         $validated = $this->validate([
@@ -90,6 +98,15 @@ class AdminDashboard extends Component
             'billing_notes' => $validated['editBillingNotes'] ?: null,
         ]);
 
+        if ($validated['editBillingStatus'] === 'paid' && $validated['editLastPaidAt'] !== '') {
+            $this->recordBillingPayment(
+                $company->refresh(),
+                $validated['editLastPaidAt'],
+                $validated['editAccessExpiresAt'] ?: null,
+                $validated['editBillingNotes'] ?: null
+            );
+        }
+
         $this->closeCompanyEditor();
     }
 
@@ -107,14 +124,20 @@ class AdminDashboard extends Component
             'next_payment_due_at' => $expiresAt->toDateString(),
         ]);
 
+        $this->recordBillingPayment($company->refresh(), $paidAt->toDateString(), $expiresAt->toDateString(), 'Acceso mensual habilitado desde panel SaaS.');
+
         $this->editCompany($company->id);
     }
 
     public function render()
     {
         $companiesQuery = Company::query()
-            ->withCount(['branches', 'users', 'clients', 'appointments'])
-            ->with(['plan', 'users' => fn ($query) => $query->latest('users.created_at')->limit(3)])
+            ->withCount(['branches', 'users', 'clients', 'appointments', 'billingPayments'])
+            ->with([
+                'plan',
+                'billingPayments' => fn ($query) => $query->latest('paid_at')->limit(6),
+                'users' => fn ($query) => $query->latest('users.created_at')->limit(3),
+            ])
             ->when($this->search !== '', function (Builder $query) {
                 $search = '%'.trim($this->search).'%';
 
@@ -137,6 +160,7 @@ class AdminDashboard extends Component
         return view('livewire.saas.admin-dashboard', [
             'companies' => $companies,
             'plans' => CompanyPlan::query()->orderBy('sort_order')->get(),
+            'planCards' => CompanyPlan::query()->orderBy('sort_order')->get()->map(fn (CompanyPlan $plan) => $this->planCard($plan)),
             'latestUsers' => User::query()
                 ->where('is_saas_admin', false)
                 ->with('companies')
@@ -149,5 +173,103 @@ class AdminDashboard extends Component
             'monthlyPotential' => (float) $allCompanies->sum(fn (Company $company) => (float) ($company->plan?->monthly_price ?? 0)),
             'totalUsers' => User::query()->where('is_saas_admin', false)->count(),
         ]);
+    }
+
+    private function recordBillingPayment(Company $company, string $paidAt, ?string $periodEndsAt, ?string $notes): void
+    {
+        $periodStart = \Illuminate\Support\Carbon::parse($paidAt)->toDateString();
+        $periodEnd = $periodEndsAt ?: \Illuminate\Support\Carbon::parse($paidAt)->addMonth()->toDateString();
+
+        $exists = $company->billingPayments()
+            ->whereDate('paid_at', $periodStart)
+            ->whereDate('period_ends_at', $periodEnd)
+            ->exists();
+
+        if ($exists) {
+            return;
+        }
+
+        $company->billingPayments()->create([
+            'company_plan_id' => $company->company_plan_id,
+            'paid_at' => $paidAt,
+            'period_starts_at' => $periodStart,
+            'period_ends_at' => $periodEnd,
+            'amount' => $company->plan?->monthly_price ?? 0,
+            'currency' => $company->plan?->currency ?? 'USD',
+            'notes' => $notes,
+            'recorded_by_user_id' => auth()->id(),
+        ]);
+    }
+
+    private function planCard(CompanyPlan $plan): array
+    {
+        $features = $plan->features ?? [];
+        $limits = $features['limits'] ?? [];
+        $modules = $features['modules'] ?? [];
+
+        return [
+            'plan' => $plan,
+            'modules' => in_array('*', $modules, true) ? ['Todos los modulos'] : $this->moduleLabels($modules),
+            'limits' => [
+                'Sucursales' => $limits['branches'] ?? 'Sin limite',
+                'Usuarios' => $limits['users'] ?? 'Sin limite',
+                'Clientes' => $limits['clients'] ?? 'Sin limite',
+                'Productos' => $limits['products'] ?? 'Sin limite',
+                'Citas/mes' => $limits['appointments_per_month'] ?? 'Sin limite',
+            ],
+            'notes' => $features['notes'] ?? [],
+        ];
+    }
+
+    private function moduleLabels(array $modules): array
+    {
+        $labels = [
+            'inicio' => 'Inicio',
+            'agenda' => 'Agenda',
+            'clientes' => 'Clientes',
+            'historia_clinica' => 'Historia clinica',
+            'servicios' => 'Servicios',
+            'caja' => 'Caja',
+            'ventas_productos' => 'Ventas directas',
+            'facturacion' => 'Facturacion',
+            'deudas' => 'Deudas',
+            'reportes' => 'Reportes',
+            'comisiones' => 'Comisiones',
+            'sucursales' => 'Sucursales',
+            'usuarios' => 'Usuarios',
+            'roles' => 'Roles',
+            'inventario' => 'Inventario',
+            'inventario_operaciones' => 'Operaciones de inventario',
+            'gastos' => 'Gastos',
+            'estadisticas' => 'Estadisticas',
+            'registros' => 'Registros',
+            'bitacora' => 'Bitacora',
+            'resumen_financiero' => 'Resumen financiero',
+        ];
+
+        return collect($modules)->map(fn (string $module) => $labels[$module] ?? $module)->values()->all();
+    }
+
+    public function companyUsage(Company $company): array
+    {
+        return CompanyPlanLimits::usage($company);
+    }
+
+    public function companyLimit(Company $company, string $key): string
+    {
+        $limit = CompanyPlanLimits::limit($company, $key);
+
+        return $limit === null ? 'Sin limite' : (string) $limit;
+    }
+
+    public function accessLabel(Company $company): string
+    {
+        if (CompanyPlanLimits::isExpired($company)) {
+            return 'Vencido o bloqueado';
+        }
+
+        $days = CompanyPlanLimits::daysLeft($company);
+
+        return $days === null ? 'Sin vencimiento' : "{$days} dias restantes";
     }
 }

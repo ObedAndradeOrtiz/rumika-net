@@ -172,6 +172,11 @@ class Company extends Model
         return $this->hasMany(AuditLog::class);
     }
 
+    public function billingPayments(): HasMany
+    {
+        return $this->hasMany(CompanyBillingPayment::class);
+    }
+
     public function clinicalSpecialties(): HasMany
     {
         return $this->hasMany(ClinicalSpecialty::class);
