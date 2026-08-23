@@ -6,7 +6,7 @@
             <p>Vista administrativa de ingresos por servicios, productos y gastos en todas las sucursales del negocio.</p>
         </div>
         <div class="rm-settings-summary">
-            <strong>Bs {{ number_format((float) $totals['net'], 2) }}</strong>
+            <strong>{{ \App\Support\Money::symbol() }} {{ number_format((float) $totals['net'], 2) }}</strong>
             <span>Neto general</span>
         </div>
     </div>
@@ -31,12 +31,12 @@
     </section>
 
     <div class="rm-kpi-strip rm-finance-summary-kpis">
-        <div class="rm-kpi"><strong>Bs {{ number_format((float) $totals['services'], 2) }}</strong><span>Ingresos servicios</span></div>
-        <div class="rm-kpi"><strong>Bs {{ number_format((float) $totals['products'], 2) }}</strong><span>Ingresos productos</span></div>
-        <div class="rm-kpi"><strong>Bs {{ number_format((float) $totals['expenses'], 2) }}</strong><span>Gastos</span></div>
-        <div class="rm-kpi"><strong>Bs {{ number_format((float) $totals['income'], 2) }}</strong><span>Ingreso bruto</span></div>
-        <div class="rm-kpi"><strong>Bs {{ number_format((float) $totals['cash'], 2) }}</strong><span>Efectivo</span></div>
-        <div class="rm-kpi"><strong>Bs {{ number_format((float) $totals['qr'], 2) }}</strong><span>QR</span></div>
+        <div class="rm-kpi"><strong>{{ \App\Support\Money::symbol() }} {{ number_format((float) $totals['services'], 2) }}</strong><span>Ingresos servicios</span></div>
+        <div class="rm-kpi"><strong>{{ \App\Support\Money::symbol() }} {{ number_format((float) $totals['products'], 2) }}</strong><span>Ingresos productos</span></div>
+        <div class="rm-kpi"><strong>{{ \App\Support\Money::symbol() }} {{ number_format((float) $totals['expenses'], 2) }}</strong><span>Gastos</span></div>
+        <div class="rm-kpi"><strong>{{ \App\Support\Money::symbol() }} {{ number_format((float) $totals['income'], 2) }}</strong><span>Ingreso bruto</span></div>
+        <div class="rm-kpi"><strong>{{ \App\Support\Money::symbol() }} {{ number_format((float) $totals['cash'], 2) }}</strong><span>Efectivo</span></div>
+        <div class="rm-kpi"><strong>{{ \App\Support\Money::symbol() }} {{ number_format((float) $totals['qr'], 2) }}</strong><span>QR</span></div>
     </div>
 
     <section class="rm-panel">
@@ -64,11 +64,11 @@
                         <strong>{{ $row['name'] }}</strong>
                         <span>{{ $row['type'] }}</span>
                     </div>
-                    <span>Bs {{ number_format((float) $row['services'], 2) }}</span>
-                    <span>Bs {{ number_format((float) $row['products'], 2) }}</span>
-                    <span>Bs {{ number_format((float) $row['expenses'], 2) }}</span>
-                    <span>Bs {{ number_format((float) $row['income'], 2) }}</span>
-                    <strong class="{{ $row['net'] < 0 ? 'is-negative' : 'is-positive' }}">Bs {{ number_format((float) $row['net'], 2) }}</strong>
+                    <span>{{ \App\Support\Money::symbol() }} {{ number_format((float) $row['services'], 2) }}</span>
+                    <span>{{ \App\Support\Money::symbol() }} {{ number_format((float) $row['products'], 2) }}</span>
+                    <span>{{ \App\Support\Money::symbol() }} {{ number_format((float) $row['expenses'], 2) }}</span>
+                    <span>{{ \App\Support\Money::symbol() }} {{ number_format((float) $row['income'], 2) }}</span>
+                    <strong class="{{ $row['net'] < 0 ? 'is-negative' : 'is-positive' }}">{{ \App\Support\Money::symbol() }} {{ number_format((float) $row['net'], 2) }}</strong>
                     <small>{{ $row['payments_count'] }} cobro(s) / {{ $row['expenses_count'] }} gasto(s)</small>
                 </article>
             @empty

@@ -263,7 +263,7 @@
                         <label class="rm-check-option">
                             <input wire:model="serviceIds" type="checkbox" value="{{ $service->id }}">
                             <span>{{ $service->name }}</span>
-                            <small>Bs {{ $service->price }} - {{ $service->duration_minutes ?? 0 }} min</small>
+                            <small>{{ \App\Support\Money::symbol() }} {{ $service->price }} - {{ $service->duration_minutes ?? 0 }} min</small>
                         </label>
                     @empty
                         <div class="rm-empty-state"><strong>Sin servicios</strong><span>Prueba con otro nombre de tratamiento.</span></div>
@@ -282,7 +282,7 @@
                     @forelse ($packages as $package)
                         <button class="rm-check-option rm-package-pick" type="button" wire:click="addPackageServices('appointment', {{ $package->id }})">
                             <span>{{ $package->name }}</span>
-                            <small>Bs {{ $package->price }} - {{ $package->services->count() }} servicio(s)</small>
+                            <small>{{ \App\Support\Money::symbol() }} {{ $package->price }} - {{ $package->services->count() }} servicio(s)</small>
                         </button>
                     @empty
                         <div class="rm-empty-state"><strong>Sin paquetes</strong><span>Prueba con otro nombre o crea paquetes en Servicios.</span></div>
@@ -376,7 +376,7 @@
                                         <label class="rm-payment-service-check">
                                             <input wire:model="paymentServiceLineIds" type="checkbox" value="{{ $serviceLine->id }}">
                                             <span>{{ $serviceLine->name }}</span>
-                                            <small>Base Bs {{ $serviceLine->price }}</small>
+                                            <small>Base {{ \App\Support\Money::symbol() }} {{ $serviceLine->price }}</small>
                                         </label>
                                         <label class="rm-field">
                                             <span>Precio</span>
@@ -427,7 +427,7 @@
                                                     <option value="{{ $batch->id }}">
                                                         {{ $batch->product->name }} - {{ $batch->lot_code }} - Stock {{ number_format((float) $batch->current_quantity, 2) }}
                                                         @if ($suggestedProductPrice > 0)
-                                                            - Bs {{ number_format($suggestedProductPrice, 2) }}
+                                                            - {{ \App\Support\Money::symbol() }} {{ number_format($suggestedProductPrice, 2) }}
                                                         @endif
                                                     </option>
                                                 @endforeach
@@ -469,7 +469,7 @@
                             <div class="rm-pending-charge-row">
                                 <div>
                                     <strong>{{ $charge->name }}</strong>
-                                    <span>{{ $charge->type === 'product' ? 'Producto' : 'Tratamiento' }} - Saldo Bs {{ number_format((float) $charge->balance_amount, 2) }}</span>
+                                    <span>{{ $charge->type === 'product' ? 'Producto' : 'Tratamiento' }} - Saldo {{ \App\Support\Money::symbol() }} {{ number_format((float) $charge->balance_amount, 2) }}</span>
                                 </div>
                                 <label class="rm-field">
                                     <span>Paga ahora</span>
@@ -492,13 +492,13 @@
                         </div>
                     </div>
                     <div class="rm-payment-total-box">
-                        <div class="rm-payment-total-line"><span>Tratamientos</span><strong>Bs {{ number_format((float) $paymentChargeSummary['services'], 2) }}</strong></div>
-                        <div class="rm-payment-total-line"><span>Productos</span><strong>Bs {{ number_format((float) $paymentChargeSummary['products'], 2) }}</strong></div>
-                        <div class="rm-payment-total-line"><span>Abonos pendientes</span><strong>Bs {{ number_format((float) $paymentChargeSummary['pending'], 2) }}</strong></div>
-                        <div class="rm-payment-total-line is-main"><span>Debe pagar ahora</span><strong>Bs {{ number_format((float) $paymentChargeSummary['pay_now'], 2) }}</strong></div>
+                        <div class="rm-payment-total-line"><span>Tratamientos</span><strong>{{ \App\Support\Money::symbol() }} {{ number_format((float) $paymentChargeSummary['services'], 2) }}</strong></div>
+                        <div class="rm-payment-total-line"><span>Productos</span><strong>{{ \App\Support\Money::symbol() }} {{ number_format((float) $paymentChargeSummary['products'], 2) }}</strong></div>
+                        <div class="rm-payment-total-line"><span>Abonos pendientes</span><strong>{{ \App\Support\Money::symbol() }} {{ number_format((float) $paymentChargeSummary['pending'], 2) }}</strong></div>
+                        <div class="rm-payment-total-line is-main"><span>Debe pagar ahora</span><strong>{{ \App\Support\Money::symbol() }} {{ number_format((float) $paymentChargeSummary['pay_now'], 2) }}</strong></div>
                         <div class="rm-payment-total-line {{ $paymentDifference === 0.0 ? 'is-ok' : ($paymentDifference > 0 ? 'is-warning' : 'is-danger') }}">
                             <span>{{ $paymentDifference === 0.0 ? 'Pago exacto' : ($paymentDifference > 0 ? 'Excedente' : 'Falta cobrar') }}</span>
-                            <strong>Bs {{ number_format(abs($paymentDifference), 2) }}</strong>
+                            <strong>{{ \App\Support\Money::symbol() }} {{ number_format(abs($paymentDifference), 2) }}</strong>
                         </div>
                     </div>
 
@@ -581,9 +581,9 @@
                     @foreach (($paymentTicketPreview['rows'] ?? []) as $row)
                         <div class="rm-print-row">
                             <span>{{ \Illuminate\Support\Str::limit($row['name'], 32, '') }} @if($row['quantity'] > 1) x {{ number_format($row['quantity'], 2) }} @endif</span>
-                            <span>Bs {{ number_format($row['total'], 2) }}</span>
-                            <span>Bs {{ number_format($row['cash'], 2) }}</span>
-                            <span>Bs {{ number_format($row['qr'], 2) }}</span>
+                            <span>{{ \App\Support\Money::symbol() }} {{ number_format($row['total'], 2) }}</span>
+                            <span>{{ \App\Support\Money::symbol() }} {{ number_format($row['cash'], 2) }}</span>
+                            <span>{{ \App\Support\Money::symbol() }} {{ number_format($row['qr'], 2) }}</span>
                         </div>
                     @endforeach
                 </div>
@@ -597,9 +597,9 @@
                         @foreach ($paymentTicketPreview['outstanding_charges'] as $charge)
                             <div class="rm-print-row">
                                 <span>{{ \Illuminate\Support\Str::limit($charge['name'], 32, '') }}</span>
-                                <span>Bs {{ number_format($charge['total'], 2) }}</span>
-                                <span>Bs {{ number_format($charge['paid'], 2) }}</span>
-                                <span>Bs {{ number_format($charge['balance'], 2) }}</span>
+                                <span>{{ \App\Support\Money::symbol() }} {{ number_format($charge['total'], 2) }}</span>
+                                <span>{{ \App\Support\Money::symbol() }} {{ number_format($charge['paid'], 2) }}</span>
+                                <span>{{ \App\Support\Money::symbol() }} {{ number_format($charge['balance'], 2) }}</span>
                             </div>
                         @endforeach
                     </div>
@@ -607,9 +607,9 @@
             @endif
 
             <div class="rm-print-totals">
-                <span>Efectivo Bs {{ number_format($paymentTicketPreview['totals']['cash'] ?? 0, 2) }}</span>
-                <span>QR Bs {{ number_format($paymentTicketPreview['totals']['qr'] ?? 0, 2) }}</span>
-                <strong>Total Bs {{ number_format($paymentTicketPreview['totals']['total'] ?? 0, 2) }}</strong>
+                <span>Efectivo {{ \App\Support\Money::symbol() }} {{ number_format($paymentTicketPreview['totals']['cash'] ?? 0, 2) }}</span>
+                <span>QR {{ \App\Support\Money::symbol() }} {{ number_format($paymentTicketPreview['totals']['qr'] ?? 0, 2) }}</span>
+                <strong>Total {{ \App\Support\Money::symbol() }} {{ number_format($paymentTicketPreview['totals']['total'] ?? 0, 2) }}</strong>
                 @if (! empty($paymentTicketPreview['printer_enabled']))<span>Impresora {{ $paymentTicketPreview['printer_name'] ?: 'sin seleccionar' }}</span>@endif
             </div>
         </div>
@@ -649,7 +649,7 @@
                         <label class="rm-check-option">
                             <input wire:model="rescheduleServiceIds" type="checkbox" value="{{ $service->id }}">
                             <span>{{ $service->name }}</span>
-                            <small>Bs {{ $service->price }} - {{ $service->duration_minutes ?? 0 }} min</small>
+                            <small>{{ \App\Support\Money::symbol() }} {{ $service->price }} - {{ $service->duration_minutes ?? 0 }} min</small>
                         </label>
                     @empty
                         <div class="rm-empty-state"><strong>Sin servicios</strong><span>Prueba con otro nombre.</span></div>
@@ -667,7 +667,7 @@
                     @forelse ($reschedulePackages as $package)
                         <button class="rm-check-option rm-package-pick" type="button" wire:click="addPackageServices('reschedule', {{ $package->id }})">
                             <span>{{ $package->name }}</span>
-                            <small>Bs {{ $package->price }} - {{ $package->services->count() }} servicio(s)</small>
+                            <small>{{ \App\Support\Money::symbol() }} {{ $package->price }} - {{ $package->services->count() }} servicio(s)</small>
                         </button>
                     @empty
                         <div class="rm-empty-state"><strong>Sin paquetes</strong><span>Prueba con otro nombre.</span></div>
@@ -697,7 +697,7 @@
                         <label class="rm-check-option">
                             <input wire:model="addServiceIds" type="checkbox" value="{{ $service->id }}">
                             <span>{{ $service->name }}</span>
-                            <small>Bs {{ $service->price }} - {{ $service->duration_minutes ?? 0 }} min</small>
+                            <small>{{ \App\Support\Money::symbol() }} {{ $service->price }} - {{ $service->duration_minutes ?? 0 }} min</small>
                         </label>
                     @empty
                         <div class="rm-empty-state"><strong>Sin servicios</strong><span>Prueba con otro nombre.</span></div>
@@ -715,7 +715,7 @@
                     @forelse ($addPackages as $package)
                         <button class="rm-check-option rm-package-pick" type="button" wire:click="addPackageServices('add', {{ $package->id }})">
                             <span>{{ $package->name }}</span>
-                            <small>Bs {{ $package->price }} - {{ $package->services->count() }} servicio(s)</small>
+                            <small>{{ \App\Support\Money::symbol() }} {{ $package->price }} - {{ $package->services->count() }} servicio(s)</small>
                         </button>
                     @empty
                         <div class="rm-empty-state"><strong>Sin paquetes</strong><span>Prueba con otro nombre.</span></div>
@@ -774,7 +774,7 @@
                                 </div>
                                 <div class="rm-commerce-meta">
                                     <span>{{ $item->attended ? 'Asistio' : 'Sin asistencia' }}</span>
-                                    <span>Pagos Bs {{ number_format((float) $item->payments->sum('amount'), 2) }}</span>
+                                    <span>Pagos {{ \App\Support\Money::symbol() }} {{ number_format((float) $item->payments->sum('amount'), 2) }}</span>
                                     @if ($item->reschedule_reason)
                                         <span>Motivo: {{ $item->reschedule_reason }}</span>
                                     @endif
@@ -805,9 +805,9 @@
                             <div class="rm-commerce-icon">{{ $item->payment?->paid_at?->format('d/m') ?? $item->created_at->format('d/m') }}</div>
                             <div class="rm-row-main">
                                 <strong>{{ $item->name }}</strong>
-                                <span>{{ $item->quantity }} x Bs {{ number_format((float) $item->unit_price, 2) }} - Pagado Bs {{ number_format((float) $item->total, 2) }}</span>
+                                <span>{{ $item->quantity }} x {{ \App\Support\Money::symbol() }} {{ number_format((float) $item->unit_price, 2) }} - Pagado {{ \App\Support\Money::symbol() }} {{ number_format((float) $item->total, 2) }}</span>
                                 <div class="rm-commerce-meta">
-                                    <span>Total Bs {{ number_format((float) ($item->charged_total ?: $item->total), 2) }}</span>
+                                    <span>Total {{ \App\Support\Money::symbol() }} {{ number_format((float) ($item->charged_total ?: $item->total), 2) }}</span>
                                     @if ($item->batch)
                                         <span>Lote {{ $item->batch->lot_code }}</span>
                                     @endif
@@ -840,9 +840,9 @@
                             <div class="rm-pending-charge-row">
                                 <div>
                                     <strong>{{ $charge->name }}</strong>
-                                    <span>Total Bs {{ number_format((float) $charge->total_amount, 2) }} - Pagado Bs {{ number_format((float) $charge->paid_amount, 2) }}</span>
+                                    <span>Total {{ \App\Support\Money::symbol() }} {{ number_format((float) $charge->total_amount, 2) }} - Pagado {{ \App\Support\Money::symbol() }} {{ number_format((float) $charge->paid_amount, 2) }}</span>
                                 </div>
-                                <span class="rm-debt-balance">Saldo Bs {{ number_format((float) $charge->balance_amount, 2) }}</span>
+                                <span class="rm-debt-balance">Saldo {{ \App\Support\Money::symbol() }} {{ number_format((float) $charge->balance_amount, 2) }}</span>
                             </div>
                         @empty
                             <div class="rm-empty-state"><strong>Sin pendientes</strong><span>No tiene tratamientos pendientes de pago.</span></div>
@@ -864,12 +864,12 @@
                             <div class="rm-pending-charge-row">
                                 <div>
                                     <strong>{{ $charge->name }}</strong>
-                                    <span>{{ $charge->quantity }} x Bs {{ number_format((float) $charge->unit_price, 2) }} - Pagado Bs {{ number_format((float) $charge->paid_amount, 2) }}</span>
+                                    <span>{{ $charge->quantity }} x {{ \App\Support\Money::symbol() }} {{ number_format((float) $charge->unit_price, 2) }} - Pagado {{ \App\Support\Money::symbol() }} {{ number_format((float) $charge->paid_amount, 2) }}</span>
                                     @if ($charge->soldBy)
                                         <span>Vendido por {{ $charge->soldBy->name }}</span>
                                     @endif
                                 </div>
-                                <span class="rm-debt-balance">Saldo Bs {{ number_format((float) $charge->balance_amount, 2) }}</span>
+                                <span class="rm-debt-balance">Saldo {{ \App\Support\Money::symbol() }} {{ number_format((float) $charge->balance_amount, 2) }}</span>
                             </div>
                         @empty
                             <div class="rm-empty-state"><strong>Sin productos a cuenta</strong><span>No tiene productos pendientes de pago.</span></div>

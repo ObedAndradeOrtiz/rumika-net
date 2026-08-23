@@ -15,6 +15,7 @@ use App\Models\Service;
 use App\Models\TreatmentPayment;
 use App\Models\TreatmentPaymentItem;
 use App\Models\TreatmentPlan;
+use App\Support\Money;
 use App\Support\PhoneNumber;
 use App\Support\PaymentTicketBuilder;
 use Illuminate\Support\Carbon;
@@ -868,7 +869,7 @@ class AgendaManager extends Component
             $paid = (float) ($validated['paymentServiceLinePayments'][(string) $serviceLine->id] ?? $chargedTotal);
 
             if ($paid > $chargedTotal) {
-                $this->addError('paymentServiceLinePayments.' . $serviceLine->id, 'El pago de ' . $serviceLine->name . ' no puede superar Bs ' . number_format($chargedTotal, 2) . '.');
+                $this->addError('paymentServiceLinePayments.' . $serviceLine->id, 'El pago de ' . $serviceLine->name . ' no puede superar ' . Money::format($chargedTotal, $branch) . '.');
 
                 return;
             }
@@ -900,7 +901,7 @@ class AgendaManager extends Component
         }
 
         if (abs(round($amount, 2) - $payNowTotal) > 0.009) {
-            $this->addError('paymentCashAmount', 'El cobro debe sumar Bs ' . number_format($payNowTotal, 2) . ' segun lo que paga ahora.');
+            $this->addError('paymentCashAmount', 'El cobro debe sumar ' . Money::format($payNowTotal, $branch) . ' segun lo que paga ahora.');
 
             return;
         }
@@ -1619,7 +1620,7 @@ class AgendaManager extends Component
 
                 if ($paidAmount > $chargedTotal) {
                     throw ValidationException::withMessages([
-                        'paymentProductLines' => 'El pago de ' . $batch->product->name . ' no puede superar Bs ' . number_format($chargedTotal, 2) . '.',
+                        'paymentProductLines' => 'El pago de ' . $batch->product->name . ' no puede superar ' . Money::format($chargedTotal, $branch) . '.',
                     ]);
                 }
 
@@ -1690,7 +1691,7 @@ class AgendaManager extends Component
 
                 if ($payAmount > (float) $charge->balance_amount) {
                     throw ValidationException::withMessages([
-                        'pendingChargePayments.' . $chargeId => 'El abono de ' . $charge->name . ' no puede superar Bs ' . number_format((float) $charge->balance_amount, 2) . '.',
+                        'pendingChargePayments.' . $chargeId => 'El abono de ' . $charge->name . ' no puede superar ' . Money::format((float) $charge->balance_amount, $branch) . '.',
                     ]);
                 }
 

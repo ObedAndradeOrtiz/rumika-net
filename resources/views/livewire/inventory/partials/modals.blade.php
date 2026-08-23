@@ -381,7 +381,7 @@
                         <div class="rm-commerce-icon">$</div>
                         <div class="rm-row-main">
                             <strong>{{ $item->payment?->client?->full_name ?? 'Cliente no registrado' }}</strong>
-                            <span>{{ $item->payment?->paid_at?->format('d/m/Y H:i') }} - {{ number_format((float) $item->quantity, 2) }} unidad(es) - Bs {{ number_format((float) $item->total, 2) }}</span>
+                            <span>{{ $item->payment?->paid_at?->format('d/m/Y H:i') }} - {{ number_format((float) $item->quantity, 2) }} unidad(es) - {{ \App\Support\Money::symbol() }} {{ number_format((float) $item->total, 2) }}</span>
                             <div class="rm-commerce-meta">
                                 <span>Lote {{ $item->batch?->lot_code ?? 'N/A' }}</span>
                                 <span>Vendido por {{ $item->soldBy?->name ?? 'Sin vendedor' }}</span>
@@ -400,7 +400,7 @@
                         <div class="rm-commerce-icon">{{ strtoupper(substr($this->movementLabel($movement->type), 0, 1)) }}</div>
                         <div class="rm-row-main">
                             <strong>{{ $this->movementLabel($movement->type) }}</strong>
-                            <span>{{ $movement->moved_at?->format('d/m/Y H:i') }} - {{ number_format((float) $movement->quantity, 2) }} unidad(es) - Bs {{ number_format((float) $movement->total_cost, 2) }}</span>
+                            <span>{{ $movement->moved_at?->format('d/m/Y H:i') }} - {{ number_format((float) $movement->quantity, 2) }} unidad(es) - {{ \App\Support\Money::symbol() }} {{ number_format((float) $movement->total_cost, 2) }}</span>
                             <div class="rm-commerce-meta">
                                 <span>Lote {{ $movement->batch?->lot_code ?? 'N/A' }}</span>
                                 <span>{{ $movement->relatedBranch?->name ?? $branch->name }}</span>

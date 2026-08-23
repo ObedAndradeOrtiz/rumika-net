@@ -133,7 +133,7 @@
                                     </span>
                                 @endif
                             @endif
-                            <span>Pagado Bs
+                            <span>Pagado {{ \App\Support\Money::symbol() }}
                                 {{ number_format((float) $appointment->payments->sum('amount'), 2) }}</span>
                             @if ($appointment->reschedule_reason)
                                 <span>Motivo: {{ $appointment->reschedule_reason }}</span>

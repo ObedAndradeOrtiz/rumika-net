@@ -55,27 +55,27 @@
 
         <article class="rm-stat-money-card">
             <span>Ingresos</span>
-            <strong>Bs {{ number_format((float) $finance['income'], 2) }}</strong>
+            <strong>{{ \App\Support\Money::symbol() }} {{ number_format((float) $finance['income'], 2) }}</strong>
             <div>
-                <small>Servicios Bs {{ number_format((float) $finance['services'], 2) }}</small>
-                <small>Productos Bs {{ number_format((float) $finance['products'], 2) }}</small>
+                <small>Servicios {{ \App\Support\Money::symbol() }} {{ number_format((float) $finance['services'], 2) }}</small>
+                <small>Productos {{ \App\Support\Money::symbol() }} {{ number_format((float) $finance['products'], 2) }}</small>
             </div>
         </article>
         <article class="rm-stat-money-card">
             <span>Egresos</span>
-            <strong>Bs {{ number_format((float) $finance['expenses'], 2) }}</strong>
+            <strong>{{ \App\Support\Money::symbol() }} {{ number_format((float) $finance['expenses'], 2) }}</strong>
             <div>
                 <small>Gastos registrados</small>
-                <small>Neto Bs {{ number_format((float) $finance['net'], 2) }}</small>
+                <small>Neto {{ \App\Support\Money::symbol() }} {{ number_format((float) $finance['net'], 2) }}</small>
             </div>
         </article>
         <article class="rm-stat-money-card">
             <span>Metodos de pago</span>
-            <strong>Bs {{ number_format((float) $finance['cash'] + (float) $finance['qr'], 2) }}</strong>
+            <strong>{{ \App\Support\Money::symbol() }} {{ number_format((float) $finance['cash'] + (float) $finance['qr'], 2) }}</strong>
             <div>
-                <small>Efectivo Bs {{ number_format((float) $finance['cash'], 2) }}</small>
-                <small>QR Bs {{ number_format((float) $finance['qr'], 2) }}</small>
-                <small>Ticket prom. Bs {{ number_format((float) $finance['average_ticket'], 2) }}</small>
+                <small>Efectivo {{ \App\Support\Money::symbol() }} {{ number_format((float) $finance['cash'], 2) }}</small>
+                <small>QR {{ \App\Support\Money::symbol() }} {{ number_format((float) $finance['qr'], 2) }}</small>
+                <small>Ticket prom. {{ \App\Support\Money::symbol() }} {{ number_format((float) $finance['average_ticket'], 2) }}</small>
             </div>
         </article>
     </section>
@@ -102,9 +102,9 @@
                     <span><strong>{{ $row['name'] }}</strong><small>{{ $row['type'] }}</small></span>
                     <span>{{ $row['scheduled'] }}</span>
                     <span>{{ $row['attended'] }} <small>{{ $row['rate'] }}%</small></span>
-                    <span>Bs {{ number_format((float) $row['income'], 2) }}</span>
-                    <span>Bs {{ number_format((float) $row['expenses'], 2) }}</span>
-                    <span>Bs {{ number_format((float) $row['net'], 2) }}</span>
+                    <span>{{ \App\Support\Money::symbol() }} {{ number_format((float) $row['income'], 2) }}</span>
+                    <span>{{ \App\Support\Money::symbol() }} {{ number_format((float) $row['expenses'], 2) }}</span>
+                    <span>{{ \App\Support\Money::symbol() }} {{ number_format((float) $row['net'], 2) }}</span>
                 </article>
             @empty
                 <div class="rm-empty-state"><strong>Sin datos</strong><span>No hay movimientos en el rango seleccionado.</span></div>
@@ -128,7 +128,7 @@
                             <strong>{{ $seller['name'] }}</strong>
                             <small>{{ number_format((float) $seller['quantity'], 2) }} producto(s) en {{ $seller['count'] }} venta(s)</small>
                         </div>
-                        <span>Bs {{ number_format((float) $seller['total'], 2) }}</span>
+                        <span>{{ \App\Support\Money::symbol() }} {{ number_format((float) $seller['total'], 2) }}</span>
                     </article>
                 @empty
                     <div class="rm-dashboard-empty">Sin ventas de productos en este rango.</div>
@@ -151,7 +151,7 @@
                             <strong>{{ $product['name'] }}</strong>
                             <small>{{ number_format((float) $product['quantity'], 2) }} unidad(es)</small>
                         </div>
-                        <span>Bs {{ number_format((float) $product['total'], 2) }}</span>
+                        <span>{{ \App\Support\Money::symbol() }} {{ number_format((float) $product['total'], 2) }}</span>
                     </article>
                 @empty
                     <div class="rm-dashboard-empty">Sin productos vendidos en este rango.</div>
@@ -181,11 +181,11 @@
             @foreach ($annualRows as $row)
                 <article class="rm-stat-table-row">
                     <span><strong>{{ $row['month'] }}</strong></span>
-                    <span>Bs {{ number_format((float) $row['services'], 2) }}</span>
-                    <span>Bs {{ number_format((float) $row['products'], 2) }}</span>
-                    <span>Bs {{ number_format((float) $row['income'], 2) }}</span>
-                    <span>Bs {{ number_format((float) $row['expenses'], 2) }}</span>
-                    <span>Bs {{ number_format((float) $row['net'], 2) }}</span>
+                    <span>{{ \App\Support\Money::symbol() }} {{ number_format((float) $row['services'], 2) }}</span>
+                    <span>{{ \App\Support\Money::symbol() }} {{ number_format((float) $row['products'], 2) }}</span>
+                    <span>{{ \App\Support\Money::symbol() }} {{ number_format((float) $row['income'], 2) }}</span>
+                    <span>{{ \App\Support\Money::symbol() }} {{ number_format((float) $row['expenses'], 2) }}</span>
+                    <span>{{ \App\Support\Money::symbol() }} {{ number_format((float) $row['net'], 2) }}</span>
                     <span>{{ $row['attended'] }}/{{ $row['scheduled'] }}</span>
                 </article>
             @endforeach

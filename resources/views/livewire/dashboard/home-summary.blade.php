@@ -27,7 +27,7 @@
             <span class="rm-kpi-icon is-cash">
                 <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="6" width="18" height="12" rx="3"/><path d="M7 12h.01M17 12h.01M12 10a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z"/></svg>
             </span>
-            <div><strong>Bs {{ number_format($cashbox['net'], 2) }}</strong><span>Caja neta del dia</span></div>
+            <div><strong>{{ \App\Support\Money::symbol() }} {{ number_format($cashbox['net'], 2) }}</strong><span>Caja neta del dia</span></div>
         </article>
         <article>
             <span class="rm-kpi-icon is-client">
@@ -51,7 +51,7 @@
             <span class="rm-kpi-icon is-expense">
                 <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 19V5a2 2 0 0 1 2-2h12v18l-3-2-3 2-3-2-3 2Z"/><path d="M8 8h8M8 12h5"/></svg>
             </span>
-            <div><strong>Bs {{ number_format($monthExpenses, 2) }}</strong><span>Gastos del mes</span></div>
+            <div><strong>{{ \App\Support\Money::symbol() }} {{ number_format($monthExpenses, 2) }}</strong><span>Gastos del mes</span></div>
         </article>
     </section>
 
@@ -91,10 +91,10 @@
                 <span>Hoy</span>
             </div>
             <div class="rm-cash-summary-list">
-                <div><span>Efectivo</span><strong>Bs {{ number_format($cashbox['cash'], 2) }}</strong></div>
-                <div><span>QR</span><strong>Bs {{ number_format($cashbox['qr'], 2) }}</strong></div>
-                <div><span>Gastos caja</span><strong>Bs {{ number_format($cashbox['expenses'], 2) }}</strong></div>
-                <div class="is-total"><span>Total neto</span><strong>Bs {{ number_format($cashbox['net'], 2) }}</strong></div>
+                <div><span>Efectivo</span><strong>{{ \App\Support\Money::symbol() }} {{ number_format($cashbox['cash'], 2) }}</strong></div>
+                <div><span>QR</span><strong>{{ \App\Support\Money::symbol() }} {{ number_format($cashbox['qr'], 2) }}</strong></div>
+                <div><span>Gastos caja</span><strong>{{ \App\Support\Money::symbol() }} {{ number_format($cashbox['expenses'], 2) }}</strong></div>
+                <div class="is-total"><span>Total neto</span><strong>{{ \App\Support\Money::symbol() }} {{ number_format($cashbox['net'], 2) }}</strong></div>
             </div>
         </section>
 
@@ -161,7 +161,7 @@
                 @forelse ($recentExpenses as $expense)
                     <article>
                         <span class="rm-alert-dot is-expense"></span>
-                        <div><strong>{{ $expense->type?->name ?? 'Gasto' }} - Bs {{ number_format((float) $expense->amount, 2) }}</strong><small>{{ $expense->spent_at->format('d/m/Y') }} - {{ $expense->source === 'cashbox' ? 'Caja' : 'Externo' }}</small></div>
+                        <div><strong>{{ $expense->type?->name ?? 'Gasto' }} - {{ \App\Support\Money::symbol() }} {{ number_format((float) $expense->amount, 2) }}</strong><small>{{ $expense->spent_at->format('d/m/Y') }} - {{ $expense->source === 'cashbox' ? 'Caja' : 'Externo' }}</small></div>
                     </article>
                 @empty
                     <div class="rm-dashboard-empty">Sin gastos registrados este mes.</div>

@@ -12,12 +12,12 @@
     </div>
 
     <div class="rm-kpi-strip rm-inventory-kpis">
-        <div class="rm-kpi"><strong>Bs {{ number_format((float) $cashTotal, 2) }}</strong><span>Efectivo bruto</span></div>
-        <div class="rm-kpi"><strong>Bs {{ number_format((float) $qrTotal, 2) }}</strong><span>QR</span></div>
-        <div class="rm-kpi"><strong>Bs {{ number_format((float) $cashboxExpenseTotal, 2) }}</strong><span>Gastos caja</span></div>
-        <div class="rm-kpi"><strong>Bs {{ number_format((float) $netCashTotal, 2) }}</strong><span>Caja neta</span></div>
-        <div class="rm-kpi"><strong>Bs {{ number_format((float) $netTotal, 2) }}</strong><span>Total neto</span></div>
-        <div class="rm-kpi"><strong>Bs {{ number_format((float) $invoiceTotal, 2) }}</strong><span>Para facturar</span></div>
+        <div class="rm-kpi"><strong>{{ \App\Support\Money::symbol() }} {{ number_format((float) $cashTotal, 2) }}</strong><span>Efectivo bruto</span></div>
+        <div class="rm-kpi"><strong>{{ \App\Support\Money::symbol() }} {{ number_format((float) $qrTotal, 2) }}</strong><span>QR</span></div>
+        <div class="rm-kpi"><strong>{{ \App\Support\Money::symbol() }} {{ number_format((float) $cashboxExpenseTotal, 2) }}</strong><span>Gastos caja</span></div>
+        <div class="rm-kpi"><strong>{{ \App\Support\Money::symbol() }} {{ number_format((float) $netCashTotal, 2) }}</strong><span>Caja neta</span></div>
+        <div class="rm-kpi"><strong>{{ \App\Support\Money::symbol() }} {{ number_format((float) $netTotal, 2) }}</strong><span>Total neto</span></div>
+        <div class="rm-kpi"><strong>{{ \App\Support\Money::symbol() }} {{ number_format((float) $invoiceTotal, 2) }}</strong><span>Para facturar</span></div>
     </div>
 
     <section class="rm-panel rm-catalog-panel">
@@ -67,11 +67,11 @@
                     <article class="rm-commerce-row rm-cashbox-record-row">
                         <div class="rm-commerce-icon rm-cashbox-record-icon">{{ $this->paymentMethodLabel($row['method']) }}</div>
                         <div class="rm-row-main">
-                            <strong>{{ $row['client'] }} - Bs {{ number_format($row['total'], 2) }}</strong>
+                            <strong>{{ $row['client'] }} - {{ \App\Support\Money::symbol() }} {{ number_format($row['total'], 2) }}</strong>
                             <span>{{ $row['date'] }} {{ $row['time'] }} - {{ $row['name'] }} @if ($row['quantity'] > 1) x {{ number_format($row['quantity'], 2) }} @endif</span>
                             <div class="rm-commerce-meta">
-                                <span>Efectivo Bs {{ number_format($row['cash'], 2) }}</span>
-                                <span>QR Bs {{ number_format($row['qr'], 2) }}</span>
+                                <span>Efectivo {{ \App\Support\Money::symbol() }} {{ number_format($row['cash'], 2) }}</span>
+                                <span>QR {{ \App\Support\Money::symbol() }} {{ number_format($row['qr'], 2) }}</span>
                                 <span>{{ $row['staff'] }}</span>
                                 <span>{{ $row['invoice'] }}</span>
                                 <span>{{ $row['reference'] }}</span>
@@ -95,11 +95,11 @@
                     <article class="rm-commerce-row rm-cashbox-record-row">
                         <div class="rm-commerce-icon rm-cashbox-record-icon">{{ $this->paymentMethodLabel($row['method']) }}</div>
                         <div class="rm-row-main">
-                            <strong>{{ $row['client'] }} - Bs {{ number_format($row['total'], 2) }}</strong>
+                            <strong>{{ $row['client'] }} - {{ \App\Support\Money::symbol() }} {{ number_format($row['total'], 2) }}</strong>
                             <span>{{ $row['date'] }} {{ $row['time'] }} - {{ $row['name'] }} x {{ number_format($row['quantity'], 2) }}</span>
                             <div class="rm-commerce-meta">
-                                <span>Efectivo Bs {{ number_format($row['cash'], 2) }}</span>
-                                <span>QR Bs {{ number_format($row['qr'], 2) }}</span>
+                                <span>Efectivo {{ \App\Support\Money::symbol() }} {{ number_format($row['cash'], 2) }}</span>
+                                <span>QR {{ \App\Support\Money::symbol() }} {{ number_format($row['qr'], 2) }}</span>
                                 <span>{{ $row['staff'] }}</span>
                                 <span>{{ $row['invoice'] }}</span>
                                 <span>{{ $row['reference'] }}</span>
@@ -123,7 +123,7 @@
                     <article class="rm-commerce-row rm-cashbox-record-row">
                         <div class="rm-commerce-icon rm-cashbox-record-icon">{{ $this->expenseSourceLabel($expense->source) }}</div>
                         <div class="rm-row-main">
-                            <strong>{{ $expense->type?->name ?? 'Gasto' }} - Bs {{ number_format((float) $expense->amount, 2) }}</strong>
+                            <strong>{{ $expense->type?->name ?? 'Gasto' }} - {{ \App\Support\Money::symbol() }} {{ number_format((float) $expense->amount, 2) }}</strong>
                             <span>{{ $expense->spent_at?->format('d/m/Y') }} - Responsable {{ $expense->createdBy?->name ?? 'Sin responsable' }}</span>
                             <div class="rm-commerce-meta">
                                 <span>{{ $this->expenseSourceLabel($expense->source) }}</span>
@@ -234,9 +234,9 @@
                         @foreach (($ticketPreview['rows'] ?? []) as $row)
                             <div class="rm-print-row">
                                 <span>{{ \Illuminate\Support\Str::limit($row['name'], 32, '') }} @if($row['quantity'] > 1) x {{ number_format($row['quantity'], 2) }} @endif</span>
-                                <span>Bs {{ number_format($row['total'], 2) }}</span>
-                                <span>Bs {{ number_format($row['cash'], 2) }}</span>
-                                <span>Bs {{ number_format($row['qr'], 2) }}</span>
+                                <span>{{ \App\Support\Money::symbol() }} {{ number_format($row['total'], 2) }}</span>
+                                <span>{{ \App\Support\Money::symbol() }} {{ number_format($row['cash'], 2) }}</span>
+                                <span>{{ \App\Support\Money::symbol() }} {{ number_format($row['qr'], 2) }}</span>
                             </div>
                         @endforeach
                     </div>
@@ -250,9 +250,9 @@
                             @foreach ($ticketPreview['outstanding_charges'] as $charge)
                             <div class="rm-print-row">
                                 <span>{{ \Illuminate\Support\Str::limit($charge['name'], 32, '') }}</span>
-                                <span>Bs {{ number_format($charge['total'], 2) }}</span>
-                                <span>Bs {{ number_format($charge['paid'], 2) }}</span>
-                                <span>Bs {{ number_format($charge['balance'], 2) }}</span>
+                                <span>{{ \App\Support\Money::symbol() }} {{ number_format($charge['total'], 2) }}</span>
+                                <span>{{ \App\Support\Money::symbol() }} {{ number_format($charge['paid'], 2) }}</span>
+                                <span>{{ \App\Support\Money::symbol() }} {{ number_format($charge['balance'], 2) }}</span>
                                 </div>
                             @endforeach
                         </div>
@@ -260,9 +260,9 @@
                 @endif
 
                 <div class="rm-print-totals">
-                    <span>Efectivo Bs {{ number_format($ticketPreview['totals']['cash'] ?? 0, 2) }}</span>
-                    <span>QR Bs {{ number_format($ticketPreview['totals']['qr'] ?? 0, 2) }}</span>
-                    <strong>Total Bs {{ number_format($ticketPreview['totals']['total'] ?? 0, 2) }}</strong>
+                    <span>Efectivo {{ \App\Support\Money::symbol() }} {{ number_format($ticketPreview['totals']['cash'] ?? 0, 2) }}</span>
+                    <span>QR {{ \App\Support\Money::symbol() }} {{ number_format($ticketPreview['totals']['qr'] ?? 0, 2) }}</span>
+                    <strong>Total {{ \App\Support\Money::symbol() }} {{ number_format($ticketPreview['totals']['total'] ?? 0, 2) }}</strong>
                     @if (! empty($ticketPreview['printer_enabled']))<span>Impresora {{ $ticketPreview['printer_name'] ?: 'sin seleccionar' }}</span>@endif
                 </div>
             </div>

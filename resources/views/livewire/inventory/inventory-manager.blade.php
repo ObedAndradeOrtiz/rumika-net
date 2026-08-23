@@ -6,15 +6,15 @@
             <p>{{ $screen === 'operations' ? 'Registra uso interno de gabinete, traspasos entre sucursales y desechos con explicacion.' : 'Control por sucursal con lotes, vencimientos, entradas, activos, reparaciones y cierres de inventario.' }}</p>
         </div>
         <div class="rm-settings-summary">
-            <strong>Bs {{ number_format($summary['stock_value'], 2) }}</strong>
+            <strong>{{ \App\Support\Money::symbol() }} {{ number_format($summary['stock_value'], 2) }}</strong>
             <span>Valor actual en productos</span>
         </div>
     </div>
 
     <div class="rm-kpi-strip rm-inventory-kpis">
-        <div class="rm-kpi"><strong>Bs {{ number_format($summary['asset_value'], 2) }}</strong><span>Activos vigentes</span></div>
-        <div class="rm-kpi"><strong>Bs {{ number_format($summary['loss_value'], 2) }}</strong><span>Perdidas/desechos</span></div>
-        <div class="rm-kpi"><strong>Bs {{ number_format($summary['repair_value'], 2) }}</strong><span>Reparaciones</span></div>
+        <div class="rm-kpi"><strong>{{ \App\Support\Money::symbol() }} {{ number_format($summary['asset_value'], 2) }}</strong><span>Activos vigentes</span></div>
+        <div class="rm-kpi"><strong>{{ \App\Support\Money::symbol() }} {{ number_format($summary['loss_value'], 2) }}</strong><span>Perdidas/desechos</span></div>
+        <div class="rm-kpi"><strong>{{ \App\Support\Money::symbol() }} {{ number_format($summary['repair_value'], 2) }}</strong><span>Reparaciones</span></div>
         <div class="rm-kpi"><strong>{{ $currentCount->status === 'in_process' ? 'En proceso' : 'Cerrado' }}</strong><span>{{ $currentCount->name }}</span></div>
     </div>
 
@@ -238,7 +238,7 @@
                         <div class="rm-commerce-icon"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M7 7h10v10H7z"/><path d="M3 3h4v4M17 3h4v4M17 17h4v4M3 17h4v4"/></svg></div>
                         <div class="rm-row-main">
                             <strong>{{ $movement->product?->name }} - {{ $this->movementLabel($movement->type) }}</strong>
-                            <span>{{ $movement->moved_at?->format('d/m/Y H:i') }} - {{ number_format((float) $movement->quantity, 2) }} unidad(es) - Bs {{ number_format((float) $movement->total_cost, 2) }}</span>
+                            <span>{{ $movement->moved_at?->format('d/m/Y H:i') }} - {{ number_format((float) $movement->quantity, 2) }} unidad(es) - {{ \App\Support\Money::symbol() }} {{ number_format((float) $movement->total_cost, 2) }}</span>
                             <div class="rm-commerce-meta">
                                 <span>Lote {{ $movement->batch?->lot_code ?? 'N/A' }}</span>
                                 <span>{{ $movement->relatedBranch?->name ?? $branch->name }}</span>
@@ -268,7 +268,7 @@
                         <div class="rm-commerce-icon"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/></svg></div>
                         <div class="rm-row-main">
                             <strong>{{ $asset->name }}</strong>
-                            <span>{{ $asset->code }} - Compra Bs {{ number_format((float) $asset->purchase_amount, 2) }} - Reparacion Bs {{ number_format((float) $asset->repair_total, 2) }}</span>
+                            <span>{{ $asset->code }} - Compra {{ \App\Support\Money::symbol() }} {{ number_format((float) $asset->purchase_amount, 2) }} - Reparacion {{ \App\Support\Money::symbol() }} {{ number_format((float) $asset->repair_total, 2) }}</span>
                             <div class="rm-commerce-meta">
                                 <span>{{ ucfirst($asset->status) }}</span>
                                 <span>{{ $asset->category ?? 'Sin categoria' }}</span>
@@ -321,8 +321,8 @@
                             <div class="rm-commerce-meta">
                                 <span>{{ $count->status === 'in_process' ? 'En proceso' : 'Cerrado' }}</span>
                                 <span>Zona {{ $count->useArea?->name ?? 'General' }}</span>
-                                <span>Stock Bs {{ number_format((float) data_get($count->totals, 'stock_value', 0), 2) }}</span>
-                                <span>Perdida Bs {{ number_format((float) data_get($count->totals, 'waste_value', 0), 2) }}</span>
+                                <span>Stock {{ \App\Support\Money::symbol() }} {{ number_format((float) data_get($count->totals, 'stock_value', 0), 2) }}</span>
+                                <span>Perdida {{ \App\Support\Money::symbol() }} {{ number_format((float) data_get($count->totals, 'waste_value', 0), 2) }}</span>
                                 <span>{{ (int) data_get($count->totals, 'products', $count->items_count ?? 0) }} producto(s)</span>
                             </div>
                         </div>

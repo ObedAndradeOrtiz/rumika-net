@@ -205,7 +205,7 @@ const ticketTextFrom = (paper) => {
     totals
         .filter((item) => !item.toLowerCase().startsWith('impresora'))
         .forEach((item) => {
-            const parts = item.match(/^(.*?)(Bs\s.*)$/i);
+            const parts = item.match(/^(.*?)((?:Bs|CLP|ARS|PEN|S\/)\s+[-]?\d[\d.,]*)$/i);
 
             if (parts) {
                 output.push(right(parts[1].trim(), parts[2].trim()));
@@ -322,5 +322,4 @@ window.addEventListener('rumika-auto-print-ticket', () => {
         button.click();
     }, 350);
 });
-
 

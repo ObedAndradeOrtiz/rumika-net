@@ -58,7 +58,7 @@
                         </div>
                         <div class="rm-row-main">
                             <strong>{{ $service->name }}</strong>
-                            <span>Bs {{ $service->price }}{{ $service->duration_minutes ? ' - '.$service->duration_minutes.' min' : '' }}</span>
+                            <span>{{ \App\Support\Money::symbol() }} {{ $service->price }}{{ $service->duration_minutes ? ' - '.$service->duration_minutes.' min' : '' }}</span>
                             <div class="rm-commerce-meta">
                                 <span>{{ $service->status === 'available' ? 'Disponible' : 'No disponible' }}</span>
                                 <span>{{ $service->branch?->name ?? 'Todas las sucursales' }}</span>
@@ -106,7 +106,7 @@
                         </div>
                         <div class="rm-row-main">
                             <strong>{{ $package->name }}</strong>
-                            <span>Bs {{ $package->price }} - {{ $package->services->count() }} servicio(s)</span>
+                            <span>{{ \App\Support\Money::symbol() }} {{ $package->price }} - {{ $package->services->count() }} servicio(s)</span>
                             <div class="rm-commerce-meta">
                                 <span>{{ $package->status === 'available' ? 'Disponible' : 'No disponible' }}</span>
                                 <span>{{ $package->starts_at?->format('d/m/Y') ?? 'Sin inicio' }} - {{ $package->expires_at?->format('d/m/Y') ?? 'Sin fin' }}</span>
@@ -277,7 +277,7 @@
                             <label class="rm-check-option">
                                 <input wire:model="packageServiceIds" type="checkbox" value="{{ $service->id }}">
                                 <span>{{ $service->name }}</span>
-                                <small>Bs {{ $service->price }}</small>
+                                <small>{{ \App\Support\Money::symbol() }} {{ $service->price }}</small>
                             </label>
                         @empty
                             <div class="rm-empty-state">

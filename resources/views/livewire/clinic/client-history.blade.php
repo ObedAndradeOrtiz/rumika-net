@@ -237,7 +237,7 @@
                                             @if ($appointment->attendedBy)
                                                 <span>Doctor {{ $appointment->attendedBy->name }}</span>
                                             @endif
-                                            <span>Pagos Bs {{ number_format((float) $appointment->payments->sum('amount'), 2) }}</span>
+                                            <span>Pagos {{ \App\Support\Money::symbol() }} {{ number_format((float) $appointment->payments->sum('amount'), 2) }}</span>
                                             @if ($appointment->reschedule_reason)
                                                 <span>Motivo: {{ $appointment->reschedule_reason }}</span>
                                             @endif
@@ -259,9 +259,9 @@
                                     <div class="rm-commerce-icon">{{ $item->payment?->paid_at?->format('d/m') ?? $item->created_at->format('d/m') }}</div>
                                     <div class="rm-row-main">
                                         <strong>{{ $item->name }}</strong>
-                                        <span>{{ $item->quantity }} x Bs {{ number_format((float) $item->unit_price, 2) }} - Pagado Bs {{ number_format((float) $item->total, 2) }}</span>
+                                        <span>{{ $item->quantity }} x {{ \App\Support\Money::symbol() }} {{ number_format((float) $item->unit_price, 2) }} - Pagado {{ \App\Support\Money::symbol() }} {{ number_format((float) $item->total, 2) }}</span>
                                         <div class="rm-commerce-meta">
-                                            <span>Total Bs {{ number_format((float) ($item->charged_total ?: $item->total), 2) }}</span>
+                                            <span>Total {{ \App\Support\Money::symbol() }} {{ number_format((float) ($item->charged_total ?: $item->total), 2) }}</span>
                                             @if ($item->batch)<span>Lote {{ $item->batch->lot_code }}</span>@endif
                                             @if ($item->soldBy)<span>Vendido por {{ $item->soldBy->name }}</span>@endif
                                         </div>
@@ -284,12 +284,12 @@
                                 <div class="rm-pending-charge-row">
                                     <div>
                                         <strong>{{ $charge->name }}</strong>
-                                        <span>Total Bs {{ number_format((float) $charge->total_amount, 2) }} - Pagado Bs {{ number_format((float) $charge->paid_amount, 2) }}</span>
+                                        <span>Total {{ \App\Support\Money::symbol() }} {{ number_format((float) $charge->total_amount, 2) }} - Pagado {{ \App\Support\Money::symbol() }} {{ number_format((float) $charge->paid_amount, 2) }}</span>
                                         @if ($charge->type === 'product' && $charge->soldBy)
                                             <span>Vendido por {{ $charge->soldBy->name }}</span>
                                         @endif
                                     </div>
-                                    <span class="rm-debt-balance">Saldo Bs {{ number_format((float) $charge->balance_amount, 2) }}</span>
+                                    <span class="rm-debt-balance">Saldo {{ \App\Support\Money::symbol() }} {{ number_format((float) $charge->balance_amount, 2) }}</span>
                                 </div>
                             @empty
                                 <div class="rm-empty-state"><strong>Sin pendientes</strong><span>No hay saldos pendientes en esta seccion.</span></div>

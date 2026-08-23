@@ -6,15 +6,15 @@
             <p>Registra gastos de caja, gastos externos y pagos vinculados al personal por sucursal.</p>
         </div>
         <div class="rm-settings-summary">
-            <strong>Bs {{ number_format($summary['total'], 2) }}</strong>
+            <strong>{{ \App\Support\Money::symbol() }} {{ number_format($summary['total'], 2) }}</strong>
             <span>{{ ucfirst($periodLabel) }}</span>
         </div>
     </div>
 
     <div class="rm-kpi-strip rm-inventory-kpis">
-        <div class="rm-kpi"><strong>Bs {{ number_format($summary['cashbox'], 2) }}</strong><span>Gasto de caja</span></div>
-        <div class="rm-kpi"><strong>Bs {{ number_format($summary['external'], 2) }}</strong><span>Gasto externo</span></div>
-        <div class="rm-kpi"><strong>Bs {{ number_format($summary['staff'], 2) }}</strong><span>Personal</span></div>
+        <div class="rm-kpi"><strong>{{ \App\Support\Money::symbol() }} {{ number_format($summary['cashbox'], 2) }}</strong><span>Gasto de caja</span></div>
+        <div class="rm-kpi"><strong>{{ \App\Support\Money::symbol() }} {{ number_format($summary['external'], 2) }}</strong><span>Gasto externo</span></div>
+        <div class="rm-kpi"><strong>{{ \App\Support\Money::symbol() }} {{ number_format($summary['staff'], 2) }}</strong><span>Personal</span></div>
         <div class="rm-kpi"><strong>{{ $branch->name }}</strong><span>Sucursal actual</span></div>
     </div>
 
@@ -67,7 +67,7 @@
                     <article class="rm-commerce-row">
                         <div class="rm-commerce-icon">{{ $expense->spent_at->format('d') }}</div>
                         <div class="rm-row-main">
-                            <strong>{{ $expense->type?->name }} - Bs {{ number_format((float) $expense->amount, 2) }}</strong>
+                            <strong>{{ $expense->type?->name }} - {{ \App\Support\Money::symbol() }} {{ number_format((float) $expense->amount, 2) }}</strong>
                             <span>{{ $expense->spent_at->format('d/m/Y') }} - {{ $expense->source === 'cashbox' ? 'Caja' : 'Externo' }}</span>
                             <div class="rm-commerce-meta">
                                 <span>Responsable: {{ $expense->createdBy?->name ?? 'Sin responsable' }}</span>
@@ -129,7 +129,7 @@
                         <div class="rm-user-avatar">{{ strtoupper(substr($row['name'], 0, 1)) }}</div>
                         <div class="rm-row-main">
                             <strong>{{ $row['name'] }}</strong>
-                            <span>Bs {{ number_format($row['total'], 2) }} {{ $periodLabel }}</span>
+                            <span>{{ \App\Support\Money::symbol() }} {{ number_format($row['total'], 2) }} {{ $periodLabel }}</span>
                             <div class="rm-commerce-meta">
                                 <span>{{ $row['count'] }} movimiento(s)</span>
                             </div>
