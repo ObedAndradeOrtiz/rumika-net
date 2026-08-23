@@ -1,17 +1,14 @@
 <div class="rm-content rm-report-page">
-    <section class="rm-panel rm-report-head">
+    <section class="rm-settings-hero">
         <div>
             <span class="rm-kicker">Cuentas por cobrar</span>
             <h1>Deudas de clientes</h1>
             <p>Tratamientos, servicios y productos que todavia tienen saldo pendiente.</p>
         </div>
-        <div class="rm-report-head-actions">
-            <strong>{{ $currency }} {{ number_format((float) $totalDebt, 2) }}</strong>
-            <span>Saldo pendiente</span>
-        </div>
     </section>
 
     <section class="rm-kpi-strip rm-report-kpis">
+        <div class="rm-kpi"><strong>{{ $currency }} {{ number_format((float) $totalDebt, 2) }}</strong><span>Saldo pendiente</span></div>
         <div class="rm-kpi"><strong>{{ $currency }} {{ number_format((float) $serviceDebt, 2) }}</strong><span>Servicios</span></div>
         <div class="rm-kpi"><strong>{{ $currency }} {{ number_format((float) $productDebt, 2) }}</strong><span>Productos</span></div>
         <div class="rm-kpi"><strong>{{ $rows->count() }}</strong><span>Registros pendientes</span></div>

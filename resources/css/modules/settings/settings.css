@@ -2996,6 +2996,15 @@
     gap: 16px;
 }
 
+.rm-report-filter-row {
+    grid-template-columns: repeat(3, minmax(150px, 1fr)) auto;
+}
+
+.rm-report-download-button {
+    align-self: end;
+    min-height: 48px;
+}
+
 .rm-report-kpis {
     border: 0;
     box-shadow: none;

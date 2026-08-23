@@ -1,15 +1,14 @@
 <div class="rm-content rm-report-page">
-    <section class="rm-panel rm-report-head">
+    <section class="rm-settings-hero">
         <div>
             <span class="rm-kicker">Gerencia</span>
             <h1>Reportes del negocio</h1>
             <p>Resumen general y por sucursal con ingresos, egresos, cuentas por cobrar, asistencia y comisiones.</p>
         </div>
-        <a class="rm-button rm-button-primary" href="{{ $pdfUrl }}" download>Descargar PDF</a>
     </section>
 
     <section class="rm-panel rm-report-filters">
-        <div class="rm-filter-row">
+        <div class="rm-filter-row rm-report-filter-row">
             <label class="rm-field"><span>Desde</span><input wire:model.live="dateFrom" type="date"></label>
             <label class="rm-field"><span>Hasta</span><input wire:model.live="dateTo" type="date"></label>
             <label class="rm-field">
@@ -21,6 +20,7 @@
                     @endforeach
                 </select>
             </label>
+            <a class="rm-button rm-button-primary rm-report-download-button" href="{{ $pdfUrl }}" download>Descargar PDF</a>
         </div>
     </section>
 
