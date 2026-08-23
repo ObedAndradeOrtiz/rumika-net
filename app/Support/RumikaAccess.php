@@ -101,6 +101,7 @@ class RumikaAccess
             'finance.debts' => 'deudas',
             'finance.reports' => 'reportes',
             'finance.reports.pdf' => 'reportes',
+            'finance.commissions' => 'comisiones',
             'inventory.index' => 'inventario',
             'inventory.operations' => 'inventario_operaciones',
             'finance.expenses' => 'gastos',

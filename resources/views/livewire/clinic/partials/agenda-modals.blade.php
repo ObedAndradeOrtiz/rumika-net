@@ -421,8 +421,22 @@
                                     $productLineKey = ! empty($line['client_charge_id'] ?? '')
                                         ? 'charge-'.$line['client_charge_id']
                                         : (! empty($line['batch_id'] ?? '') ? 'batch-'.$line['batch_id'].'-'.$index : 'new-'.$index);
+                                    $selectedProductBatch = ! empty($line['batch_id'] ?? '')
+                                        ? $productBatches->firstWhere('id', (int) $line['batch_id'])
+                                        : null;
                                 @endphp
                                 <div class="rm-payment-product-row" wire:key="payment-product-line-{{ $productLineKey }}">
+                                    @if ($selectedProductBatch?->product)
+                                        <button class="rm-product-photo-button" type="button" wire:click="previewProductImage({{ $selectedProductBatch->product->id }})" title="Ver imagen">
+                                            @if ($selectedProductBatch->product->image_path)
+                                                <img src="{{ asset('storage/'.$selectedProductBatch->product->image_path) }}" alt="{{ $selectedProductBatch->product->name }}">
+                                            @else
+                                                <span>{{ strtoupper(substr($selectedProductBatch->product->name, 0, 1)) }}</span>
+                                            @endif
+                                        </button>
+                                    @else
+                                        <div class="rm-product-photo-button is-empty"><span>P</span></div>
+                                    @endif
                                     @if (! empty($line['locked_name'] ?? ''))
                                         <div class="rm-field rm-payment-readonly-product">
                                             <span>Producto vendido</span>
@@ -652,6 +666,23 @@
                 onclick="event.preventDefault(); window.RumikaQz.printFromButton(this)"
             >Imprimir ticket</button>
             <button class="rm-button rm-button-outline" type="button" wire:click="closePaymentTicketPreview">Volver</button>
+        </div>
+    </section>
+@endif
+
+@if ($showProductImageModal)
+    <div class="rm-modal-backdrop" wire:click="closeProductImagePreview"></div>
+    <section class="rm-modal-panel rm-modal-panel-small rm-product-image-modal" role="dialog" aria-modal="true">
+        <div class="rm-modal-title">
+            <div><span>Producto</span><h2>{{ $previewProductName }}</h2></div>
+            <button type="button" wire:click="closeProductImagePreview" aria-label="Cerrar">x</button>
+        </div>
+        <div class="rm-product-image-large">
+            @if ($previewProductImagePath)
+                <img src="{{ asset('storage/'.$previewProductImagePath) }}" alt="{{ $previewProductName }}">
+            @else
+                <span>{{ strtoupper(substr($previewProductName ?: 'P', 0, 1)) }}</span>
+            @endif
         </div>
     </section>
 @endif

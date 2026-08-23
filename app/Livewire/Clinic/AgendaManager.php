@@ -88,6 +88,9 @@ class AgendaManager extends Component
     public ?int $paymentProductSoldByUserId = null;
     public array $pendingChargePayments = [];
     public string $productSearch = '';
+    public bool $showProductImageModal = false;
+    public string $previewProductName = '';
+    public string $previewProductImagePath = '';
 
     public string $rescheduleDate = '';
     public string $rescheduleTime = '09:00';
@@ -756,6 +759,26 @@ class AgendaManager extends Component
             'paid_amount' => '',
             'stock_shortage_reason' => '',
         ];
+    }
+
+    public function previewProductImage(int $productId): void
+    {
+        $product = $this->company()
+            ->inventoryProducts()
+            ->where('status', 'active')
+            ->whereKey($productId)
+            ->firstOrFail();
+
+        $this->previewProductName = $product->name;
+        $this->previewProductImagePath = $product->image_path ?? '';
+        $this->showProductImageModal = true;
+    }
+
+    public function closeProductImagePreview(): void
+    {
+        $this->showProductImageModal = false;
+        $this->previewProductName = '';
+        $this->previewProductImagePath = '';
     }
 
     public function updatedPaymentProductLines(mixed $value, ?string $key = null): void

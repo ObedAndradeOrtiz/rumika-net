@@ -115,6 +115,10 @@ Route::view('finanzas/reportes', 'finance.reports')
     ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.permission:reportes'])
     ->name('finance.reports');
 
+Route::view('finanzas/comisiones', 'finance.commissions')
+    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.permission:comisiones'])
+    ->name('finance.commissions');
+
 Route::get('finanzas/reportes/pdf', FinanceReportExportController::class)
     ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.permission:reportes'])
     ->name('finance.reports.pdf');

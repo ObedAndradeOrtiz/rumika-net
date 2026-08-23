@@ -49,6 +49,22 @@
             </div>
             <label class="rm-field"><span>Nombre</span><input wire:model="productName" type="text" placeholder="Aguja mesoterapia 30G">@error('productName')<small>{{ $message }}</small>@enderror</label>
             <label class="rm-field"><span>Descripcion</span><input wire:model="productDescription" type="text"></label>
+            <div class="rm-product-image-editor">
+                <div class="rm-product-image-preview">
+                    @if ($productImage)
+                        <img src="{{ $productImage->temporaryUrl() }}" alt="Imagen temporal del producto">
+                    @elseif ($currentProductImagePath)
+                        <img src="{{ asset('storage/'.$currentProductImagePath) }}" alt="Imagen actual del producto">
+                    @else
+                        <span>{{ strtoupper(substr($productName ?: 'P', 0, 1)) }}</span>
+                    @endif
+                </div>
+                <label class="rm-field">
+                    <span>Imagen del producto</span>
+                    <input wire:model="productImage" type="file" accept="image/*">
+                    @error('productImage')<small>{{ $message }}</small>@enderror
+                </label>
+            </div>
             <div class="rm-form-row">
                 <label class="rm-field"><span>Proveedor</span><select wire:model="productSupplierId"><option value="">Sin proveedor</option>@foreach ($suppliers as $supplier)<option value="{{ $supplier->id }}">{{ $supplier->name }}</option>@endforeach</select></label>
                 <label class="rm-field"><span>Marca</span><select wire:model="productBrandId"><option value="">Sin marca</option>@foreach ($brands as $brand)<option value="{{ $brand->id }}">{{ $brand->name }}</option>@endforeach</select></label>

@@ -36,6 +36,9 @@ class ProductSalesManager extends Component
     public string $message = '';
     public bool $showTicketPreview = false;
     public array $ticketPreview = [];
+    public bool $showProductImageModal = false;
+    public string $previewProductName = '';
+    public string $previewProductImagePath = '';
 
     public function mount(): void
     {
@@ -93,6 +96,7 @@ class ProductSalesManager extends Component
             'code' => $product->code,
             'brand' => $product->brand?->name ?? 'Sin marca',
             'area' => $product->useArea?->name ?? 'Sin area',
+            'image_path' => $product->image_path ?? '',
             'lot' => $batch?->lot_code ?? 'Sin lote',
             'available' => (float) ($batch?->current_quantity ?? 0),
             'quantity' => '1',
@@ -107,6 +111,26 @@ class ProductSalesManager extends Component
     {
         unset($this->lines[$index]);
         $this->lines = array_values($this->lines);
+    }
+
+    public function previewProductImage(int $productId): void
+    {
+        $product = $this->company()
+            ->inventoryProducts()
+            ->where('status', 'active')
+            ->whereKey($productId)
+            ->firstOrFail();
+
+        $this->previewProductName = $product->name;
+        $this->previewProductImagePath = $product->image_path ?? '';
+        $this->showProductImageModal = true;
+    }
+
+    public function closeProductImagePreview(): void
+    {
+        $this->showProductImageModal = false;
+        $this->previewProductName = '';
+        $this->previewProductImagePath = '';
     }
 
     public function saveSale(): void

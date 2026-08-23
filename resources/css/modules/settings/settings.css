@@ -398,7 +398,7 @@
 
 .rm-product-result {
     align-items: center;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: 54px minmax(0, 1fr) auto auto;
 }
 
 .rm-product-result .rm-row-main {
@@ -452,10 +452,95 @@
     border-radius: 18px;
     display: grid;
     gap: 12px;
-    grid-template-columns: minmax(170px, 1fr) minmax(86px, 110px) minmax(92px, 120px) minmax(130px, 170px) auto;
+    grid-template-columns: 48px minmax(170px, 1fr) minmax(86px, 110px) minmax(92px, 120px) minmax(130px, 170px) auto;
     min-width: 0;
     overflow: hidden;
     padding: 14px;
+}
+
+.rm-product-photo-button,
+.rm-product-thumb {
+    align-items: center;
+    background: #e8f6f3;
+    border: 1px solid #c7ebe4;
+    border-radius: 16px;
+    color: var(--rumika-teal-dark);
+    cursor: pointer;
+    display: inline-grid;
+    font-size: 18px;
+    font-weight: 950;
+    height: 48px;
+    justify-content: center;
+    min-width: 48px;
+    overflow: hidden;
+    padding: 0;
+    text-align: center;
+    width: 48px;
+}
+
+.rm-product-photo-button img,
+.rm-product-thumb img {
+    height: 100%;
+    object-fit: cover;
+    width: 100%;
+}
+
+.rm-product-photo-button.is-empty {
+    cursor: default;
+    opacity: 0.72;
+}
+
+.rm-product-add-button {
+    min-height: 42px;
+    padding-inline: 16px;
+}
+
+.rm-product-image-editor {
+    align-items: center;
+    background: #f8fafc;
+    border: 1px solid var(--rumika-border);
+    border-radius: 18px;
+    display: grid;
+    gap: 14px;
+    grid-template-columns: 96px minmax(0, 1fr);
+    padding: 14px;
+}
+
+.rm-product-image-preview,
+.rm-product-image-large {
+    align-items: center;
+    background: #e8f6f3;
+    border: 1px solid #c7ebe4;
+    color: var(--rumika-teal-dark);
+    display: grid;
+    font-weight: 950;
+    overflow: hidden;
+    place-items: center;
+}
+
+.rm-product-image-preview {
+    border-radius: 20px;
+    font-size: 28px;
+    height: 82px;
+    width: 82px;
+}
+
+.rm-product-image-large {
+    aspect-ratio: 1 / 1;
+    border-radius: 22px;
+    font-size: 72px;
+    width: 100%;
+}
+
+.rm-product-image-preview img,
+.rm-product-image-large img {
+    height: 100%;
+    object-fit: contain;
+    width: 100%;
+}
+
+.rm-product-image-modal {
+    max-width: min(92vw, 520px);
 }
 
 .rm-sale-line > div {
@@ -1141,7 +1226,7 @@
     border-radius: 16px;
     display: grid;
     gap: 10px;
-    grid-template-columns: minmax(220px, 1fr) 95px 120px 120px minmax(150px, 0.7fr) auto;
+    grid-template-columns: 48px minmax(220px, 1fr) 95px 120px 120px minmax(150px, 0.7fr) auto;
     padding: 12px;
 }
 
@@ -2969,6 +3054,25 @@
     padding: 14px 16px;
 }
 
+.rm-commission-filter-row {
+    grid-template-columns: repeat(4, minmax(150px, 1fr));
+}
+
+.rm-commission-table .rm-report-table-head,
+.rm-commission-table .rm-report-table-row {
+    grid-template-columns: 1.2fr 1fr repeat(6, minmax(90px, 1fr));
+}
+
+.rm-commission-table .is-ok {
+    color: var(--rumika-teal-dark);
+    font-weight: 950;
+}
+
+.rm-commission-table .is-alert {
+    color: #b45309;
+    font-weight: 950;
+}
+
 .rm-report-table-head {
     background: #f4f7fb;
     color: #65728a;
@@ -3169,7 +3273,13 @@
 
     .rm-commerce-sale-grid,
     .rm-sale-line {
-        grid-template-columns: 1fr;
+        align-items: stretch;
+        grid-template-columns: 48px minmax(0, 1fr);
+    }
+
+    .rm-sale-line .rm-field,
+    .rm-sale-line .rm-button {
+        grid-column: 1 / -1;
     }
 
     .rm-sales-compact-head {
@@ -3713,12 +3823,19 @@
     }
 
     .rm-catalog-panel .rm-product-result {
-        grid-template-columns: minmax(0, 1fr);
+        align-items: center;
+        grid-template-columns: 48px minmax(0, 1fr);
     }
 
     .rm-catalog-panel .rm-product-result .rm-soft-pill {
+        grid-column: 2;
         justify-content: center;
         width: fit-content;
+    }
+
+    .rm-catalog-panel .rm-product-result .rm-product-add-button {
+        grid-column: 1 / -1;
+        width: 100%;
     }
 
     .rm-catalog-panel .rm-product-result .rm-row-main strong {
@@ -3982,6 +4099,15 @@
 
     .rm-report-filters .rm-filter-row {
         grid-template-columns: 1fr;
+    }
+
+    .rm-commission-filter-row,
+    .rm-product-image-editor {
+        grid-template-columns: 1fr;
+    }
+
+    .rm-product-image-preview {
+        justify-self: center;
     }
 
     .rm-report-grid {

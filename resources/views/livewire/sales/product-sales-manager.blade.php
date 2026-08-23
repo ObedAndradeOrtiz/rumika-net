@@ -64,13 +64,21 @@
                 <div class="rm-commerce-list compact">
                     @foreach ($products as $product)
                         @php $stock = (float) $product->batches->sum('current_quantity'); @endphp
-                        <button class="rm-commerce-row rm-product-result {{ $stock <= 0 ? 'is-stock-empty' : '' }}" type="button" wire:click="addProduct({{ $product->id }})">
+                        <article class="rm-commerce-row rm-product-result {{ $stock <= 0 ? 'is-stock-empty' : '' }}">
+                            <button class="rm-product-photo-button" type="button" wire:click="previewProductImage({{ $product->id }})" title="Ver imagen">
+                                @if ($product->image_path)
+                                    <img src="{{ asset('storage/'.$product->image_path) }}" alt="{{ $product->name }}">
+                                @else
+                                    <span>{{ strtoupper(substr($product->name, 0, 1)) }}</span>
+                                @endif
+                            </button>
                             <div class="rm-row-main">
                                 <strong>{{ $product->name }}</strong>
                                 <span>{{ $product->code }} - {{ $product->brand?->name ?? 'Sin marca' }} - {{ $product->useArea?->name ?? 'Sin zona' }} - Stock {{ number_format($stock, 2) }}</span>
                             </div>
                             <span class="rm-soft-pill">{{ $stock <= 0 ? 'Sin stock' : ($product->useArea?->name ?? 'Sin area') }}</span>
-                        </button>
+                            <button class="rm-button rm-button-outline rm-product-add-button" type="button" wire:click="addProduct({{ $product->id }})">Agregar</button>
+                        </article>
                     @endforeach
                 </div>
             @endif
@@ -83,6 +91,13 @@
                         $hasStockShortage = $lineQuantity > $lineAvailable;
                     @endphp
                     <div class="rm-sale-line {{ $hasStockShortage ? 'is-stock-short' : '' }}">
+                        <button class="rm-product-photo-button" type="button" wire:click="previewProductImage({{ $line['product_id'] }})" title="Ver imagen">
+                            @if (! empty($line['image_path']))
+                                <img src="{{ asset('storage/'.$line['image_path']) }}" alt="{{ $line['name'] }}">
+                            @else
+                                <span>{{ strtoupper(substr($line['name'], 0, 1)) }}</span>
+                            @endif
+                        </button>
                         <div>
                             <strong>{{ $line['name'] }}</strong>
                             <span>{{ $line['code'] }} - {{ $line['brand'] }} - {{ $line['area'] }} - {{ $line['lot'] }} - Stock {{ number_format((float) $line['available'], 2) }}</span>
@@ -264,6 +279,23 @@
                     onclick="event.preventDefault(); window.RumikaQz.printFromButton(this)"
                 >Imprimir ahora</button>
                 <button class="rm-button rm-button-outline" type="button" wire:click="closeTicketPreview">Volver</button>
+            </div>
+        </section>
+    @endif
+
+    @if ($showProductImageModal)
+        <div class="rm-modal-backdrop" wire:click="closeProductImagePreview"></div>
+        <section class="rm-modal-panel rm-modal-panel-small rm-product-image-modal" role="dialog" aria-modal="true">
+            <div class="rm-modal-title">
+                <div><span>Producto</span><h2>{{ $previewProductName }}</h2></div>
+                <button type="button" wire:click="closeProductImagePreview" aria-label="Cerrar">x</button>
+            </div>
+            <div class="rm-product-image-large">
+                @if ($previewProductImagePath)
+                    <img src="{{ asset('storage/'.$previewProductImagePath) }}" alt="{{ $previewProductName }}">
+                @else
+                    <span>{{ strtoupper(substr($previewProductName ?: 'P', 0, 1)) }}</span>
+                @endif
             </div>
         </section>
     @endif

@@ -16,6 +16,7 @@ class InventoryProduct extends Model
         'code',
         'name',
         'description',
+        'image_path',
         'unit_name',
         'package_name',
         'units_per_package',

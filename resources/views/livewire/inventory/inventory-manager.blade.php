@@ -79,7 +79,13 @@
             <div class="rm-commerce-list">
                 @forelse ($products as $product)
                     <article class="rm-commerce-row">
-                        <div class="rm-commerce-icon"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/></svg></div>
+                        <div class="rm-commerce-icon rm-product-thumb">
+                            @if ($product->image_path)
+                                <img src="{{ asset('storage/'.$product->image_path) }}" alt="{{ $product->name }}">
+                            @else
+                                {{ strtoupper(substr($product->name, 0, 1)) }}
+                            @endif
+                        </div>
                         <div class="rm-row-main">
                             <strong>{{ $product->name }}</strong>
                             <span>{{ $product->code }} - Stock {{ number_format((float) ($product->current_stock ?? 0), 2) }} {{ $product->unit_name }}</span>

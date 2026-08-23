@@ -19,15 +19,18 @@ use App\Models\InventoryUseArea;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\On;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class InventoryManager extends Component
 {
+    use WithFileUploads;
     use WithPagination;
 
     public string $screen = 'catalog';
@@ -80,6 +83,8 @@ class InventoryManager extends Component
 
     public string $productName = '';
     public string $productDescription = '';
+    public $productImage = null;
+    public string $currentProductImagePath = '';
     public ?int $productSupplierId = null;
     public ?int $productBrandId = null;
     public ?int $productUseAreaId = null;
@@ -341,6 +346,7 @@ class InventoryManager extends Component
         $this->editingProductId = $product->id;
         $this->productName = $product->name;
         $this->productDescription = $product->description ?? '';
+        $this->currentProductImagePath = $product->image_path ?? '';
         $this->productSupplierId = $product->inventory_supplier_id;
         $this->productBrandId = $product->inventory_brand_id;
         $this->productUseAreaId = $product->inventory_use_area_id;
@@ -362,6 +368,7 @@ class InventoryManager extends Component
         $validated = $this->validate([
             'productName' => ['required', 'string', 'max:160'],
             'productDescription' => ['nullable', 'string', 'max:500'],
+            'productImage' => ['nullable', 'image', 'max:4096'],
             'productSupplierId' => ['nullable', Rule::in($supplierIds)],
             'productBrandId' => ['nullable', Rule::in($brandIds)],
             'productUseAreaId' => ['nullable', Rule::in($useAreaIds)],
@@ -403,6 +410,16 @@ class InventoryManager extends Component
         ]);
         $product->save();
 
+        if ($this->productImage) {
+            if ($product->image_path) {
+                Storage::disk('public')->delete($product->image_path);
+            }
+
+            $product->forceFill([
+                'image_path' => $this->productImage->store('inventory-products', 'public'),
+            ])->save();
+        }
+
         if (! $this->editingProductId) {
             $this->createCatalogBatchesForProduct($company, $product);
         }
@@ -433,6 +450,9 @@ class InventoryManager extends Component
         }
 
         $product->delete();
+        if ($product->image_path) {
+            Storage::disk('public')->delete($product->image_path);
+        }
         $this->confirmingProductDeleteId = null;
 
         if ($this->editingProductId === $productId) {
@@ -1834,7 +1854,7 @@ class InventoryManager extends Component
 
     private function resetProductForm(): void
     {
-        $this->reset(['editingProductId', 'productName', 'productDescription', 'productSupplierId', 'productBrandId', 'productUseAreaId', 'packageName']);
+        $this->reset(['editingProductId', 'productName', 'productDescription', 'productImage', 'currentProductImagePath', 'productSupplierId', 'productBrandId', 'productUseAreaId', 'packageName']);
         $this->unitName = 'unidad';
         $this->unitsPerPackage = '1';
         $this->purchaseCost = '0';
