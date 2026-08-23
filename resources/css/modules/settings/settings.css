@@ -2965,7 +2965,7 @@
     align-items: center;
     display: grid;
     gap: 10px;
-    grid-template-columns: 1.3fr repeat(6, minmax(95px, 1fr));
+    grid-template-columns: 1.25fr repeat(7, minmax(90px, 1fr));
     padding: 14px 16px;
 }
 

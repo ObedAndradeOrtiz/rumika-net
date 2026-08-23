@@ -44,7 +44,7 @@ class FinanceReportExportController extends Controller
         ]);
 
         $pdf->heading('Resumen por sucursal');
-        $pdf->row(['Sucursal', 'Servicios', 'Productos', 'Gastos', 'Neto', 'Asistencia', 'Por cobrar'], [120, 70, 70, 65, 65, 65, 80], 8);
+        $pdf->row(['Sucursal', 'Servicios', 'Productos', 'Gastos', 'Neto', 'Comis.', 'Asist.', 'Por cobrar'], [105, 62, 62, 58, 58, 58, 50, 72], 8);
         foreach ($data['branchRows'] as $row) {
             $pdf->row([
                 $row['name'],
@@ -52,9 +52,10 @@ class FinanceReportExportController extends Controller
                 $currency.' '.number_format((float) $row['products'], 2),
                 $currency.' '.number_format((float) $row['expenses'], 2),
                 $currency.' '.number_format((float) $row['net'], 2),
+                $currency.' '.number_format((float) $row['commissions'], 2),
                 $row['attended'].'/'.$row['appointments'],
                 $currency.' '.number_format((float) $row['debts'], 2),
-            ], [120, 70, 70, 65, 65, 65, 80], 8);
+            ], [105, 62, 62, 58, 58, 58, 50, 72], 8);
         }
 
         $pdf->heading('Servicios mas vendidos');

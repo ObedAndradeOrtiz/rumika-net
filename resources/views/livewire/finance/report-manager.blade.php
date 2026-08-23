@@ -15,7 +15,7 @@
             <label class="rm-field">
                 <span>Sucursal</span>
                 <select wire:model.live="branchFilter">
-                    <option value="">Todas</option>
+                    <option value="">General - todas</option>
                     @foreach ($branches as $branch)
                         <option value="{{ $branch->id }}">{{ $branch->name }}</option>
                     @endforeach
@@ -39,7 +39,7 @@
         <div class="rm-panel-title"><div><h2>Resumen por sucursal</h2><p>{{ $rangeLabel }}</p></div></div>
         <div class="rm-report-table">
             <div class="rm-report-table-head">
-                <span>Sucursal</span><span>Servicios</span><span>Productos</span><span>Gastos</span><span>Neto</span><span>Asistencia</span><span>Por cobrar</span>
+                <span>Sucursal</span><span>Servicios</span><span>Productos</span><span>Gastos</span><span>Neto</span><span>Comisiones</span><span>Asistencia</span><span>Por cobrar</span>
             </div>
             @foreach ($branchRows as $row)
                 <div class="rm-report-table-row">
@@ -48,6 +48,7 @@
                     <span>{{ $currency }} {{ number_format((float) $row['products'], 2) }}</span>
                     <span>{{ $currency }} {{ number_format((float) $row['expenses'], 2) }}</span>
                     <span>{{ $currency }} {{ number_format((float) $row['net'], 2) }}</span>
+                    <span>{{ $currency }} {{ number_format((float) $row['commissions'], 2) }}</span>
                     <span>{{ $row['attended'] }}/{{ $row['appointments'] }}</span>
                     <span>{{ $currency }} {{ number_format((float) $row['debts'], 2) }}</span>
                 </div>

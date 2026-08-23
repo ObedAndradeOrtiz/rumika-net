@@ -49,13 +49,13 @@ class ReportManager extends Component
             : $this->branches($company)->pluck('id')->all();
 
         $payments = $company->treatmentPayments()
-            ->with(['branch', 'client', 'performedBy', 'items.soldBy', 'items.appointmentService.performedBy', 'items.appointmentService.referredBy'])
+            ->with(['branch', 'client', 'performedBy', 'items.product', 'items.soldBy', 'items.appointmentService.service', 'items.appointmentService.performedBy', 'items.appointmentService.referredBy'])
             ->whereIn('branch_id', $branchIds)
             ->whereBetween('paid_at', $range)
             ->get();
 
         $productSales = $company->productSales()
-            ->with(['branch', 'soldBy', 'items'])
+            ->with(['branch', 'soldBy', 'items.product'])
             ->whereIn('branch_id', $branchIds)
             ->whereBetween('sold_at', $range)
             ->get();
@@ -100,8 +100,8 @@ class ReportManager extends Component
                 'expenses' => $expenseTotal,
                 'net' => $serviceIncome + $productIncome - $expenseTotal,
                 'debts' => (float) $debts->sum('balance_amount'),
-                'commissions' => (float) $serviceItems->sum(fn ($row) => (float) $row['item']->commission_amount)
-                    + (float) $productItems->sum(fn ($row) => (float) $row['item']->commission_amount),
+                'commissions' => (float) $serviceItems->sum(fn ($row) => $this->serviceCommissionValue($row))
+                    + (float) $productItems->sum(fn ($row) => $this->productCommissionValue($row)),
                 'appointments' => $appointments->count(),
                 'attended' => $appointments->where('attended', true)->count(),
             ],
@@ -132,6 +132,15 @@ class ReportManager extends Component
                 $serviceIncome = $branchPayments->flatMap->items->where('type', 'service')->sum('total');
                 $productIncome = $branchPayments->flatMap->items->where('type', 'product')->sum('total')
                     + $productSales->where('branch_id', $branch->id)->sum('subtotal');
+                $commissionTotal = $branchPayments
+                    ->flatMap(fn ($payment) => $payment->items->map(fn ($item) => ['payment' => $payment, 'item' => $item]))
+                    ->sum(fn ($row) => $row['item']->type === 'service'
+                        ? $this->serviceCommissionValue($row)
+                        : $this->productCommissionValue($row))
+                    + $productSales
+                        ->where('branch_id', $branch->id)
+                        ->flatMap(fn ($sale) => $sale->items->map(fn ($item) => ['sale' => $sale, 'item' => $item]))
+                        ->sum(fn ($row) => $this->productCommissionValue($row));
                 $branchExpenses = $expenses->where('branch_id', $branch->id)->sum('amount');
                 $branchAppointments = $appointments->where('branch_id', $branch->id);
 
@@ -144,6 +153,7 @@ class ReportManager extends Component
                     'appointments' => $branchAppointments->count(),
                     'attended' => $branchAppointments->where('attended', true)->count(),
                     'debts' => (float) $debts->where('branch_id', $branch->id)->sum('balance_amount'),
+                    'commissions' => (float) $commissionTotal,
                 ];
             })
             ->values();
@@ -160,7 +170,7 @@ class ReportManager extends Component
             $key = $staff?->id ? 'u'.$staff->id : 'none';
             $current = $rows->get($key, ['name' => $staff?->name ?? 'Sin responsable', 'services' => 0, 'products' => 0, 'commission' => 0]);
             $current['services'] += (float) $row['item']->total;
-            $current['commission'] += (float) $row['item']->commission_amount;
+            $current['commission'] += $this->serviceCommissionValue($row);
             $rows->put($key, $current);
         });
 
@@ -171,7 +181,7 @@ class ReportManager extends Component
             $key = $staff?->id ? 'u'.$staff->id : 'none';
             $current = $rows->get($key, ['name' => $staff?->name ?? 'Sin responsable', 'services' => 0, 'products' => 0, 'commission' => 0]);
             $current['products'] += (float) $row['item']->total;
-            $current['commission'] += (float) $row['item']->commission_amount;
+            $current['commission'] += $this->productCommissionValue($row);
             $rows->put($key, $current);
         });
 
@@ -199,6 +209,54 @@ class ReportManager extends Component
             ->values();
     }
 
+    private function serviceCommissionValue(array $row): float
+    {
+        $saved = (float) ($row['item']->commission_amount ?? 0);
+
+        if ($saved > 0) {
+            return $saved;
+        }
+
+        $branch = $row['payment']->branch ?? null;
+        $service = $row['item']->appointmentService?->service;
+        $amount = (float) ($row['item']->total ?? 0);
+
+        if (! $branch || $amount <= 0 || $service?->commission_enabled === false) {
+            return 0.0;
+        }
+
+        $percent = (float) $branch->service_commission_percent;
+        $minimum = (float) $branch->service_commission_min_sale;
+
+        return $percent > 0 && $amount >= $minimum
+            ? round($amount * $percent / 100, 2)
+            : 0.0;
+    }
+
+    private function productCommissionValue(array $row): float
+    {
+        $saved = (float) ($row['item']->commission_amount ?? 0);
+
+        if ($saved > 0) {
+            return $saved;
+        }
+
+        $branch = isset($row['sale']) ? ($row['sale']->branch ?? null) : ($row['payment']->branch ?? null);
+        $product = $row['item']->product ?? null;
+        $amount = (float) ($row['item']->total ?? 0);
+
+        if (! $branch || $amount <= 0 || $product?->commission_enabled === false) {
+            return 0.0;
+        }
+
+        $percent = (float) $branch->product_commission_percent;
+        $minimum = (float) $branch->product_commission_min_sale;
+
+        return $percent > 0 && $amount >= $minimum
+            ? round($amount * $percent / 100, 2)
+            : 0.0;
+    }
+
     private function range(): array
     {
         return [
@@ -214,8 +272,6 @@ class ReportManager extends Component
 
     private function branches(Company $company)
     {
-        $branches = Auth::user()->branches()->where('company_id', $company->id)->orderBy('name')->get();
-
-        return $branches->isNotEmpty() ? $branches : $company->branches()->orderBy('name')->get();
+        return $company->branches()->orderBy('name')->get();
     }
 }
