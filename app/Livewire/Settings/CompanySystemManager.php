@@ -5,6 +5,7 @@ namespace App\Livewire\Settings;
 use App\Models\Company;
 use App\Models\CompanyPlan;
 use App\Support\CompanyPlanLimits;
+use App\Support\RumikaAccess;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Livewire\Component;
@@ -69,7 +70,15 @@ class CompanySystemManager extends Component
             ->where('companies.id', $company->id)
             ->value('company_user.role');
 
-        return in_array($role, ['owner', 'super_admin', 'super-administrador', 'admin', 'administrator', 'administrador'], true);
+        if (in_array($role, RumikaAccess::ADMIN_ROLES, true)) {
+            return true;
+        }
+
+        return $user->branches()
+            ->where('branches.company_id', $company->id)
+            ->leftJoin('roles', 'roles.id', '=', 'branch_user.role_id')
+            ->whereIn('roles.slug', RumikaAccess::ADMIN_ROLES)
+            ->exists();
     }
 
     private function planCard(CompanyPlan $plan): array

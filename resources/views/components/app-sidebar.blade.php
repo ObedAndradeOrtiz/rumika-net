@@ -32,7 +32,15 @@
     $sidebarCompanyRole = $sidebarNavCompany
         ? $sidebarNavUser?->companies()->where('companies.id', $sidebarNavCompany->id)->value('company_user.role')
         : null;
-    $sidebarCanSeeSystem = in_array($sidebarCompanyRole, \App\Support\RumikaAccess::ADMIN_ROLES, true);
+    $sidebarHasAdminBranchRole = $sidebarNavCompany && $sidebarNavUser
+        ? $sidebarNavUser->branches()
+            ->where('branches.company_id', $sidebarNavCompany->id)
+            ->leftJoin('roles', 'roles.id', '=', 'branch_user.role_id')
+            ->whereIn('roles.slug', \App\Support\RumikaAccess::ADMIN_ROLES)
+            ->exists()
+        : false;
+    $sidebarCanSeeSystem = in_array($sidebarCompanyRole, \App\Support\RumikaAccess::ADMIN_ROLES, true)
+        || $sidebarHasAdminBranchRole;
 @endphp
 
 <aside class="rm-side">
