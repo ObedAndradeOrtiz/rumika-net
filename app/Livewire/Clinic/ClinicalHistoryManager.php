@@ -489,7 +489,7 @@ class ClinicalHistoryManager extends Component
                 ->exists();
     }
 
-    private function visibleClientsQuery(): Builder
+    private function visibleClientsQuery()
     {
         $company = $this->company();
 
