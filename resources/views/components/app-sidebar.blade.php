@@ -20,6 +20,7 @@
     $sidebarCanSeeCommerce = $canAccess('sucursales');
     $sidebarCanSeeServices = $canAccess('servicios');
     $sidebarCanSeeRecords = $canAccess('registros');
+    $sidebarCanSeeAudit = $canAccess('bitacora');
     $sidebarCanSeeUsers = $canAccess('usuarios');
     $sidebarCanSeeRoles = $canAccess('roles');
 @endphp
@@ -177,9 +178,9 @@
         </details>
         @endif
 
-        @if ($sidebarCanSeeCommerce || $sidebarCanSeeServices || $sidebarCanSeeRecords || $sidebarCanSeeUsers || $sidebarCanSeeRoles)
+        @if ($sidebarCanSeeCommerce || $sidebarCanSeeServices || $sidebarCanSeeRecords || $sidebarCanSeeAudit || $sidebarCanSeeUsers || $sidebarCanSeeRoles)
         <details class="rm-menu-group"
-            {{ in_array($active, ['settings', 'services', 'users', 'roles', 'records'], true) ? 'open' : '' }}>
+            {{ in_array($active, ['settings', 'services', 'users', 'roles', 'records', 'audit'], true) ? 'open' : '' }}>
             <summary>
                 <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     stroke-width="2.2">
@@ -211,6 +212,13 @@
                     href="{{ route('settings.records') }}">
                     <i aria-hidden="true"></i>
                     <span data-sidebar-label>Registros</span>
+                </a>
+                @endif
+                @if ($sidebarCanSeeAudit)
+                <a class="rm-side-link rm-side-sub-link {{ $active === 'audit' ? 'is-active' : '' }}"
+                    href="{{ route('settings.audit') }}">
+                    <i aria-hidden="true"></i>
+                    <span data-sidebar-label>Bitacora</span>
                 </a>
                 @endif
                 @if ($sidebarCanSeeUsers || $sidebarCanSeeRoles)

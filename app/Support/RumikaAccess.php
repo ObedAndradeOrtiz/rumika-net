@@ -104,6 +104,7 @@ class RumikaAccess
             'settings.commerce' => 'sucursales',
             'settings.services' => 'servicios',
             'settings.records' => 'registros',
+            'settings.audit' => 'bitacora',
             'settings.users' => 'usuarios',
         ];
     }

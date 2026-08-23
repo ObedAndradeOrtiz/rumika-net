@@ -82,6 +82,11 @@ class RumikaPermissions
                 'group' => 'Gestion administrativa',
                 'actions' => ['view', 'edit', 'delete'],
             ],
+            'bitacora' => [
+                'label' => 'Bitacora',
+                'group' => 'Gestion administrativa',
+                'actions' => ['view'],
+            ],
         ];
     }
 

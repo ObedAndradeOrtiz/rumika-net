@@ -62,6 +62,10 @@ Route::view('configuracion/registros', 'settings.records')
     ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.permission:registros'])
     ->name('settings.records');
 
+Route::view('configuracion/bitacora', 'settings.audit')
+    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.permission:bitacora'])
+    ->name('settings.audit');
+
 Route::view('agenda', 'clinic.agenda')
     ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.permission:agenda'])
     ->name('clinic.agenda');
