@@ -206,6 +206,10 @@
     gap: 14px;
 }
 
+.rm-clinical-layout:not(.is-client-locked) .rm-clinical-content {
+    padding-top: 22px;
+}
+
 .rm-clinical-patients {
     align-self: start;
     max-height: calc(100dvh - 150px);
