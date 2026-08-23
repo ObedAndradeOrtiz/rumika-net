@@ -82,6 +82,10 @@ Route::view('caja', 'clinic.cashbox')
     ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.permission:caja'])
     ->name('clinic.cashbox');
 
+Route::view('ventas/productos', 'sales.products')
+    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.permission:ventas_productos'])
+    ->name('sales.products');
+
 Route::view('inventario', 'inventory.index')
     ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.permission:inventario'])
     ->name('inventory.index');

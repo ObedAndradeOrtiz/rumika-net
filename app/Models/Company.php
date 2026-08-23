@@ -82,6 +82,16 @@ class Company extends Model
         return $this->hasMany(ClientCharge::class);
     }
 
+    public function buyers(): HasMany
+    {
+        return $this->hasMany(Buyer::class);
+    }
+
+    public function productSales(): HasMany
+    {
+        return $this->hasMany(ProductSale::class);
+    }
+
     public function servicePackages(): HasMany
     {
         return $this->hasMany(ServicePackage::class);

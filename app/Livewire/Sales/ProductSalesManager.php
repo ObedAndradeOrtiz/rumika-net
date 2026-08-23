@@ -1,0 +1,313 @@
+<?php
+
+namespace App\Livewire\Sales;
+
+use App\Models\Branch;
+use App\Models\Buyer;
+use App\Models\Company;
+use App\Models\InventoryMovement;
+use App\Models\InventoryProduct;
+use App\Models\InventoryProductBatch;
+use App\Models\ProductSale;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
+use Livewire\Component;
+
+class ProductSalesManager extends Component
+{
+    public string $buyerSearch = '';
+    public string $buyerName = '';
+    public string $buyerNit = '';
+    public string $buyerPhone = '';
+    public string $buyerEmail = '';
+    public string $productSearch = '';
+    public array $lines = [];
+    public string $cashAmount = '0';
+    public string $qrAmount = '0';
+    public ?int $soldByUserId = null;
+    public bool $invoiceRequested = false;
+    public string $reference = '';
+    public string $notes = '';
+    public string $message = '';
+
+    public function mount(): void
+    {
+        $this->soldByUserId = Auth::id();
+    }
+
+    public function selectBuyer(int $buyerId): void
+    {
+        $buyer = $this->company()->buyers()->whereKey($buyerId)->firstOrFail();
+        $this->buyerName = $buyer->full_name ?? '';
+        $this->buyerNit = $buyer->nit ?? '';
+        $this->buyerPhone = $buyer->phone ?? '';
+        $this->buyerEmail = $buyer->email ?? '';
+        $this->buyerSearch = '';
+    }
+
+    public function addProduct(int $productId): void
+    {
+        $company = $this->company();
+        $branch = $this->activeBranch();
+        $product = $company->inventoryProducts()
+            ->with(['brand', 'useArea'])
+            ->where('status', 'active')
+            ->whereKey($productId)
+            ->firstOrFail();
+        $batch = $company->inventoryBatches()
+            ->where('branch_id', $branch->id)
+            ->where('inventory_product_id', $product->id)
+            ->where('status', 'available')
+            ->orderByRaw('CASE WHEN current_quantity > 0 THEN 0 ELSE 1 END')
+            ->orderByRaw('expires_at IS NULL')
+            ->orderBy('expires_at')
+            ->orderBy('id')
+            ->first();
+
+        $this->lines[] = [
+            'product_id' => $product->id,
+            'batch_id' => $batch?->id,
+            'name' => $product->name,
+            'code' => $product->code,
+            'brand' => $product->brand?->name ?? 'Sin marca',
+            'area' => $product->useArea?->name ?? 'Sin area',
+            'lot' => $batch?->lot_code ?? 'Sin lote',
+            'available' => (float) ($batch?->current_quantity ?? 0),
+            'quantity' => '1',
+            'unit_price' => (string) ((float) ($product->purchase_cost ?: 0)),
+            'missing_reason' => '',
+        ];
+
+        $this->productSearch = '';
+    }
+
+    public function removeLine(int $index): void
+    {
+        unset($this->lines[$index]);
+        $this->lines = array_values($this->lines);
+    }
+
+    public function saveSale(): void
+    {
+        $company = $this->company();
+        $branch = $this->activeBranch();
+        $staffIds = $company->users()->pluck('users.id')->all();
+
+        $validated = $this->validate([
+            'buyerName' => ['nullable', 'string', 'max:180'],
+            'buyerNit' => ['nullable', 'string', 'max:40'],
+            'buyerPhone' => ['nullable', 'string', 'max:40'],
+            'buyerEmail' => ['nullable', 'email', 'max:180'],
+            'soldByUserId' => ['required', Rule::in($staffIds)],
+            'cashAmount' => ['required', 'numeric', 'min:0', 'max:99999999.99'],
+            'qrAmount' => ['required', 'numeric', 'min:0', 'max:99999999.99'],
+            'invoiceRequested' => ['boolean'],
+            'reference' => ['nullable', 'string', 'max:160'],
+            'notes' => ['nullable', 'string', 'max:500'],
+            'lines' => ['required', 'array', 'min:1'],
+            'lines.*.product_id' => ['required', Rule::exists('inventory_products', 'id')->where('company_id', $company->id)],
+            'lines.*.batch_id' => ['nullable', Rule::exists('inventory_product_batches', 'id')->where('company_id', $company->id)->where('branch_id', $branch->id)],
+            'lines.*.quantity' => ['required', 'numeric', 'min:0.01', 'max:999999.99'],
+            'lines.*.unit_price' => ['required', 'numeric', 'min:0', 'max:999999.99'],
+            'lines.*.missing_reason' => ['nullable', 'string', 'max:180'],
+        ]);
+
+        $subtotal = collect($validated['lines'])->sum(fn (array $line) => round((float) $line['quantity'] * (float) $line['unit_price'], 2));
+        $cash = round((float) $validated['cashAmount'], 2);
+        $qr = round((float) $validated['qrAmount'], 2);
+        $paid = round($cash + $qr, 2);
+
+        if ($subtotal <= 0) {
+            $this->addError('lines', 'Agrega al menos un producto con precio.');
+
+            return;
+        }
+
+        if (abs($paid - $subtotal) > 0.01) {
+            $this->addError('cashAmount', 'El total pagado debe ser igual al total de la venta.');
+
+            return;
+        }
+
+        DB::transaction(function () use ($company, $branch, $validated, $subtotal, $cash, $qr, $paid) {
+            $buyer = $this->buyerForSale($company);
+            $sale = ProductSale::query()->create([
+                'company_id' => $company->id,
+                'branch_id' => $branch->id,
+                'buyer_id' => $buyer?->id,
+                'sold_by_user_id' => $validated['soldByUserId'],
+                'received_by_user_id' => Auth::id(),
+                'buyer_name' => $this->buyerName ?: ($buyer?->full_name ?: 'Consumidor final'),
+                'buyer_nit' => $this->buyerNit ?: null,
+                'buyer_phone' => $this->buyerPhone ?: null,
+                'buyer_email' => $this->buyerEmail ?: null,
+                'subtotal' => $subtotal,
+                'paid_amount' => $paid,
+                'cash_amount' => $cash,
+                'qr_amount' => $qr,
+                'method' => $cash > 0 && $qr > 0 ? 'mixed' : ($qr > 0 ? 'qr' : 'cash'),
+                'invoice_requested' => $validated['invoiceRequested'],
+                'reference' => $validated['reference'] ?: null,
+                'notes' => $validated['notes'] ?: null,
+                'sold_at' => now(),
+            ]);
+
+            foreach ($validated['lines'] as $line) {
+                $product = $company->inventoryProducts()->whereKey($line['product_id'])->firstOrFail();
+                $batch = $line['batch_id']
+                    ? InventoryProductBatch::query()->whereKey($line['batch_id'])->lockForUpdate()->first()
+                    : null;
+                $quantity = round((float) $line['quantity'], 2);
+                $unitPrice = round((float) $line['unit_price'], 2);
+                $available = max(0, (float) ($batch?->current_quantity ?? 0));
+                $stockQuantity = min($quantity, $available);
+                $pendingQuantity = round($quantity - $stockQuantity, 2);
+
+                if ($batch && $stockQuantity > 0) {
+                    $batch->decrement('current_quantity', $stockQuantity);
+                }
+
+                $sale->items()->create([
+                    'inventory_product_id' => $product->id,
+                    'inventory_product_batch_id' => $batch?->id,
+                    'name' => $product->name,
+                    'lot_code' => $batch?->lot_code,
+                    'quantity' => $quantity,
+                    'stock_quantity' => $stockQuantity,
+                    'pending_quantity' => $pendingQuantity,
+                    'unit_price' => $unitPrice,
+                    'total' => round($quantity * $unitPrice, 2),
+                    'missing_reason' => $pendingQuantity > 0 ? (($line['missing_reason'] ?? '') ?: 'Venta con stock pendiente') : null,
+                ]);
+
+                if ($stockQuantity > 0) {
+                    InventoryMovement::query()->create([
+                        'company_id' => $company->id,
+                        'branch_id' => $branch->id,
+                        'inventory_product_id' => $product->id,
+                        'inventory_product_batch_id' => $batch?->id,
+                        'type' => 'sale',
+                        'quantity' => $stockQuantity,
+                        'unit_cost' => $batch?->unit_cost ?? 0,
+                        'total_cost' => $stockQuantity * (float) ($batch?->unit_cost ?? 0),
+                        'moved_at' => now(),
+                        'reference' => 'SALE-'.$sale->id,
+                        'reason' => 'Venta directa de producto',
+                    ]);
+                }
+
+                if ($pendingQuantity > 0) {
+                    InventoryMovement::query()->create([
+                        'company_id' => $company->id,
+                        'branch_id' => $branch->id,
+                        'inventory_product_id' => $product->id,
+                        'inventory_product_batch_id' => $batch?->id,
+                        'type' => 'stock_shortage',
+                        'quantity' => $pendingQuantity,
+                        'unit_cost' => $batch?->unit_cost ?? 0,
+                        'total_cost' => $pendingQuantity * (float) ($batch?->unit_cost ?? 0),
+                        'moved_at' => now(),
+                        'reference' => 'SALE-'.$sale->id,
+                        'reason' => ($line['missing_reason'] ?? '') ?: 'Venta con stock pendiente',
+                    ]);
+                }
+            }
+        });
+
+        $this->reset(['buyerSearch', 'buyerName', 'buyerNit', 'buyerPhone', 'buyerEmail', 'productSearch', 'lines', 'cashAmount', 'qrAmount', 'invoiceRequested', 'reference', 'notes']);
+        $this->soldByUserId = Auth::id();
+        $this->cashAmount = '0';
+        $this->qrAmount = '0';
+        $this->message = 'Venta registrada correctamente.';
+    }
+
+    public function getTotalProperty(): float
+    {
+        return collect($this->lines)->sum(fn (array $line) => round((float) ($line['quantity'] ?? 0) * (float) ($line['unit_price'] ?? 0), 2));
+    }
+
+    public function render()
+    {
+        $company = $this->company();
+        $branch = $this->activeBranch();
+        $buyerSearch = trim($this->buyerSearch);
+        $productSearch = trim($this->productSearch);
+
+        return view('livewire.sales.product-sales-manager', [
+            'branch' => $branch,
+            'buyers' => $buyerSearch === '' ? collect() : $company->buyers()
+                ->where('status', 'active')
+                ->where(fn (Builder $query) => $query
+                    ->where('full_name', 'like', "%{$buyerSearch}%")
+                    ->orWhere('nit', 'like', "%{$buyerSearch}%")
+                    ->orWhere('phone', 'like', "%{$buyerSearch}%"))
+                ->limit(6)
+                ->get(),
+            'products' => $productSearch === '' ? collect() : $company->inventoryProducts()
+                ->with(['brand', 'useArea', 'batches' => fn ($query) => $query->where('branch_id', $branch->id)])
+                ->where('status', 'active')
+                ->where(fn (Builder $query) => $query
+                    ->where('name', 'like', "%{$productSearch}%")
+                    ->orWhere('code', 'like', "%{$productSearch}%"))
+                ->orderBy('name')
+                ->limit(8)
+                ->get(),
+            'staffUsers' => $company->users()->orderBy('name')->get(),
+            'recentSales' => $company->productSales()
+                ->with(['buyer', 'soldBy', 'items'])
+                ->where('branch_id', $branch->id)
+                ->latest('sold_at')
+                ->limit(8)
+                ->get(),
+        ]);
+    }
+
+    private function buyerForSale(Company $company): ?Buyer
+    {
+        $nit = trim($this->buyerNit);
+        $phone = trim($this->buyerPhone);
+
+        if ($nit === '' && $phone === '') {
+            return null;
+        }
+
+        $query = $company->buyers();
+        $buyer = $query
+            ->where(fn (Builder $nested) => $nested
+                ->when($nit !== '', fn (Builder $q) => $q->orWhere('nit', $nit))
+                ->when($phone !== '', fn (Builder $q) => $q->orWhere('phone', $phone)))
+            ->first();
+
+        if (! $buyer) {
+            $buyer = new Buyer(['company_id' => $company->id]);
+        }
+
+        $buyer->fill([
+            'full_name' => $this->buyerName ?: $buyer->full_name,
+            'nit' => $nit ?: $buyer->nit,
+            'phone' => $phone ?: $buyer->phone,
+            'email' => $this->buyerEmail ?: $buyer->email,
+            'status' => 'active',
+        ])->save();
+
+        return $buyer;
+    }
+
+    private function company(): Company
+    {
+        return Auth::user()->companies()->firstOrFail();
+    }
+
+    private function activeBranch(): Branch
+    {
+        $company = $this->company();
+        $branches = Auth::user()->branches()->where('company_id', $company->id)->orderBy('name')->get();
+        $branches = $branches->isNotEmpty() ? $branches : $company->branches()->orderBy('name')->get();
+
+        return $branches->firstWhere('id', session('active_branch_id'))
+            ?? $branches->first()
+            ?? $company->branches()->firstOrFail();
+    }
+}

@@ -6,6 +6,7 @@ use App\Models\Branch;
 use App\Models\CashboxSession;
 use App\Models\CashboxTicket;
 use App\Models\Company;
+use App\Models\ProductSale;
 use App\Models\TreatmentPaymentSplit;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -381,6 +382,14 @@ class QuickCashbox extends Component
                     ->where('full_name', 'like', "%{$clientSearch}%")
                     ->orWhere('identity_number', 'like', "%{$clientSearch}%")
                     ->orWhere('phone', 'like', "%{$clientSearch}%")));
+            $productSalesQuery = $company
+                ->productSales()
+                ->where('branch_id', $branch->id)
+                ->whereBetween('created_at', [$start, $end])
+                ->when($clientSearch !== '', fn ($query) => $query
+                    ->where('buyer_name', 'like', "%{$clientSearch}%")
+                    ->orWhere('buyer_nit', 'like', "%{$clientSearch}%")
+                    ->orWhere('buyer_phone', 'like', "%{$clientSearch}%"));
             $expenses = $company
                 ->expenses()
                 ->with([
@@ -416,6 +425,14 @@ class QuickCashbox extends Component
                     ->where('full_name', 'like', "%{$clientSearch}%")
                     ->orWhere('identity_number', 'like', "%{$clientSearch}%")
                     ->orWhere('phone', 'like', "%{$clientSearch}%")));
+            $productSalesQuery = $company
+                ->productSales()
+                ->where('branch_id', $branch->id)
+                ->whereBetween('sold_at', [$day->copy()->startOfDay(), $day->copy()->endOfDay()])
+                ->when($clientSearch !== '', fn ($query) => $query
+                    ->where('buyer_name', 'like', "%{$clientSearch}%")
+                    ->orWhere('buyer_nit', 'like', "%{$clientSearch}%")
+                    ->orWhere('buyer_phone', 'like', "%{$clientSearch}%"));
 
             $expenses = collect();
         }
@@ -431,6 +448,10 @@ class QuickCashbox extends Component
             ])
             ->latest('paid_at')
             ->get();
+        $productSales = (clone $productSalesQuery)
+            ->with(['buyer', 'soldBy', 'items'])
+            ->latest('sold_at')
+            ->get();
 
         $cashTotal = (float) TreatmentPaymentSplit::query()
             ->whereIn(
@@ -438,7 +459,8 @@ class QuickCashbox extends Component
                 $paymentIds
             )
             ->where('method', 'cash')
-            ->sum('amount');
+            ->sum('amount')
+            + (float) $productSales->sum('cash_amount');
 
         $qrTotal = (float) TreatmentPaymentSplit::query()
             ->whereIn(
@@ -446,14 +468,16 @@ class QuickCashbox extends Component
                 $paymentIds
             )
             ->where('method', 'qr')
-            ->sum('amount');
+            ->sum('amount')
+            + (float) $productSales->sum('qr_amount');
 
         $cashboxExpenseTotal = (float) $expenses
             ->where('source', 'cashbox')
             ->sum('amount');
 
         $printSummary = $this->buildPrintSummary(
-            $payments
+            $payments,
+            $productSales
         );
 
         return view(
@@ -528,7 +552,7 @@ class QuickCashbox extends Component
     {
         $this->selectedShiftId = '';
     }
-    private function buildPrintSummary($payments): array
+    private function buildPrintSummary($payments, $productSales = null): array
     {
         $summary = [
             'services' => ['rows' => collect(), 'cash' => 0.0, 'qr' => 0.0, 'total' => 0.0],
@@ -561,6 +585,33 @@ class QuickCashbox extends Component
                 $summary[$group]['cash'] += $cash;
                 $summary[$group]['qr'] += $qr;
                 $summary[$group]['total'] += $total;
+            }
+        }
+
+        foreach (($productSales ?? collect()) as $sale) {
+            $cashLeft = (float) $sale->cash_amount;
+            $qrLeft = (float) $sale->qr_amount;
+
+            foreach ($sale->items as $item) {
+                $total = (float) $item->total;
+                $cash = min($cashLeft, $total);
+                $cashLeft -= $cash;
+                $qr = min($qrLeft, $total - $cash);
+                $qrLeft -= $qr;
+
+                $summary['products']['rows']->push([
+                    'time' => $sale->sold_at->format('H:i'),
+                    'client' => $sale->buyer_name ?: 'Consumidor final',
+                    'name' => $item->name,
+                    'quantity' => (float) $item->quantity,
+                    'total' => $total,
+                    'cash' => $cash,
+                    'qr' => $qr,
+                    'method' => $this->linePaymentMethod($cash, $qr),
+                ]);
+                $summary['products']['cash'] += $cash;
+                $summary['products']['qr'] += $qr;
+                $summary['products']['total'] += $total;
             }
         }
 
@@ -609,12 +660,18 @@ class QuickCashbox extends Component
             ->whereBetween('paid_at', [$day->copy()->startOfDay(), $day->copy()->endOfDay()])
             ->latest('paid_at')
             ->get();
+        $productSales = $company->productSales()
+            ->with(['buyer', 'soldBy', 'items'])
+            ->where('branch_id', $branch->id)
+            ->whereBetween('sold_at', [$day->copy()->startOfDay(), $day->copy()->endOfDay()])
+            ->latest('sold_at')
+            ->get();
 
         $payload = $this->ticketPayload(
             title: 'Detalle de caja',
             branch: $branch,
             businessDate: $day,
-            summary: $this->buildPrintSummary($payments),
+            summary: $this->buildPrintSummary($payments, $productSales),
             totals: $this->dailyTotals($company, $branch, $day),
         );
 
@@ -625,13 +682,14 @@ class QuickCashbox extends Component
     {
         $session->loadMissing(['company', 'branch', 'openedBy', 'closedBy']);
         $payments = $this->paymentsForSession($session);
+        $productSales = $this->productSalesForSession($session);
         $expenses = $this->expensesForSession($session);
         $totals = $this->sessionTotals($session);
         $payload = $this->ticketPayload(
             title: $title,
             branch: $session->branch,
             businessDate: $session->business_date,
-            summary: $this->buildPrintSummary($payments),
+            summary: $this->buildPrintSummary($payments, $productSales),
             expenses: $expenses,
             totals: [
                 ...$totals,
@@ -656,6 +714,7 @@ class QuickCashbox extends Component
 
             if ($existingTicket) {
                 $payments = $this->paymentsForSession($session);
+                $productSales = $this->productSalesForSession($session);
                 $expenses = $this->expensesForSession($session);
                 $totals = $this->sessionTotals($session);
 
@@ -663,7 +722,7 @@ class QuickCashbox extends Component
                     title: 'Cierre de caja',
                     branch: $session->branch,
                     businessDate: $session->business_date,
-                    summary: $this->buildPrintSummary($payments),
+                    summary: $this->buildPrintSummary($payments, $productSales),
                     expenses: $expenses,
                     totals: [
                         ...$totals,
@@ -833,6 +892,16 @@ class QuickCashbox extends Component
             ->whereIn('treatment_payment_id', $paymentIds)
             ->where('method', 'qr')
             ->sum('amount');
+        $productCash = (float) $company->productSales()
+            ->where('branch_id', $branch->id)
+            ->whereBetween('sold_at', [$day->copy()->startOfDay(), $day->copy()->endOfDay()])
+            ->sum('cash_amount');
+        $productQr = (float) $company->productSales()
+            ->where('branch_id', $branch->id)
+            ->whereBetween('sold_at', [$day->copy()->startOfDay(), $day->copy()->endOfDay()])
+            ->sum('qr_amount');
+        $cash += $productCash;
+        $qr += $productQr;
         $expenses = (float) $company->expenses()
             ->where('branch_id', $branch->id)
             ->where('source', 'cashbox')
@@ -860,6 +929,9 @@ class QuickCashbox extends Component
             ->whereIn('treatment_payment_id', $paymentIds)
             ->where('method', 'qr')
             ->sum('amount');
+        $productSales = $this->productSalesForSession($session);
+        $cash += (float) $productSales->sum('cash_amount');
+        $qr += (float) $productSales->sum('qr_amount');
         $expenses = (float) $this->expensesForSession($session)->sum('amount');
 
         return [
@@ -878,6 +950,19 @@ class QuickCashbox extends Component
 
         return $session->company->treatmentPayments()
             ->with(['client', 'splits', 'items'])
+            ->where('branch_id', $session->branch_id)
+            ->whereBetween('created_at', [$start, $end])
+            ->latest('created_at')
+            ->get();
+    }
+
+    private function productSalesForSession(CashboxSession $session)
+    {
+        $end = $session->closed_at ?? now();
+        $start = $this->sessionStartAt($session);
+
+        return $session->company->productSales()
+            ->with(['buyer', 'soldBy', 'items'])
             ->where('branch_id', $session->branch_id)
             ->whereBetween('created_at', [$start, $end])
             ->latest('created_at')

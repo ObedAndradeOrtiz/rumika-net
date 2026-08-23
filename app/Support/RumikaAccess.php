@@ -96,6 +96,7 @@ class RumikaAccess
             'clinic.clients' => 'clientes',
             'clinic.clinical-history' => 'historia_clinica',
             'clinic.cashbox' => 'caja',
+            'sales.products' => 'ventas_productos',
             'inventory.index' => 'inventario',
             'inventory.operations' => 'inventario_operaciones',
             'finance.expenses' => 'gastos',

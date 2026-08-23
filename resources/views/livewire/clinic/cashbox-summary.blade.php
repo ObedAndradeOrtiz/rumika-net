@@ -78,8 +78,12 @@
                             </div>
                         </div>
                         <div class="rm-commerce-actions">
-                            <button class="rm-button rm-button-outline" type="button" wire:click="previewPaymentTicket({{ $row['payment_id'] }})">Ticket</button>
-                            @if ($canManageRecords)
+                            @if ($row['payment_id'])
+                                <button class="rm-button rm-button-outline" type="button" wire:click="previewPaymentTicket({{ $row['payment_id'] }})">Ticket</button>
+                            @else
+                                <span class="rm-soft-pill">Venta directa</span>
+                            @endif
+                            @if ($canManageRecords && $row['payment_id'])
                                 <a class="rm-button rm-button-outline" href="{{ route('clinic.agenda', ['editar_cobro' => $row['payment_id']]) }}">Editar</a>
                                 <button class="rm-button rm-button-danger" type="button" wire:click="confirmDeletePayment({{ $row['payment_id'] }})">Eliminar</button>
                             @endif

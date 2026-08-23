@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\Appointment;
 use App\Models\AppointmentService;
 use App\Models\Branch;
+use App\Models\Buyer;
 use App\Models\CashboxSession;
 use App\Models\Client;
 use App\Models\ClientCharge;
@@ -26,6 +27,8 @@ use App\Models\InventoryProduct;
 use App\Models\InventoryProductBatch;
 use App\Models\InventorySupplier;
 use App\Models\InventoryUseArea;
+use App\Models\ProductSale;
+use App\Models\ProductSaleItem;
 use App\Models\Role;
 use App\Models\Service;
 use App\Models\ServicePackage;
@@ -89,6 +92,7 @@ class AppServiceProvider extends ServiceProvider
             Appointment::class,
             AppointmentService::class,
             Branch::class,
+            Buyer::class,
             CashboxSession::class,
             Client::class,
             ClientCharge::class,
@@ -110,6 +114,8 @@ class AppServiceProvider extends ServiceProvider
             InventoryProductBatch::class,
             InventorySupplier::class,
             InventoryUseArea::class,
+            ProductSale::class,
+            ProductSaleItem::class,
             Role::class,
             Service::class,
             ServicePackage::class,

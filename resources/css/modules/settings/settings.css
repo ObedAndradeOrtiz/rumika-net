@@ -349,6 +349,103 @@
     justify-content: flex-end;
 }
 
+.rm-commerce-sale-grid {
+    align-items: start;
+    display: grid;
+    gap: 18px;
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 420px);
+}
+
+.rm-commerce-list.compact {
+    gap: 8px;
+}
+
+.rm-buyer-result,
+.rm-product-result {
+    background: #ffffff;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+}
+
+.rm-sale-lines {
+    display: grid;
+    gap: 10px;
+}
+
+.rm-sale-line {
+    align-items: end;
+    border: 1px solid var(--rumika-border);
+    border-radius: 18px;
+    display: grid;
+    gap: 12px;
+    grid-template-columns: minmax(220px, 1fr) 120px 130px minmax(150px, 1fr) auto;
+    padding: 14px;
+}
+
+.rm-sale-line > div {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+}
+
+.rm-sale-line strong {
+    color: var(--rumika-ink);
+    font-size: 15px;
+    font-weight: 950;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rm-sale-line span {
+    color: var(--rumika-muted);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.rm-sale-summary {
+    display: grid;
+    gap: 14px;
+    position: sticky;
+    top: 18px;
+}
+
+.rm-total-card {
+    background: #e8f6f3;
+    border: 1px solid #c7ebe4;
+    border-radius: 18px;
+    display: grid;
+    gap: 6px;
+    padding: 18px;
+}
+
+.rm-total-card span {
+    color: var(--rumika-muted);
+    font-size: 13px;
+    font-weight: 850;
+}
+
+.rm-total-card strong {
+    color: var(--rumika-teal-dark);
+    font-size: 30px;
+    font-weight: 950;
+}
+
+.rm-success-panel {
+    background: #e8f6f3;
+    border-color: #b7e4dc;
+    color: var(--rumika-teal-dark);
+    font-weight: 900;
+    padding: 14px 18px;
+}
+
+.rm-error-text {
+    color: #b91c1c;
+    font-size: 13px;
+    font-weight: 850;
+}
+
 .rm-clinical-editor {
     padding: 24px 28px;
 }
@@ -2721,6 +2818,15 @@
     .rm-clinical-action-buttons {
         display: grid;
         grid-template-columns: 1fr;
+    }
+
+    .rm-commerce-sale-grid,
+    .rm-sale-line {
+        grid-template-columns: 1fr;
+    }
+
+    .rm-sale-summary {
+        position: static;
     }
 
     .rm-clinical-editor .rm-field input,

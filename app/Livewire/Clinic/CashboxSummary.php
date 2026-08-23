@@ -9,6 +9,7 @@ use App\Models\Company;
 use App\Models\Expense;
 use App\Models\InventoryMovement;
 use App\Models\InventoryProductBatch;
+use App\Models\ProductSale;
 use App\Models\TreatmentPayment;
 use App\Support\PaymentTicketBuilder;
 use Illuminate\Support\Carbon;
@@ -250,6 +251,16 @@ class CashboxSummary extends Component
                 ->orWhere('phone', 'like', "%{$clientSearch}%")))
             ->latest('paid_at')
             ->get();
+        $productSales = $company->productSales()
+            ->with(['buyer', 'soldBy', 'items'])
+            ->where('branch_id', $branch->id)
+            ->whereBetween('sold_at', $dayRange)
+            ->when($clientSearch !== '', fn ($query) => $query
+                ->where('buyer_name', 'like', "%{$clientSearch}%")
+                ->orWhere('buyer_nit', 'like', "%{$clientSearch}%")
+                ->orWhere('buyer_phone', 'like', "%{$clientSearch}%"))
+            ->latest('sold_at')
+            ->get();
         $expenses = $company->expenses()
             ->with(['type', 'staffUser', 'createdBy'])
             ->where('branch_id', $branch->id)
@@ -261,8 +272,10 @@ class CashboxSummary extends Component
             ->where('source', 'cashbox')
             ->whereBetween('spent_at', $dayRange)
             ->sum('amount');
-        $cashTotal = (float) $payments->flatMap->splits->where('method', 'cash')->sum('amount');
-        $qrTotal = (float) $payments->flatMap->splits->where('method', 'qr')->sum('amount');
+        $cashTotal = (float) $payments->flatMap->splits->where('method', 'cash')->sum('amount')
+            + (float) $productSales->sum('cash_amount');
+        $qrTotal = (float) $payments->flatMap->splits->where('method', 'qr')->sum('amount')
+            + (float) $productSales->sum('qr_amount');
 
         return view('livewire.clinic.cashbox-summary', [
             'payments' => $payments,
@@ -271,15 +284,15 @@ class CashboxSummary extends Component
             'cashboxExpenseTotal' => $cashboxExpenseTotal,
             'netCashTotal' => $cashTotal - $cashboxExpenseTotal,
             'netTotal' => $cashTotal + $qrTotal - $cashboxExpenseTotal,
-            'invoiceTotal' => $payments->where('invoice_requested', true)->sum('amount'),
-            'historyRows' => $this->historyRows($payments, $expenses),
+            'invoiceTotal' => $payments->where('invoice_requested', true)->sum('amount') + $productSales->where('invoice_requested', true)->sum('subtotal'),
+            'historyRows' => $this->historyRows($payments, $expenses, $productSales),
             'canManageRecords' => $this->canManageRecords(),
             'expenseTypes' => $company->expenseTypes()->where('status', 'active')->orderBy('name')->get(),
             'staffUsers' => $company->users()->orderBy('name')->get(),
         ]);
     }
 
-    private function historyRows($payments, $expenses): array
+    private function historyRows($payments, $expenses, $productSales): array
     {
         $rows = $this->paymentRows($payments);
         $method = $this->paymentMethodFilter;
@@ -290,12 +303,48 @@ class CashboxSummary extends Component
                 ->filter(fn (array $row) => $method === '' || $row['method'] === $method)
                 ->values(),
             'products' => $rows['products']
+                ->merge($this->productSaleRows($productSales))
                 ->filter(fn (array $row) => $method === '' || $row['method'] === $method)
+                ->sortByDesc('sort_at')
                 ->values(),
             'expenses' => $expenses
                 ->filter(fn ($expense) => $source === '' || $expense->source === $source)
                 ->values(),
         ];
+    }
+
+    private function productSaleRows($productSales)
+    {
+        return $productSales->flatMap(function (ProductSale $sale) {
+            $cashLeft = (float) $sale->cash_amount;
+            $qrLeft = (float) $sale->qr_amount;
+
+            return $sale->items->map(function ($item) use ($sale, &$cashLeft, &$qrLeft) {
+                $total = (float) $item->total;
+                $cash = min($cashLeft, $total);
+                $cashLeft -= $cash;
+                $qr = min($qrLeft, $total - $cash);
+                $qrLeft -= $qr;
+
+                return [
+                    'payment_id' => null,
+                    'product_sale_id' => $sale->id,
+                    'client' => $sale->buyer_name ?: 'Consumidor final',
+                    'date' => $sale->sold_at->format('d/m/Y'),
+                    'time' => $sale->sold_at->format('H:i'),
+                    'sort_at' => $sale->sold_at,
+                    'name' => $item->name,
+                    'quantity' => (float) $item->quantity,
+                    'total' => $total,
+                    'cash' => $cash,
+                    'qr' => $qr,
+                    'method' => $this->linePaymentMethod($cash, $qr),
+                    'staff' => $sale->soldBy?->name ?? 'Sin vendedor',
+                    'invoice' => $sale->invoice_requested ? 'Para facturar' : 'Sin factura solicitada',
+                    'reference' => $sale->reference ?: 'Venta directa',
+                ];
+            });
+        });
     }
 
     private function paymentRows($payments): array
@@ -320,9 +369,11 @@ class CashboxSummary extends Component
 
                 $rows[$group]->push([
                     'payment_id' => $payment->id,
+                    'product_sale_id' => null,
                     'client' => $payment->client?->full_name ?? 'Cliente',
                     'date' => $payment->paid_at->format('d/m/Y'),
                     'time' => $payment->paid_at->format('H:i'),
+                    'sort_at' => $payment->paid_at,
                     'name' => $item->name,
                     'quantity' => (float) $item->quantity,
                     'total' => $total,
