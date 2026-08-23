@@ -1,18 +1,50 @@
 .rm-crm-page {
+    align-content: start;
+    display: grid;
     gap: 18px;
     min-width: 0;
 }
 
 .rm-crm-hero {
     align-items: center;
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
     justify-content: space-between;
 }
 
+.rm-crm-hero .rm-button {
+    min-width: 150px;
+}
+
 .rm-crm-tabs {
+    background: #f5f7fa;
+    border: 1px solid var(--rumika-border);
+    border-radius: 20px;
     display: grid;
+    gap: 8px;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     min-width: 0;
+    padding: 8px;
+}
+
+.rm-crm-tabs button {
+    align-items: center;
+    background: transparent;
+    border: 0;
+    border-radius: 15px;
+    color: var(--rumika-muted);
+    display: inline-flex;
+    font-size: 15px;
+    font-weight: 900;
+    justify-content: center;
+    min-height: 58px;
+    padding: 0 18px;
+}
+
+.rm-crm-tabs button.is-active {
+    background: #ffffff;
+    box-shadow: 0 18px 38px rgba(15, 23, 42, 0.08);
+    color: var(--rumika-teal-dark);
 }
 
 .rm-crm-layout {
@@ -199,12 +231,55 @@
     gap: 14px;
 }
 
+.rm-crm-channels {
+    padding: 24px;
+}
+
+.rm-crm-channels .rm-section-heading {
+    align-items: center;
+    display: flex;
+    gap: 16px;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+
+.rm-crm-channels .rm-section-heading > div {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+}
+
+.rm-crm-channels .rm-section-heading span {
+    color: var(--rumika-muted);
+    font-size: 13px;
+    font-weight: 900;
+}
+
+.rm-crm-channels .rm-section-heading h2 {
+    color: var(--rumika-ink);
+    font-size: 26px;
+    font-weight: 950;
+    line-height: 1.1;
+}
+
+.rm-crm-webhook {
+    color: var(--rumika-muted);
+    font-size: 13px;
+    font-weight: 800;
+}
+
 .rm-crm-channel {
     align-items: center;
     display: flex;
     gap: 16px;
     justify-content: space-between;
     padding: 16px;
+}
+
+.rm-crm-channel > div:first-child {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
 }
 
 .rm-crm-channel code,
@@ -218,6 +293,28 @@
     max-width: 100%;
     overflow-wrap: anywhere;
     padding: 7px 9px;
+}
+
+.rm-empty-state {
+    background: #f8fafc;
+    border: 1px dashed var(--rumika-border);
+    border-radius: 18px;
+    color: var(--rumika-muted);
+    display: grid;
+    gap: 8px;
+    padding: 24px;
+}
+
+.rm-empty-state strong {
+    color: var(--rumika-ink);
+    font-size: 16px;
+    font-weight: 950;
+}
+
+.rm-empty-state p {
+    font-size: 14px;
+    font-weight: 750;
+    line-height: 1.35;
 }
 
 .rm-crm-channel-actions {
@@ -320,7 +417,13 @@
         align-items: stretch;
         display: grid;
         gap: 14px;
+        grid-template-columns: 1fr;
         padding: 18px;
+    }
+
+    .rm-crm-hero .rm-button {
+        min-width: 0;
+        width: 100%;
     }
 
     .rm-crm-hero h1 {

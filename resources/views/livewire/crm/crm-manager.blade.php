@@ -1,5 +1,5 @@
-<main class="rm-page rm-crm-page">
-    <section class="rm-hero-card rm-crm-hero">
+<main class="rm-content rm-crm-page">
+    <section class="rm-settings-hero rm-crm-hero">
         <div>
             <span>Mensajeria</span>
             <h1>Centro de mensajes</h1>
