@@ -17,7 +17,7 @@
         <p>
             {{ $mode === 'enroll'
                 ? 'Este usuario tiene verificacion visual activada. La primera vez se registra una huella facial para validar futuros accesos.'
-                : 'Detectamos una nueva sesion o IP. Mira a la camara para confirmar que eres el usuario autorizado.' }}
+                : 'Detectamos una nueva sesion o IP. Mira a la camara para confirmar que eres el usuario autorizado con un parecido minimo de 65%.' }}
         </p>
     </div>
 
@@ -49,7 +49,7 @@
     </div>
 
     <p class="rm-auth-switch">
-        No guardamos la foto tomada por la camara. Rumika almacena solo una huella numerica para comparar el acceso.
+        Rumika guarda una captura de seguridad por intento y una huella numerica para comparar el acceso.
     </p>
 
     <style>

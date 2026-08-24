@@ -1,0 +1,27 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('face_verification_logs', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->string('mode', 20);
+            $table->unsignedTinyInteger('similarity')->nullable();
+            $table->boolean('successful')->default(false);
+            $table->string('ip_address', 45)->nullable();
+            $table->string('image_path')->nullable();
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('face_verification_logs');
+    }
+};
