@@ -837,6 +837,78 @@
     font-weight: 850;
 }
 
+@media (max-width: 900px) {
+    .rm-commerce-sale-grid {
+        align-items: stretch;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .rm-commerce-sale-grid > .rm-panel,
+    .rm-commerce-sale-grid > .rm-sale-summary {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .rm-sale-summary {
+        order: -1;
+        position: static;
+    }
+
+    .rm-sale-summary .rm-panel-title {
+        align-items: start;
+    }
+
+    .rm-sale-summary .rm-panel-title h2 {
+        font-size: 22px;
+    }
+
+    .rm-total-card {
+        border-radius: 16px;
+        padding: 16px;
+    }
+
+    .rm-total-card strong {
+        font-size: 28px;
+    }
+
+    .rm-product-result {
+        align-items: stretch;
+        grid-template-columns: 48px minmax(0, 1fr);
+    }
+
+    .rm-product-result .rm-soft-pill,
+    .rm-product-result .rm-product-add-button {
+        grid-column: 1 / -1;
+        justify-self: stretch;
+        width: 100%;
+    }
+
+    .rm-product-result .rm-row-main strong {
+        white-space: normal;
+    }
+
+    .rm-sale-line {
+        align-items: stretch;
+        grid-template-columns: 48px minmax(0, 1fr);
+    }
+
+    .rm-sale-line .rm-field,
+    .rm-sale-line .rm-button {
+        grid-column: 1 / -1;
+    }
+
+    .rm-sales-compact-head {
+        grid-template-columns: 1fr;
+    }
+
+    .rm-sales-branch-pill {
+        justify-content: center;
+        min-height: 42px;
+        width: 100%;
+    }
+}
+
 .rm-clinical-editor {
     padding: 24px 28px;
 }
