@@ -28,6 +28,10 @@ class RumikaAccess
             return false;
         }
 
+        if (! self::businessTypeAllows($user, $company, $module, $branchId)) {
+            return false;
+        }
+
         $companyRole = $user->companies()
             ->where('companies.id', $company->id)
             ->value('company_user.role');
@@ -60,6 +64,45 @@ class RumikaAccess
         }
 
         $modules = is_array($features) ? ($features['modules'] ?? []) : [];
+
+        return in_array('*', $modules, true) || in_array($module, $modules, true);
+    }
+
+    public static function businessTypeAllows(User $user, Company $company, string $module, ?int $branchId = null): bool
+    {
+        $alwaysAllowed = ['inicio', 'sucursales', 'usuarios', 'roles', 'registros', 'bitacora'];
+
+        if (in_array($module, $alwaysAllowed, true)) {
+            return true;
+        }
+
+        $branchId ??= session('active_branch_id');
+        $branchQuery = $user->branches()
+            ->with('businessType')
+            ->where('branches.company_id', $company->id);
+
+        if ($branchId) {
+            $branchQuery->where('branches.id', $branchId);
+        }
+
+        $branch = $branchQuery->first()
+            ?: $user->branches()->with('businessType')->where('branches.company_id', $company->id)->first();
+
+        $businessType = $branch?->businessType;
+
+        if (! in_array($businessType?->slug, ['farmacia', 'tienda', 'perfumeria'], true)) {
+            return true;
+        }
+
+        $modules = $businessType?->enabled_modules;
+
+        if (is_string($modules)) {
+            $modules = json_decode($modules, true);
+        }
+
+        if (! is_array($modules) || $modules === []) {
+            return true;
+        }
 
         return in_array('*', $modules, true) || in_array($module, $modules, true);
     }

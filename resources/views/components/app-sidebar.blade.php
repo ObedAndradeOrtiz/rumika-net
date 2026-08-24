@@ -399,6 +399,16 @@
             <rect x="3" y="5" width="18" height="16" rx="3" />
             <path d="M8 3v4M16 3v4M3 10h18" />
         </svg>Agenda</a>
+    @elseif ($sidebarCanSeeProductSales)
+    <a class="rm-mobile-tab {{ $active === 'product-sales' ? 'is-active' : '' }}" href="{{ route('sales.products') }}"><svg
+            width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2.2">
+            <path d="M6 2v20" />
+            <path d="M18 2v20" />
+            <path d="M8 6h8" />
+            <path d="M8 12h8" />
+            <path d="M8 18h8" />
+        </svg>Ventas</a>
     @endif
     @if ($sidebarCanSeeClients)
     <a class="rm-mobile-tab {{ $active === 'clients' ? 'is-active' : '' }}"

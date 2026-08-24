@@ -74,6 +74,31 @@
                 <label class="rm-field"><span>Unidad minima</span><input wire:model="unitName" type="text" placeholder="unidad, ml, vial">@error('unitName')<small>{{ $message }}</small>@enderror</label>
                 <label class="rm-field"><span>Stock minimo</span><input wire:model="minimumStock" type="number" min="0"></label>
             </div>
+            <div class="rm-empty-state rm-perfumery-help">
+                <strong>Forma de venta</strong>
+                <span>Para perfumeria puedes cargar stock en ml y vender 10 ml, 20 ml o un frasco completo. Para productos normales deja "Unidad".</span>
+            </div>
+            <div class="rm-form-row">
+                <label class="rm-field">
+                    <span>Se vende como</span>
+                    <select wire:model.live="saleUnitType">
+                        <option value="unit">Unidad / frasco completo</option>
+                        <option value="volume">Solo por ml</option>
+                        <option value="mixed">Frasco y ml</option>
+                    </select>
+                    @error('saleUnitType')<small>{{ $message }}</small>@enderror
+                </label>
+                <label class="rm-field">
+                    <span>Contenido por frasco</span>
+                    <input wire:model="contentQuantity" type="number" min="0.01" step="0.01" placeholder="100">
+                    @error('contentQuantity')<small>{{ $message }}</small>@enderror
+                </label>
+                <label class="rm-field">
+                    <span>Unidad de contenido</span>
+                    <input wire:model="contentUnitName" type="text" placeholder="ml">
+                    @error('contentUnitName')<small>{{ $message }}</small>@enderror
+                </label>
+            </div>
             <div class="rm-form-row">
                 <label class="rm-field"><span>Paquete/caja</span><input wire:model="packageName" type="text" placeholder="Caja"></label>
                 <label class="rm-field"><span>Contenido por paquete</span><input wire:model="unitsPerPackage" type="number" min="1">@error('unitsPerPackage')<small>{{ $message }}</small>@enderror</label>

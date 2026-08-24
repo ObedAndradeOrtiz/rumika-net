@@ -18,6 +18,9 @@ class InventoryProduct extends Model
         'description',
         'image_path',
         'unit_name',
+        'sale_unit_type',
+        'content_quantity',
+        'content_unit_name',
         'package_name',
         'units_per_package',
         'purchase_cost',
@@ -30,6 +33,7 @@ class InventoryProduct extends Model
     {
         return [
             'units_per_package' => 'integer',
+            'content_quantity' => 'decimal:2',
             'purchase_cost' => 'decimal:2',
             'minimum_stock' => 'integer',
             'commission_enabled' => 'boolean',

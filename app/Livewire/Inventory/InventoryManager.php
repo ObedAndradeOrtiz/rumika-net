@@ -90,6 +90,9 @@ class InventoryManager extends Component
     public ?int $productBrandId = null;
     public ?int $productUseAreaId = null;
     public string $unitName = 'unidad';
+    public string $saleUnitType = 'unit';
+    public string $contentQuantity = '1';
+    public string $contentUnitName = 'ml';
     public string $packageName = '';
     public string $unitsPerPackage = '1';
     public string $purchaseCost = '0';
@@ -352,6 +355,9 @@ class InventoryManager extends Component
         $this->productBrandId = $product->inventory_brand_id;
         $this->productUseAreaId = $product->inventory_use_area_id;
         $this->unitName = $product->unit_name;
+        $this->saleUnitType = $product->sale_unit_type ?? 'unit';
+        $this->contentQuantity = (string) ($product->content_quantity ?? 1);
+        $this->contentUnitName = $product->content_unit_name ?? 'ml';
         $this->packageName = $product->package_name ?? '';
         $this->unitsPerPackage = (string) $product->units_per_package;
         $this->purchaseCost = (string) $product->purchase_cost;
@@ -374,6 +380,9 @@ class InventoryManager extends Component
             'productBrandId' => ['nullable', Rule::in($brandIds)],
             'productUseAreaId' => ['nullable', Rule::in($useAreaIds)],
             'unitName' => ['required', 'string', 'max:40'],
+            'saleUnitType' => ['required', Rule::in(['unit', 'volume', 'mixed'])],
+            'contentQuantity' => ['required', 'numeric', 'min:0.01', 'max:999999.99'],
+            'contentUnitName' => ['nullable', 'string', 'max:30'],
             'packageName' => ['nullable', 'string', 'max:40'],
             'unitsPerPackage' => ['required', 'integer', 'min:1', 'max:100000'],
             'purchaseCost' => ['required', 'numeric', 'min:0', 'max:99999999.99'],
@@ -407,7 +416,12 @@ class InventoryManager extends Component
             'inventory_use_area_id' => $validated['productUseAreaId'],
             'name' => $validated['productName'],
             'description' => $validated['productDescription'] ?: null,
-            'unit_name' => $validated['unitName'],
+            'unit_name' => $validated['saleUnitType'] === 'unit'
+                ? $validated['unitName']
+                : ($validated['contentUnitName'] ?: 'ml'),
+            'sale_unit_type' => $validated['saleUnitType'],
+            'content_quantity' => $validated['contentQuantity'],
+            'content_unit_name' => $validated['contentUnitName'] ?: null,
             'package_name' => $validated['packageName'] ?: null,
             'units_per_package' => $validated['unitsPerPackage'],
             'purchase_cost' => $validated['purchaseCost'],
@@ -1861,6 +1875,9 @@ class InventoryManager extends Component
     {
         $this->reset(['editingProductId', 'productName', 'productDescription', 'productImage', 'currentProductImagePath', 'productSupplierId', 'productBrandId', 'productUseAreaId', 'packageName']);
         $this->unitName = 'unidad';
+        $this->saleUnitType = 'unit';
+        $this->contentQuantity = '1';
+        $this->contentUnitName = 'ml';
         $this->unitsPerPackage = '1';
         $this->purchaseCost = '0';
         $this->minimumStock = '0';

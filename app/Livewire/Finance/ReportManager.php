@@ -114,7 +114,7 @@ class ReportManager extends Component
                 ->values(),
             'productRows' => $productItems
                 ->groupBy(fn ($row) => $row['item']->name)
-                ->map(fn ($rows, $name) => ['name' => $name, 'count' => $rows->sum(fn ($row) => (float) $row['item']->quantity), 'total' => (float) $rows->sum(fn ($row) => (float) $row['item']->total)])
+                ->map(fn ($rows, $name) => ['name' => $name, 'count' => $rows->sum(fn ($row) => (float) ($row['item']->display_quantity ?? $row['item']->quantity)), 'total' => (float) $rows->sum(fn ($row) => (float) $row['item']->total)])
                 ->sortByDesc('total')
                 ->take(10)
                 ->values(),

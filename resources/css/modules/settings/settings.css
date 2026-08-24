@@ -667,10 +667,31 @@
     border-radius: 18px;
     display: grid;
     gap: 12px;
-    grid-template-columns: 48px minmax(170px, 1fr) minmax(86px, 110px) minmax(92px, 120px) minmax(130px, 170px) auto;
+    grid-template-columns: 48px minmax(170px, 1fr) minmax(118px, 150px) minmax(86px, 120px) minmax(92px, 120px) minmax(130px, 170px) auto;
     min-width: 0;
     overflow: hidden;
     padding: 14px;
+}
+
+.rm-sale-unit-note {
+    align-self: stretch;
+    background: #ecfdf5;
+    border: 1px solid #bbf7d0;
+    border-radius: 16px;
+    display: grid;
+    gap: 3px;
+    padding: 12px 14px;
+}
+
+.rm-sale-unit-note strong {
+    color: #047857;
+    font-size: 14px;
+}
+
+.rm-sale-unit-note span {
+    color: #64748b;
+    font-size: 12px;
+    white-space: normal;
 }
 
 .rm-product-photo-button,
@@ -894,6 +915,7 @@
     }
 
     .rm-sale-line .rm-field,
+    .rm-sale-line .rm-sale-unit-note,
     .rm-sale-line .rm-button {
         grid-column: 1 / -1;
     }
@@ -4980,6 +5002,7 @@
     }
 
     .rm-commerce-sale-grid .rm-sale-line .rm-field,
+    .rm-commerce-sale-grid .rm-sale-line .rm-sale-unit-note,
     .rm-commerce-sale-grid .rm-sale-line .rm-button {
         grid-column: 1 / -1 !important;
         width: 100% !important;

@@ -74,7 +74,7 @@
                             </button>
                             <div class="rm-row-main">
                                 <strong>{{ $product->name }}</strong>
-                                <span>{{ $product->code }} - {{ $product->brand?->name ?? 'Sin marca' }} - {{ $product->useArea?->name ?? 'Sin zona' }} - Stock {{ number_format($stock, 2) }}</span>
+                                <span>{{ $product->code }} - {{ $product->brand?->name ?? 'Sin marca' }} - {{ $product->useArea?->name ?? 'Sin zona' }} - Stock {{ number_format($stock, 2) }} {{ $product->unit_name }}</span>
                             </div>
                             <span class="rm-soft-pill">{{ $stock <= 0 ? 'Sin stock' : ($product->useArea?->name ?? 'Sin area') }}</span>
                             <button class="rm-button rm-button-outline rm-product-add-button" type="button" wire:click="addProduct({{ $product->id }})">Agregar</button>
@@ -88,7 +88,14 @@
                     @php
                         $lineQuantity = (float) ($line['quantity'] ?: 0);
                         $lineAvailable = (float) ($line['available'] ?? 0);
-                        $hasStockShortage = $lineQuantity > $lineAvailable;
+                        $lineSaleMode = $line['sale_mode'] ?? 'unit';
+                        $lineStockQuantity = $lineSaleMode === 'container'
+                            ? $lineQuantity * max(0.01, (float) ($line['content_quantity'] ?? 1))
+                            : $lineQuantity;
+                        $hasStockShortage = $lineStockQuantity > $lineAvailable;
+                        $lineUnitLabel = $lineSaleMode === 'container'
+                            ? 'frasco(s)'
+                            : ($lineSaleMode === 'volume' ? ($line['content_unit_name'] ?? 'ml') : ($line['unit_name'] ?? 'unidad'));
                     @endphp
                     <div class="rm-sale-line {{ $hasStockShortage ? 'is-stock-short' : '' }}">
                         <button class="rm-product-photo-button" type="button" wire:click="previewProductImage({{ $line['product_id'] }})" title="Ver imagen">
@@ -100,9 +107,29 @@
                         </button>
                         <div>
                             <strong>{{ $line['name'] }}</strong>
-                            <span>{{ $line['code'] }} - {{ $line['brand'] }} - {{ $line['area'] }} - {{ $line['lot'] }} - Stock {{ number_format((float) $line['available'], 2) }}</span>
+                            <span>{{ $line['code'] }} - {{ $line['brand'] }} - {{ $line['area'] }} - {{ $line['lot'] }} - Stock {{ number_format((float) $line['available'], 2) }} {{ $line['unit_name'] ?? 'unidad' }}</span>
                         </div>
-                        <label class="rm-field"><span>Cantidad</span><input wire:model.live="lines.{{ $index }}.quantity" type="number" min="0.01" step="0.01"></label>
+                        @if (($line['sale_unit_type'] ?? 'unit') === 'mixed')
+                            <label class="rm-field">
+                                <span>Vender como</span>
+                                <select wire:model.live="lines.{{ $index }}.sale_mode">
+                                    <option value="volume">Por {{ $line['content_unit_name'] ?? 'ml' }}</option>
+                                    <option value="container">Frasco completo</option>
+                                </select>
+                            </label>
+                        @elseif (($line['sale_unit_type'] ?? 'unit') === 'volume')
+                            <div class="rm-sale-unit-note">
+                                <strong>Por {{ $line['content_unit_name'] ?? 'ml' }}</strong>
+                                <span>Descuenta directo del contenido.</span>
+                            </div>
+                        @endif
+                        <label class="rm-field">
+                            <span>Cantidad {{ $lineUnitLabel }}</span>
+                            <input wire:model.live="lines.{{ $index }}.quantity" type="number" min="0.01" step="0.01">
+                            @if ($lineSaleMode === 'container')
+                                <small>Descuenta {{ number_format($lineStockQuantity, 2) }} {{ $line['unit_name'] ?? 'ml' }}</small>
+                            @endif
+                        </label>
                         <label class="rm-field"><span>Precio</span><input wire:model.live="lines.{{ $index }}.unit_price" type="number" min="0" step="0.01"></label>
                         <label class="rm-field"><span>Motivo faltante</span><input wire:model="lines.{{ $index }}.missing_reason" type="text" placeholder="{{ $hasStockShortage ? 'Obligatorio por falta de stock' : 'Si no alcanza stock' }}">@error("lines.$index.missing_reason") <small>{{ $message }}</small> @enderror</label>
                         <button class="rm-button rm-button-outline" type="button" wire:click="removeLine({{ $index }})">Quitar</button>
@@ -253,7 +280,7 @@
                         @foreach (($ticketPreview['rows'] ?? []) as $row)
                             <div class="rm-print-row">
                                 <span>{{ \Illuminate\Support\Str::limit($row['name'], 32, '') }}</span>
-                                <span>{{ number_format($row['quantity'], 2) }}</span>
+                                <span>{{ number_format($row['quantity'], 2) }} {{ $row['unit_name'] ?? '' }}</span>
                                 <span>{{ $ticketPreview['currency_symbol'] ?? \App\Support\Money::symbol() }} {{ number_format($row['total'], 2) }}</span>
                             </div>
                         @endforeach

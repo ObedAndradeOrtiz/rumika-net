@@ -73,13 +73,19 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Farmacia',
                 'slug' => 'farmacia',
                 'description' => 'Venta directa, compradores por NIT, inventario por lotes y vencimientos.',
-                'enabled_modules' => ['clientes', 'ventas_productos', 'inventario', 'caja', 'facturacion'],
+                'enabled_modules' => ['inicio', 'clientes', 'ventas_productos', 'inventario', 'inventario_operaciones', 'caja', 'crm', 'facturacion', 'deudas', 'reportes', 'gastos', 'resumen_financiero', 'estadisticas', 'sucursales', 'usuarios', 'roles', 'registros', 'bitacora'],
             ],
             [
                 'name' => 'Tienda',
                 'slug' => 'tienda',
                 'description' => 'Venta comercial, compradores, inventario, caja y facturacion.',
-                'enabled_modules' => ['clientes', 'ventas_productos', 'inventario', 'caja', 'facturacion'],
+                'enabled_modules' => ['inicio', 'clientes', 'ventas_productos', 'inventario', 'inventario_operaciones', 'caja', 'crm', 'facturacion', 'deudas', 'reportes', 'gastos', 'resumen_financiero', 'estadisticas', 'sucursales', 'usuarios', 'roles', 'registros', 'bitacora'],
+            ],
+            [
+                'name' => 'Perfumeria',
+                'slug' => 'perfumeria',
+                'description' => 'Venta directa de perfumes por frasco o por ml, compradores por NIT e inventario por sucursal.',
+                'enabled_modules' => ['inicio', 'clientes', 'ventas_productos', 'inventario', 'inventario_operaciones', 'caja', 'crm', 'facturacion', 'deudas', 'reportes', 'gastos', 'resumen_financiero', 'estadisticas', 'sucursales', 'usuarios', 'roles', 'registros', 'bitacora'],
             ],
         ];
 

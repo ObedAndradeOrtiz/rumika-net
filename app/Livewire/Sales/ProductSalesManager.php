@@ -97,6 +97,11 @@ class ProductSalesManager extends Component
             'brand' => $product->brand?->name ?? 'Sin marca',
             'area' => $product->useArea?->name ?? 'Sin area',
             'image_path' => $product->image_path ?? '',
+            'sale_unit_type' => $product->sale_unit_type ?? 'unit',
+            'sale_mode' => $product->sale_unit_type === 'unit' ? 'unit' : 'volume',
+            'unit_name' => $product->unit_name ?: 'unidad',
+            'content_quantity' => (float) ($product->content_quantity ?: 1),
+            'content_unit_name' => $product->content_unit_name ?: ($product->unit_name ?: 'ml'),
             'lot' => $batch?->lot_code ?? 'Sin lote',
             'available' => (float) ($batch?->current_quantity ?? 0),
             'quantity' => '1',
@@ -153,6 +158,7 @@ class ProductSalesManager extends Component
             'lines' => ['required', 'array', 'min:1'],
             'lines.*.product_id' => ['required', Rule::exists('inventory_products', 'id')->where('company_id', $company->id)],
             'lines.*.batch_id' => ['nullable', Rule::exists('inventory_product_batches', 'id')->where('company_id', $company->id)->where('branch_id', $branch->id)],
+            'lines.*.sale_mode' => ['nullable', Rule::in(['unit', 'volume', 'container'])],
             'lines.*.quantity' => ['required', 'numeric', 'min:0.01', 'max:999999.99'],
             'lines.*.unit_price' => ['required', 'numeric', 'min:0', 'max:999999.99'],
             'lines.*.missing_reason' => ['nullable', 'string', 'max:180'],
@@ -188,7 +194,8 @@ class ProductSalesManager extends Component
         }
 
         foreach ($validated['lines'] as $index => $line) {
-            $quantity = round((float) $line['quantity'], 2);
+            $product = $company->inventoryProducts()->whereKey($line['product_id'])->firstOrFail();
+            $quantity = $this->stockQuantityForLine($product, $line);
             $batch = $line['batch_id']
                 ? $company->inventoryBatches()
                     ->where('branch_id', $branch->id)
@@ -233,11 +240,15 @@ class ProductSalesManager extends Component
                 $batch = $line['batch_id']
                     ? InventoryProductBatch::query()->whereKey($line['batch_id'])->lockForUpdate()->first()
                     : null;
-                $quantity = round((float) $line['quantity'], 2);
+                $displayQuantity = round((float) $line['quantity'], 2);
+                $quantity = $this->stockQuantityForLine($product, $line);
+                $displayUnit = $this->displayUnitForLine($product, $line);
+                $saleMode = $this->normalizedSaleMode($product, $line['sale_mode'] ?? null);
                 $unitPrice = round((float) $line['unit_price'], 2);
                 $available = max(0, (float) ($batch?->current_quantity ?? 0));
                 $stockQuantity = min($quantity, $available);
                 $pendingQuantity = round($quantity - $stockQuantity, 2);
+                $lineTotal = round($displayQuantity * $unitPrice, 2);
 
                 if ($batch && $stockQuantity > 0) {
                     $batch->decrement('current_quantity', $stockQuantity);
@@ -248,12 +259,17 @@ class ProductSalesManager extends Component
                     'inventory_product_batch_id' => $batch?->id,
                     'name' => $product->name,
                     'lot_code' => $batch?->lot_code,
+                    'sale_mode' => $saleMode,
                     'quantity' => $quantity,
+                    'display_quantity' => $displayQuantity,
+                    'display_unit_name' => $displayUnit,
+                    'stock_unit_name' => $product->unit_name ?: $displayUnit,
+                    'stock_deduct_quantity' => $quantity,
                     'stock_quantity' => $stockQuantity,
                     'pending_quantity' => $pendingQuantity,
                     'unit_price' => $unitPrice,
-                    'total' => round($quantity * $unitPrice, 2),
-                    ...$this->productCommissionData($branch, $product, round($quantity * $unitPrice, 2)),
+                    'total' => $lineTotal,
+                    ...$this->productCommissionData($branch, $product, $lineTotal),
                     'missing_reason' => $pendingQuantity > 0 ? (($line['missing_reason'] ?? '') ?: 'Venta con stock pendiente') : null,
                 ]);
 
@@ -460,7 +476,8 @@ class ProductSalesManager extends Component
         $rows = $sale->items
             ->map(fn ($item) => [
                 'name' => $item->name,
-                'quantity' => (float) $item->quantity,
+                'quantity' => (float) ($item->display_quantity ?? $item->quantity),
+                'unit_name' => $item->display_unit_name ?: $item->stock_unit_name,
                 'unit_price' => (float) $item->unit_price,
                 'total' => (float) $item->total,
                 'pending_quantity' => (float) $item->pending_quantity,
@@ -490,6 +507,48 @@ class ProductSalesManager extends Component
             'raw_ticket' => $this->buildRawProductSaleTicket($sale, $branch, $rows),
             'created_at' => now()->format('d/m/Y H:i'),
         ];
+    }
+
+    private function normalizedSaleMode(InventoryProduct $product, ?string $mode): string
+    {
+        $type = $product->sale_unit_type ?? 'unit';
+
+        if ($type === 'unit') {
+            return 'unit';
+        }
+
+        if ($type === 'volume') {
+            return 'volume';
+        }
+
+        return in_array($mode, ['container', 'volume'], true) ? $mode : 'volume';
+    }
+
+    private function stockQuantityForLine(InventoryProduct $product, array $line): float
+    {
+        $displayQuantity = round((float) ($line['quantity'] ?? 0), 2);
+        $mode = $this->normalizedSaleMode($product, $line['sale_mode'] ?? null);
+
+        if ($mode === 'container') {
+            return round($displayQuantity * max(0.01, (float) ($product->content_quantity ?: 1)), 2);
+        }
+
+        return $displayQuantity;
+    }
+
+    private function displayUnitForLine(InventoryProduct $product, array $line): string
+    {
+        $mode = $this->normalizedSaleMode($product, $line['sale_mode'] ?? null);
+
+        if ($mode === 'container') {
+            return $product->package_name ?: 'frasco';
+        }
+
+        if ($mode === 'volume') {
+            return $product->content_unit_name ?: ($product->unit_name ?: 'ml');
+        }
+
+        return $product->unit_name ?: 'unidad';
     }
 
     private function productCommissionData(Branch $branch, InventoryProduct $product, float $saleTotal): array
@@ -544,9 +603,8 @@ class ProductSalesManager extends Component
         foreach ($rows as $item) {
             $name = $item['name'];
 
-            if ((float) $item['quantity'] > 1) {
-                $name .= ' x'.number_format((float) $item['quantity'], 0);
-            }
+            $decimals = floor((float) $item['quantity']) == (float) $item['quantity'] ? 0 : 2;
+            $name .= ' x'.number_format((float) $item['quantity'], $decimals).($item['unit_name'] ? ' '.$item['unit_name'] : '');
 
             $lines[] = $row($name, $money($item['total']));
 

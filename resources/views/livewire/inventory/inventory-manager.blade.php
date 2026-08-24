@@ -88,13 +88,22 @@
                         </div>
                         <div class="rm-row-main">
                             <strong>{{ $product->name }}</strong>
-                            <span>{{ $product->code }} - Stock {{ number_format((float) ($product->current_stock ?? 0), 2) }} {{ $product->unit_name }}</span>
-                            <div class="rm-commerce-meta">
-                                <span>{{ $product->brand?->name ?? 'Sin marca' }}</span>
-                                <span>{{ $product->supplier?->name ?? 'Sin proveedor' }}</span>
-                                <span>{{ $product->useArea?->name ?? 'Sin area de uso' }}</span>
-                                <span>{{ $product->package_name ? $product->package_name.' x '.$product->units_per_package : 'Unidad simple' }}</span>
-                            </div>
+                                <span>{{ $product->code }} - Stock {{ number_format((float) ($product->current_stock ?? 0), 2) }} {{ $product->unit_name }}</span>
+                                <div class="rm-commerce-meta">
+                                    <span>{{ $product->brand?->name ?? 'Sin marca' }}</span>
+                                    <span>{{ $product->supplier?->name ?? 'Sin proveedor' }}</span>
+                                    <span>{{ $product->useArea?->name ?? 'Sin area de uso' }}</span>
+                                    <span>
+                                        @if (($product->sale_unit_type ?? 'unit') === 'mixed')
+                                            Frasco/ml
+                                        @elseif (($product->sale_unit_type ?? 'unit') === 'volume')
+                                            Por {{ $product->content_unit_name ?: $product->unit_name }}
+                                        @else
+                                            Por unidad
+                                        @endif
+                                    </span>
+                                    <span>{{ $product->package_name ? $product->package_name.' x '.$product->units_per_package : 'Unidad simple' }}</span>
+                                </div>
                         </div>
                         <div class="rm-commerce-actions">
                             <button type="button" wire:click="openProductMovements({{ $product->id }})">Movimientos</button>

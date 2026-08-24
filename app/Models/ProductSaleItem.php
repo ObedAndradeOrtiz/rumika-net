@@ -13,7 +13,12 @@ class ProductSaleItem extends Model
         'inventory_product_batch_id',
         'name',
         'lot_code',
+        'sale_mode',
         'quantity',
+        'display_quantity',
+        'display_unit_name',
+        'stock_unit_name',
+        'stock_deduct_quantity',
         'stock_quantity',
         'pending_quantity',
         'unit_price',
@@ -27,6 +32,8 @@ class ProductSaleItem extends Model
     {
         return [
             'quantity' => 'decimal:2',
+            'display_quantity' => 'decimal:2',
+            'stock_deduct_quantity' => 'decimal:2',
             'stock_quantity' => 'decimal:2',
             'pending_quantity' => 'decimal:2',
             'unit_price' => 'decimal:2',

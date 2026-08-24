@@ -395,7 +395,7 @@ class CashboxSummary extends Component
                     'time' => $sale->sold_at->format('H:i'),
                     'sort_at' => $sale->sold_at,
                     'name' => $item->name,
-                    'quantity' => (float) $item->quantity,
+                    'quantity' => (float) ($item->display_quantity ?? $item->quantity),
                     'total' => $total,
                     'cash' => $cash,
                     'qr' => $qr,
