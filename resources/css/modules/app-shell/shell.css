@@ -2100,15 +2100,55 @@
 
 @media (max-width: 900px), (hover: none) and (pointer: coarse) {
     .rm-dashboard-appointments-panel .rm-agenda-list {
+        display: block !important;
         overflow-x: auto !important;
+        overflow-y: auto !important;
     }
 
     .rm-dashboard-appointments-panel .rm-dashboard-agenda-row {
-        grid-template-columns: 66px minmax(0, 1fr) !important;
-        min-width: 520px !important;
+        align-items: center !important;
+        display: flex !important;
+        gap: 12px !important;
+        min-height: 64px !important;
+        min-width: 560px !important;
+        padding: 12px 0 !important;
     }
 
     .rm-dashboard-appointments-panel .rm-dashboard-agenda-detail {
-        grid-template-columns: minmax(260px, 1fr) auto !important;
+        align-items: center !important;
+        display: flex !important;
+        flex: 1 0 auto !important;
+        gap: 14px !important;
+        min-width: 470px !important;
+    }
+
+    .rm-dashboard-appointments-panel .rm-dashboard-agenda-row .rm-agenda-time {
+        align-items: center !important;
+        display: inline-flex !important;
+        flex: 0 0 64px !important;
+        height: 46px !important;
+        justify-content: center !important;
+        margin: 0 !important;
+        position: static !important;
+        width: 64px !important;
+    }
+
+    .rm-dashboard-appointments-panel .rm-dashboard-agenda-detail .rm-row-main {
+        display: block !important;
+        flex: 1 0 320px !important;
+        min-width: 320px !important;
+    }
+
+    .rm-dashboard-appointments-panel .rm-dashboard-agenda-detail .rm-row-main strong,
+    .rm-dashboard-appointments-panel .rm-dashboard-agenda-detail .rm-row-main span {
+        max-width: 320px !important;
+    }
+
+    .rm-dashboard-appointments-panel .rm-dashboard-agenda-detail .rm-status {
+        align-self: center !important;
+        flex: 0 0 auto !important;
+        margin: 0 !important;
+        position: static !important;
+        transform: none !important;
     }
 }
