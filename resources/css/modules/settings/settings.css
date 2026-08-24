@@ -2180,7 +2180,19 @@
 
 .rm-client-list-row .rm-row-main strong,
 .rm-client-list-row .rm-row-main span {
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
+    word-break: normal;
+}
+
+.rm-client-list-row .rm-row-main strong {
+    display: block;
+    line-height: 1.22;
+}
+
+.rm-client-list-row .rm-row-main > span {
+    display: block;
+    line-height: 1.35;
+    margin-top: 4px;
 }
 
 .rm-client-list-row .rm-commerce-actions {
@@ -2382,12 +2394,6 @@
     justify-content: flex-end;
 }
 
-.rm-attendance-actions,
-.rm-icon-actions,
-.rm-secondary-actions {
-    display: contents;
-}
-
 .rm-commerce-actions button,
 .rm-commerce-actions a.rm-icon-button {
     align-items: center;
@@ -2459,24 +2465,62 @@
     color: #be123c;
 }
 
-.rm-commerce-actions .rm-icon-button.is-history span,
-.rm-commerce-actions .rm-icon-button.is-clinical-history span,
-.rm-commerce-actions .rm-icon-button.is-whatsapp span {
-    display: none;
-}
-
-.rm-commerce-actions .rm-icon-button.is-delete span {
-    display: none;
-}
-
-.rm-commerce-actions .rm-icon-actions .rm-icon-button span {
-    display: none;
-}
-
 .rm-commerce-actions button:hover,
 .rm-commerce-actions a.rm-icon-button:hover {
     background: #f6f8fb;
     color: var(--rumika-teal-dark);
+}
+
+.rm-appointment-row .rm-commerce-actions {
+    align-items: end;
+    display: grid;
+    gap: 10px;
+    grid-template-columns: minmax(132px, 0.8fr) minmax(240px, 1.5fr) minmax(240px, 1.5fr);
+    margin-left: auto;
+    max-width: 760px;
+    width: min(100%, 760px);
+}
+
+.rm-appointment-row .rm-attendance-actions,
+.rm-appointment-row .rm-icon-actions,
+.rm-appointment-row .rm-secondary-actions {
+    align-items: center;
+    display: grid;
+    gap: 8px;
+}
+
+.rm-appointment-row .rm-attendance-actions {
+    grid-template-columns: 1fr;
+}
+
+.rm-appointment-row .rm-icon-actions,
+.rm-appointment-row .rm-secondary-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.rm-appointment-row .rm-commerce-actions button,
+.rm-appointment-row .rm-commerce-actions a.rm-icon-button {
+    border-radius: 14px;
+    gap: 7px;
+    justify-content: center;
+    min-height: 40px;
+    min-width: 0;
+    padding: 0 12px;
+    text-align: center;
+    width: 100%;
+}
+
+.rm-appointment-row .rm-commerce-actions .rm-locked-payment-button {
+    min-height: 42px;
+}
+
+.rm-appointment-row .rm-icon-actions .rm-icon-button span,
+.rm-appointment-row .rm-secondary-actions .rm-icon-button span {
+    display: inline;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .rm-button-danger {
@@ -3677,7 +3721,45 @@
     }
 
     .rm-client-list-row {
+        align-items: stretch;
+        gap: 12px;
         grid-template-columns: minmax(0, 1fr);
+        padding: 14px;
+    }
+
+    .rm-client-list-row .rm-row-main {
+        min-width: 0;
+    }
+
+    .rm-client-list-row .rm-row-main strong {
+        font-size: 16px;
+        line-height: 1.25;
+        max-width: 100%;
+        overflow-wrap: break-word;
+        text-wrap: pretty;
+    }
+
+    .rm-client-list-row .rm-row-main > span {
+        color: var(--rumika-muted);
+        font-size: 13px;
+        font-weight: 850;
+    }
+
+    .rm-client-list-row .rm-commerce-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 10px;
+        min-width: 0;
+    }
+
+    .rm-client-list-row .rm-commerce-meta span {
+        flex: 0 1 auto;
+        max-width: 100%;
+        overflow: hidden;
+        padding: 6px 9px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     .rm-client-list-row .rm-commerce-actions {
@@ -3689,6 +3771,7 @@
     }
 
     .rm-client-list-row .rm-commerce-actions button {
+        min-height: 42px;
         padding-inline: 8px;
         width: 100%;
     }

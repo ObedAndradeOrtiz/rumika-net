@@ -172,6 +172,7 @@
                                     <rect x="3" y="5" width="18" height="14" rx="3" />
                                     <path d="M3 10h18M8 15h2" />
                                 </svg>
+                                <span>Cobrar</span>
                             </button>
                             @foreach ($appointment->payments as $payment)
                                 <button class="rm-icon-button is-edit-payment" type="button"

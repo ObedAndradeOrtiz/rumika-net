@@ -1059,6 +1059,8 @@
 }
 
 .rm-dashboard-appointments-panel .rm-agenda-list {
+    display: grid;
+    gap: 0;
     min-height: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
@@ -1296,11 +1298,11 @@
     box-shadow: 0 -24px 70px rgba(16, 24, 40, 0.18);
     display: grid;
     gap: 10px;
-    grid-template-rows: auto minmax(0, 1fr) auto auto;
+    grid-template-rows: auto minmax(0, 1fr);
     left: 0;
-    max-height: calc(100dvh - 18px);
+    max-height: calc(100dvh - max(8px, env(safe-area-inset-top)));
     overflow: hidden;
-    padding: 18px 18px 22px;
+    padding: 18px 18px max(14px, env(safe-area-inset-bottom));
     position: fixed;
     right: 0;
     z-index: 35;
@@ -1332,11 +1334,12 @@
 .rm-mobile-more-scroll {
     display: grid;
     gap: 10px;
+    grid-auto-rows: max-content;
     min-height: 0;
     overflow-y: auto;
-    padding-right: 2px;
-    padding-bottom: 8px;
+    padding: 0 2px calc(84px + env(safe-area-inset-bottom)) 0;
     overscroll-behavior: contain;
+    scrollbar-width: thin;
 }
 
 .rm-mobile-profile {
@@ -1425,6 +1428,39 @@
     font-weight: 900;
     min-height: 48px;
     padding: 12px 14px;
+}
+
+@media (max-height: 760px) {
+    .rm-mobile-more-sheet {
+        border-radius: 18px 18px 0 0;
+        padding-top: 14px;
+    }
+
+    .rm-mobile-more-scroll {
+        gap: 8px;
+    }
+
+    .rm-mobile-menu-group summary {
+        padding: 12px 14px;
+    }
+
+    .rm-mobile-menu-group div {
+        gap: 7px;
+        padding: 0 9px 9px;
+    }
+
+    .rm-mobile-menu-group a {
+        min-height: 44px;
+        padding: 10px 12px;
+    }
+
+    .rm-mobile-profile {
+        padding: 10px 12px;
+    }
+
+    .rm-mobile-more-logout {
+        padding: 12px 14px;
+    }
 }
 
 .rm-mobile-more-logout {
@@ -1762,16 +1798,25 @@
     }
 
     .rm-agenda-row {
-        align-items: start;
-        gap: 6px 12px;
-        grid-template-columns: 52px minmax(0, 1fr);
+        align-items: flex-start;
+        gap: 10px 14px;
+        grid-template-columns: 64px minmax(0, 1fr);
+        min-height: 0;
+        padding: 12px 0;
     }
 
     .rm-agenda-row .rm-agenda-time {
-        align-self: start;
+        align-items: center;
+        background: #e9f6f4;
+        border-radius: 16px;
+        color: var(--rumika-teal-dark);
+        display: inline-flex;
         grid-column: 1;
-        grid-row: 1 / span 2;
-        padding-top: 2px;
+        grid-row: 1;
+        justify-content: center;
+        min-height: 46px;
+        padding: 0 8px;
+        width: 100%;
     }
 
     .rm-agenda-row .rm-row-main {
@@ -1783,23 +1828,24 @@
     .rm-agenda-row .rm-row-main strong {
         display: block;
         font-size: 15px;
-        line-height: 1.2;
-        overflow-wrap: anywhere;
+        line-height: 1.22;
+        overflow-wrap: break-word;
+        word-break: normal;
     }
 
     .rm-agenda-row .rm-row-main span {
         display: block;
         line-height: 1.25;
         margin-top: 3px;
-        overflow-wrap: anywhere;
+        overflow-wrap: break-word;
+        word-break: normal;
     }
 
     .rm-agenda-row .rm-status {
-        align-self: start;
         grid-column: 2;
-        grid-row: 2;
+        grid-row: auto;
         justify-self: start;
-        margin-top: 2px;
+        margin-top: 8px;
         max-width: 100%;
         padding: 6px 9px;
         white-space: nowrap;
