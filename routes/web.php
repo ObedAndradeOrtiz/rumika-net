@@ -21,6 +21,12 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::view('terminos-y-condiciones', 'legal.terms')
+    ->name('legal.terms');
+
+Route::view('politica-de-privacidad', 'legal.privacy')
+    ->name('legal.privacy');
+
 Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.permission:inicio'])
     ->name('dashboard');

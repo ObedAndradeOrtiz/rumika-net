@@ -822,6 +822,18 @@
             text-align: center;
         }
 
+        .footer-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 16px;
+            justify-content: center;
+        }
+
+        .footer-links a {
+            color: var(--primary-dark);
+            font-weight: 900;
+        }
+
         .whatsapp-float {
             position: fixed;
             right: 18px;
@@ -1246,7 +1258,11 @@
     <footer class="footer">
         <div class="page footer-inner">
             <span>© {{ date('Y') }} Rumika SaaS. Sistema modular para negocios de atención.</span>
-            <span>Desarrollado por DigitBol</span>
+            <span class="footer-links">
+                <a href="{{ route('legal.terms') }}">Términos</a>
+                <a href="{{ route('legal.privacy') }}">Privacidad</a>
+                <span>Desarrollado por DigitBol</span>
+            </span>
         </div>
     </footer>
 

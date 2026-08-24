@@ -433,6 +433,38 @@
             display: none;
         }
 
+        .rm-legal-check {
+            align-items: flex-start;
+            background: #ffffff;
+            border: 1px solid #dbe3ee;
+            border-radius: 18px;
+            color: #475467;
+            display: flex;
+            gap: 12px;
+            line-height: 1.45;
+            padding: 14px;
+        }
+
+        .rm-legal-check input {
+            accent-color: #008b7f;
+            flex: 0 0 auto;
+            height: 20px;
+            margin-top: 2px;
+            width: 20px;
+        }
+
+        .rm-legal-check span {
+            font-size: 13px;
+            font-weight: 750;
+        }
+
+        .rm-legal-check a {
+            color: #006b63;
+            font-weight: 950;
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+
         .rm-plan-grid {
             display: grid;
             gap: 10px;

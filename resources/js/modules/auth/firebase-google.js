@@ -52,6 +52,16 @@ if (googleButtons.length) {
         button.addEventListener('click', async () => {
             const errorTarget = document.querySelector(button.dataset.errorTarget || '[data-google-error]');
             const originalText = button.querySelector('[data-google-label]')?.textContent;
+            const termsCheckbox = document.querySelector('[data-terms-checkbox]');
+
+            if (termsCheckbox && !termsCheckbox.checked) {
+                if (errorTarget) {
+                    errorTarget.hidden = false;
+                    errorTarget.textContent = 'Debes aceptar los terminos y la politica de privacidad para crear tu cuenta.';
+                }
+
+                return;
+            }
 
             button.disabled = true;
             button.classList.add('is-loading');
@@ -68,9 +78,15 @@ if (googleButtons.length) {
             try {
                 const credential = await signInWithPopup(auth, provider);
                 const idToken = await credential.user.getIdToken();
-                const response = await window.axios.post(button.dataset.authUrl, {
+                const payload = {
                     id_token: idToken,
-                });
+                };
+
+                if (termsCheckbox) {
+                    payload.terms_accepted = termsCheckbox.checked;
+                }
+
+                const response = await window.axios.post(button.dataset.authUrl, payload);
 
                 window.location.href = response.data.redirect || '/dashboard';
             } catch (error) {

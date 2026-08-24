@@ -34,6 +34,17 @@ new #[Layout('layouts.guest')] class extends Component
 
     <div class="rm-google-error" data-google-error hidden></div>
 
+    <label class="rm-legal-check">
+        <input type="checkbox" data-terms-checkbox>
+        <span>
+            Acepto los
+            <a href="{{ route('legal.terms') }}" target="_blank" rel="noopener">términos y condiciones</a>
+            y la
+            <a href="{{ route('legal.privacy') }}" target="_blank" rel="noopener">política de privacidad</a>.
+            Entiendo que mi empresa es responsable de los datos de sus clientes, pacientes y usuarios.
+        </span>
+    </label>
+
     <button type="button" class="rm-google-button" data-firebase-google data-auth-url="{{ route('auth.firebase.google') }}">
         <span class="rm-google-icon">G</span>
 

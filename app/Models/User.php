@@ -29,6 +29,9 @@ class User extends Authenticatable
         'profile_photo_path',
         'status',
         'is_saas_admin',
+        'terms_accepted_at',
+        'terms_version',
+        'terms_accepted_ip',
     ];
 
     /**
@@ -50,6 +53,7 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'terms_accepted_at' => 'datetime',
             'password' => 'hashed',
             'is_saas_admin' => 'boolean',
         ];

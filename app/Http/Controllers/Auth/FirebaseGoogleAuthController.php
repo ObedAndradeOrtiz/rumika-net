@@ -21,6 +21,7 @@ class FirebaseGoogleAuthController extends Controller
     {
         $validated = $request->validate([
             'id_token' => ['required', 'string'],
+            'terms_accepted' => ['nullable', 'accepted'],
         ]);
 
         $payload = $this->verifyToken($validated['id_token']);
@@ -37,7 +38,11 @@ class FirebaseGoogleAuthController extends Controller
             ]);
         }
 
-        $user = DB::transaction(fn () => $this->findOrCreateUser($payload));
+        $user = DB::transaction(fn () => $this->findOrCreateUser(
+            $payload,
+            $request,
+            $request->boolean('terms_accepted')
+        ));
 
         if (($user->status ?? 'active') !== 'active') {
             throw ValidationException::withMessages([
@@ -96,7 +101,7 @@ class FirebaseGoogleAuthController extends Controller
         return $payload;
     }
 
-    private function findOrCreateUser(array $payload): User
+    private function findOrCreateUser(array $payload, Request $request, bool $acceptedTerms): User
     {
         $user = User::query()
             ->where('firebase_uid', $payload['sub'])
@@ -109,9 +114,18 @@ class FirebaseGoogleAuthController extends Controller
                 'auth_provider' => 'google',
                 'email_verified_at' => $user->email_verified_at ?: now(),
                 'profile_photo_path' => $user->profile_photo_path ?: ($payload['picture'] ?? null),
+                'terms_accepted_at' => $user->terms_accepted_at ?: ($acceptedTerms ? now() : null),
+                'terms_version' => $user->terms_version ?: ($acceptedTerms ? $this->termsVersion() : null),
+                'terms_accepted_ip' => $user->terms_accepted_ip ?: ($acceptedTerms ? $request->ip() : null),
             ])->save();
 
             return $user;
+        }
+
+        if (! $acceptedTerms) {
+            throw ValidationException::withMessages([
+                'terms_accepted' => 'Debes aceptar los terminos y la politica de privacidad para crear tu cuenta.',
+            ]);
         }
 
         $user = User::query()->create([
@@ -123,6 +137,9 @@ class FirebaseGoogleAuthController extends Controller
             'auth_provider' => 'google',
             'profile_photo_path' => $payload['picture'] ?? null,
             'status' => 'active',
+            'terms_accepted_at' => now(),
+            'terms_version' => $this->termsVersion(),
+            'terms_accepted_ip' => $request->ip(),
         ]);
 
         $company = Company::query()->create([
@@ -140,6 +157,11 @@ class FirebaseGoogleAuthController extends Controller
         ]);
 
         return $user;
+    }
+
+    private function termsVersion(): string
+    {
+        return '2026-08-24';
     }
 
     private function base64UrlDecode(string $value): string
