@@ -4268,7 +4268,7 @@
     }
 
     .rm-catalog-panel .rm-appointment-row .rm-commerce-actions {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .rm-catalog-panel .rm-appointment-row .rm-commerce-meta {
@@ -4441,6 +4441,101 @@
 }
 
 @media (max-width: 760px) {
+    .rm-client-list-row {
+        align-items: stretch !important;
+        display: grid !important;
+        gap: 12px !important;
+        grid-template-columns: minmax(0, 1fr) !important;
+        overflow: visible !important;
+        padding: 14px !important;
+        width: 100% !important;
+    }
+
+    .rm-client-list-row .rm-row-main {
+        display: grid !important;
+        gap: 5px !important;
+        min-width: 0 !important;
+        width: 100% !important;
+    }
+
+    .rm-client-list-row .rm-row-main strong {
+        display: block !important;
+        font-size: 16px !important;
+        line-height: 1.25 !important;
+        overflow: visible !important;
+        overflow-wrap: break-word !important;
+        white-space: normal !important;
+        word-break: normal !important;
+    }
+
+    .rm-client-list-row .rm-row-main > span {
+        display: block !important;
+        font-size: 13px !important;
+        max-width: 100% !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+    }
+
+    .rm-client-list-row .rm-commerce-meta {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+        margin-top: 10px !important;
+        min-width: 0 !important;
+        width: 100% !important;
+    }
+
+    .rm-client-list-row .rm-commerce-meta span {
+        max-width: 100% !important;
+    }
+
+    .rm-client-list-row .rm-commerce-actions {
+        display: grid !important;
+        gap: 8px !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        min-width: 0 !important;
+        width: 100% !important;
+    }
+
+    .rm-client-list-row .rm-commerce-actions button {
+        min-height: 42px !important;
+        width: 100% !important;
+    }
+
+    .rm-appointment-row .rm-commerce-actions {
+        display: grid !important;
+        gap: 8px !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        justify-content: stretch !important;
+        margin-left: 0 !important;
+        max-width: none !important;
+        width: 100% !important;
+    }
+
+    .rm-appointment-row .rm-attendance-actions,
+    .rm-appointment-row .rm-icon-actions,
+    .rm-appointment-row .rm-secondary-actions {
+        display: contents !important;
+    }
+
+    .rm-appointment-row .rm-commerce-actions button,
+    .rm-appointment-row .rm-commerce-actions a.rm-icon-button {
+        aspect-ratio: auto !important;
+        border-radius: 14px !important;
+        font-size: 10px !important;
+        min-height: 40px !important;
+        min-width: 0 !important;
+        padding: 0 6px !important;
+        width: 100% !important;
+    }
+
+    .rm-appointment-row .rm-icon-actions .rm-icon-button span,
+    .rm-appointment-row .rm-secondary-actions .rm-icon-button span {
+        display: inline !important;
+        white-space: normal !important;
+    }
+
     .rm-invoicing-head {
         align-items: stretch;
         flex-direction: column;
@@ -4546,6 +4641,185 @@
     .rm-report-row-kind {
         min-height: 42px;
         width: 100%;
+    }
+}
+
+@media (max-width: 900px), (hover: none) and (pointer: coarse) {
+    .rm-catalog-panel .rm-commerce-row.rm-client-list-row {
+        align-items: stretch !important;
+        display: grid !important;
+        gap: 12px !important;
+        grid-template-columns: minmax(0, 1fr) !important;
+        margin-inline: 0 !important;
+        min-width: 0 !important;
+        overflow: visible !important;
+        padding: 14px !important;
+        width: 100% !important;
+    }
+
+    .rm-client-list-row .rm-row-main,
+    .rm-client-list-row .rm-commerce-meta,
+    .rm-client-list-row .rm-commerce-actions {
+        grid-column: 1 / -1 !important;
+        min-width: 0 !important;
+        width: 100% !important;
+    }
+
+    .rm-client-list-row .rm-row-main strong {
+        display: block !important;
+        font-size: 17px !important;
+        line-height: 1.22 !important;
+        max-width: 100% !important;
+        overflow: visible !important;
+        overflow-wrap: break-word !important;
+        white-space: normal !important;
+        word-break: normal !important;
+    }
+
+    .rm-client-list-row .rm-row-main > span {
+        display: block !important;
+        font-size: 14px !important;
+        line-height: 1.35 !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+    }
+
+    .rm-client-list-row .rm-commerce-meta {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 7px !important;
+    }
+
+    .rm-client-list-row .rm-commerce-meta span {
+        max-width: 100% !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+    }
+
+    .rm-client-list-row .rm-commerce-actions {
+        display: grid !important;
+        gap: 8px !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        justify-content: stretch !important;
+    }
+
+    .rm-client-list-row .rm-commerce-actions button {
+        justify-content: center !important;
+        min-height: 42px !important;
+        padding-inline: 10px !important;
+        width: 100% !important;
+    }
+
+    .rm-catalog-panel .rm-commerce-row.rm-appointment-row {
+        align-items: stretch !important;
+        display: grid !important;
+        gap: 12px !important;
+        grid-template-columns: minmax(0, 1fr) !important;
+        min-width: 0 !important;
+        overflow: hidden !important;
+        padding: 14px !important;
+        width: 100% !important;
+    }
+
+    .rm-appointment-row .rm-row-main {
+        min-width: 0 !important;
+        width: 100% !important;
+    }
+
+    .rm-appointment-headline {
+        align-items: center !important;
+        display: grid !important;
+        gap: 8px 10px !important;
+        grid-template-columns: 76px minmax(0, 1fr) !important;
+        width: 100% !important;
+    }
+
+    .rm-appointment-headline .rm-appointment-time {
+        align-items: center !important;
+        align-self: center !important;
+        display: inline-flex !important;
+        height: 54px !important;
+        justify-content: center !important;
+        min-height: 54px !important;
+        padding: 0 8px !important;
+        width: 76px !important;
+    }
+
+    .rm-appointment-headline strong {
+        align-self: center !important;
+        font-size: 17px !important;
+        line-height: 1.2 !important;
+        min-width: 0 !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+    }
+
+    .rm-appointment-phone {
+        grid-column: 2 !important;
+        justify-self: start !important;
+        max-width: 100% !important;
+    }
+
+    .rm-service-scroll {
+        margin-top: 10px !important;
+        max-width: 100% !important;
+        overflow-x: auto !important;
+        padding-bottom: 2px !important;
+    }
+
+    .rm-appointment-row .rm-commerce-meta {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 7px !important;
+        margin-top: 8px !important;
+        width: 100% !important;
+    }
+
+    .rm-catalog-panel .rm-appointment-row .rm-commerce-actions,
+    .rm-appointment-row .rm-commerce-actions {
+        display: grid !important;
+        gap: 8px !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        justify-content: stretch !important;
+        margin-left: 0 !important;
+        max-width: none !important;
+        width: 100% !important;
+    }
+
+    .rm-appointment-row .rm-commerce-actions > button,
+    .rm-appointment-row .rm-commerce-actions > a.rm-icon-button {
+        align-items: center !important;
+        aspect-ratio: auto !important;
+        border-radius: 14px !important;
+        display: inline-flex !important;
+        font-size: 12px !important;
+        gap: 7px !important;
+        justify-content: center !important;
+        line-height: 1.15 !important;
+        min-height: 44px !important;
+        min-width: 0 !important;
+        padding: 0 8px !important;
+        text-align: center !important;
+        white-space: normal !important;
+        width: 100% !important;
+    }
+
+    .rm-appointment-row .rm-commerce-actions > .rm-locked-payment-button {
+        grid-column: 1 / -1 !important;
+    }
+
+    .rm-appointment-row .rm-commerce-actions > .rm-icon-button svg {
+        flex: 0 0 auto !important;
+    }
+
+    .rm-appointment-row .rm-commerce-actions > .rm-icon-button span {
+        display: inline !important;
+        min-width: 0 !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
     }
 }
 

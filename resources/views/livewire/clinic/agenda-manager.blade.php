@@ -146,128 +146,128 @@
                         </div>
                     </div>
                     <div class="rm-commerce-actions">
-                        <div class="rm-attendance-actions">
-                            @if ($appointment->attended && $appointment->locked_by_payment)
-                                <button class="rm-locked-payment-button" type="button" disabled>
-                                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
-                                        stroke="currentColor" stroke-width="2.3">
-                                        <rect x="3" y="11" width="18" height="10" rx="2" />
-                                        <path d="M7 11V8a5 5 0 0 1 10 0v3" />
-                                    </svg>
-                                    Bloqueado por pago
-                                </button>
-                            @else
-                                <button type="button"
-                                wire:click="markAttended({{ $appointment->id }})">Asistió</button>
-                                <button type="button" wire:click="markNoShow({{ $appointment->id }})">No
-                                asistió</button>
-                            @endif
-                        </div>
-                        <div class="rm-icon-actions">
-                            <button class="rm-icon-button is-payment" type="button"
-                                wire:click="openPayment({{ $appointment->id }})" aria-label="Registrar pago"
-                                title="Registrar pago">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                        @if ($appointment->attended && $appointment->locked_by_payment)
+                            <button class="rm-locked-payment-button" type="button" disabled>
+                                <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
                                     stroke="currentColor" stroke-width="2.3">
-                                    <rect x="3" y="5" width="18" height="14" rx="3" />
-                                    <path d="M3 10h18M8 15h2" />
+                                    <rect x="3" y="11" width="18" height="10" rx="2" />
+                                    <path d="M7 11V8a5 5 0 0 1 10 0v3" />
                                 </svg>
-                                <span>Cobrar</span>
+                                Bloqueado por pago
                             </button>
-                            @foreach ($appointment->payments as $payment)
-                                <button class="rm-icon-button is-edit-payment" type="button"
-                                    wire:click="editPayment({{ $payment->id }})" aria-label="Editar pago"
-                                    title="Editar pago">
-                                    @if ($loop->first)
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2.3">
-                                            <path d="M6 2h12v20l-3-2-3 2-3-2-3 2Z" />
-                                            <path d="M9 8h6M9 12h6M9 16h3" />
-                                        </svg>
-                                    @else
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2.3">
-                                            <path
-                                                d="M4 7h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Z" />
-                                            <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2M12 11v4M10 13h4" />
-                                        </svg>
-                                    @endif
-                                    <span>{{ $payment ? 'Editar cobro' : 'Cobrar' }}</span>
-                                </button>
-                            @endforeach
-                            <button class="rm-icon-button is-reschedule" type="button"
-                                wire:click="openReschedule({{ $appointment->id }})" aria-label="Reagendar"
-                                title="Reagendar">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                                    stroke="currentColor" stroke-width="2.3">
-                                    <path d="M8 2v4M16 2v4M3 10h18" />
-                                    <rect x="3" y="4" width="18" height="18" rx="3" />
-                                    <path d="m15 14 2 2-2 2M9 18l-2-2 2-2M7 16h10" />
-                                </svg>
-                                <span>Reagendar</span>
-                            </button>
-                            <button class="rm-icon-button is-add-service" type="button"
-                                wire:click="openAddServices({{ $appointment->id }})" aria-label="Agregar servicios"
-                                title="Agregar servicios">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                                    stroke="currentColor" stroke-width="2.3">
-                                    <path d="M12 5v14M5 12h14" />
-                                    <path d="M4 4h16v16H4z" />
-                                </svg>
-                                <span>Agregar servicio</span>
-                            </button>
-                        </div>
-                        <div class="rm-secondary-actions">
-                            @if ($canUseWhatsapp && $appointment->client?->displayPhone())
-                                <button class="rm-icon-button is-whatsapp" type="button"
-                                    wire:click="openWhatsappConversation({{ $appointment->id }})"
-                                    aria-label="Abrir WhatsApp" title="Abrir WhatsApp">
+                        @else
+                            <button type="button" wire:click="markAttended({{ $appointment->id }})">Asistió</button>
+                            <button type="button" wire:click="markNoShow({{ $appointment->id }})">No asistió</button>
+                        @endif
+
+                        <button class="rm-icon-button is-payment" type="button"
+                            wire:click="openPayment({{ $appointment->id }})" aria-label="Registrar pago"
+                            title="Registrar pago">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2.3">
+                                <rect x="3" y="5" width="18" height="14" rx="3" />
+                                <path d="M3 10h18M8 15h2" />
+                            </svg>
+                            <span>Cobrar</span>
+                        </button>
+
+                        @foreach ($appointment->payments as $payment)
+                            <button class="rm-icon-button is-edit-payment" type="button"
+                                wire:click="editPayment({{ $payment->id }})" aria-label="Editar pago"
+                                title="Editar pago">
+                                @if ($loop->first)
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
                                         stroke="currentColor" stroke-width="2.3">
-                                        <path d="M20 11.5a8.5 8.5 0 0 1-12.5 7.5L3 20l1.1-4.2A8.5 8.5 0 1 1 20 11.5Z" />
-                                        <path d="M8.8 8.9c.2-.5.4-.6.8-.6h.6c.2 0 .5.1.6.5l.5 1.2c.1.3.1.5-.1.7l-.4.5c.5.9 1.2 1.6 2.1 2.1l.5-.4c.2-.2.5-.2.7-.1l1.2.5c.4.2.5.4.5.7v.5c0 .5-.2.8-.7 1-1 .3-2.4-.1-3.9-1.2-1.7-1.3-2.9-3-3.1-4.2-.1-.5 0-.9.1-1.2Z" />
+                                        <path d="M6 2h12v20l-3-2-3 2-3-2-3 2Z" />
+                                        <path d="M9 8h6M9 12h6M9 16h3" />
                                     </svg>
-                                    <span>WhatsApp</span>
-                                </button>
-                            @endif
-                            @if ($canViewClinicalHistory)
-                                <a class="rm-icon-button is-clinical-history" href="{{ route('clinic.clinical-history', ['cliente' => $appointment->client_id]) }}" wire:navigate aria-label="Historia clinica" title="Historia clinica">
+                                @else
                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
                                         stroke="currentColor" stroke-width="2.3">
-                                        <path d="M8 4v16" />
-                                        <path d="M16 4v16" />
-                                        <path d="M4 8h16" />
-                                        <path d="M4 16h16" />
-                                        <path d="M9 12h6" />
+                                        <path
+                                            d="M4 7h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Z" />
+                                        <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2M12 11v4M10 13h4" />
                                     </svg>
-                                    <span>Historia clinica</span>
-                                </a>
-                            @endif
-                            <button class="rm-icon-button is-history" type="button"
-                                wire:click="openHistory({{ $appointment->client_id }})" aria-label="Ver historial"
-                                title="Ver historial">
+                                @endif
+                                <span>Editar cobro</span>
+                            </button>
+                        @endforeach
+
+                        <button class="rm-icon-button is-reschedule" type="button"
+                            wire:click="openReschedule({{ $appointment->id }})" aria-label="Reagendar"
+                            title="Reagendar">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2.3">
+                                <path d="M8 2v4M16 2v4M3 10h18" />
+                                <rect x="3" y="4" width="18" height="18" rx="3" />
+                                <path d="m15 14 2 2-2 2M9 18l-2-2 2-2M7 16h10" />
+                            </svg>
+                            <span>Reagendar</span>
+                        </button>
+
+                        <button class="rm-icon-button is-add-service" type="button"
+                            wire:click="openAddServices({{ $appointment->id }})" aria-label="Agregar servicios"
+                            title="Agregar servicios">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2.3">
+                                <path d="M12 5v14M5 12h14" />
+                                <path d="M4 4h16v16H4z" />
+                            </svg>
+                            <span>Agregar servicio</span>
+                        </button>
+
+                        @if ($canUseWhatsapp && $appointment->client?->displayPhone())
+                            <button class="rm-icon-button is-whatsapp" type="button"
+                                wire:click="openWhatsappConversation({{ $appointment->id }})"
+                                aria-label="Abrir WhatsApp" title="Abrir WhatsApp">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
                                     stroke="currentColor" stroke-width="2.3">
-                                    <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
-                                    <path d="M14 2v6h6M8 13h8M8 17h5" />
+                                    <path d="M20 11.5a8.5 8.5 0 0 1-12.5 7.5L3 20l1.1-4.2A8.5 8.5 0 1 1 20 11.5Z" />
+                                    <path d="M8.8 8.9c.2-.5.4-.6.8-.6h.6c.2 0 .5.1.6.5l.5 1.2c.1.3.1.5-.1.7l-.4.5c.5.9 1.2 1.6 2.1 2.1l.5-.4c.2-.2.5-.2.7-.1l1.2.5c.4.2.5.4.5.7v.5c0 .5-.2.8-.7 1-1 .3-2.4-.1-3.9-1.2-1.7-1.3-2.9-3-3.1-4.2-.1-.5 0-.9.1-1.2Z" />
                                 </svg>
-                                <span>Ver historial</span>
+                                <span>WhatsApp</span>
                             </button>
-                            @if ($canDeleteAppointments)
-                                <button class="rm-icon-button is-delete" type="button"
-                                    wire:click="confirmDeleteAppointment({{ $appointment->id }})"
-                                    aria-label="Eliminar cita" title="Eliminar cita">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                                        stroke="currentColor" stroke-width="2.3">
-                                        <path d="M3 6h18" />
-                                        <path d="M8 6V4h8v2" />
-                                        <path d="M19 6l-1 15H6L5 6" />
-                                        <path d="M10 11v6M14 11v6" />
-                                    </svg>
-                                    <span>Eliminar</span>
-                                </button>
-                            @endif
-                        </div>
+                        @endif
+
+                        @if ($canViewClinicalHistory)
+                            <a class="rm-icon-button is-clinical-history" href="{{ route('clinic.clinical-history', ['cliente' => $appointment->client_id]) }}" wire:navigate aria-label="Historia clinica" title="Historia clinica">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2.3">
+                                    <path d="M8 4v16" />
+                                    <path d="M16 4v16" />
+                                    <path d="M4 8h16" />
+                                    <path d="M4 16h16" />
+                                    <path d="M9 12h6" />
+                                </svg>
+                                <span>Historia clinica</span>
+                            </a>
+                        @endif
+
+                        <button class="rm-icon-button is-history" type="button"
+                            wire:click="openHistory({{ $appointment->client_id }})" aria-label="Ver historial"
+                            title="Ver historial">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2.3">
+                                <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
+                                <path d="M14 2v6h6M8 13h8M8 17h5" />
+                            </svg>
+                            <span>Ver historial</span>
+                        </button>
+
+                        @if ($canDeleteAppointments)
+                            <button class="rm-icon-button is-delete" type="button"
+                                wire:click="confirmDeleteAppointment({{ $appointment->id }})"
+                                aria-label="Eliminar cita" title="Eliminar cita">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                    stroke="currentColor" stroke-width="2.3">
+                                    <path d="M3 6h18" />
+                                    <path d="M8 6V4h8v2" />
+                                    <path d="M19 6l-1 15H6L5 6" />
+                                    <path d="M10 11v6M14 11v6" />
+                                </svg>
+                                <span>Eliminar</span>
+                            </button>
+                        @endif
                     </div>
                 </article>
             @empty
