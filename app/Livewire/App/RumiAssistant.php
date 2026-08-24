@@ -24,9 +24,10 @@ class RumiAssistant extends Component
                 'text' => 'Hola, soy Rumi. Puedo explicarte como usar Rumika, ubicar pantallas, abrir acciones seguras y resumir datos permitidos por tu rol.',
                 'actions' => [
                     ['label' => 'Resumen de hoy', 'prompt' => 'Dame un resumen de hoy'],
+                    ['label' => 'Reporte gerencial', 'prompt' => 'Genera reporte de marzo a la fecha central y sucursales'],
+                    ['label' => 'Clientes con deuda', 'prompt' => 'Muestrame clientes con mas deuda'],
                     ['label' => 'Guia de agenda', 'prompt' => 'Explicame como funciona la agenda'],
                     ['label' => 'Guia de inventario', 'prompt' => 'Explicame inventario entradas salidas ajustes y bajas'],
-                    ['label' => 'Mi rol', 'prompt' => 'Que puedo hacer con mi rol'],
                 ],
             ],
         ];

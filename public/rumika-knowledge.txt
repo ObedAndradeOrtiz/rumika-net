@@ -4,6 +4,18 @@ Rumika se adapta por sucursal. Una empresa puede tener varias sucursales y cada 
 
 Rumi es el asistente interno del sistema. Rumi debe explicar funciones, ubicar pantallas y resumir datos solo si el usuario tiene permiso por rol. Rumi no debe inventar informacion, no debe mostrar datos sensibles sin permiso y no debe ejecutar acciones destructivas sin confirmacion del usuario.
 
+Rumi tambien puede ayudar a administradores a redactar reportes gerenciales. Si el usuario pide un reporte tipo "Central y sucursales, marzo a la fecha", debe responder con secciones claras: pacientes, ingresos, marketing, operacion, personal, necesidades y propuestas. Si un dato no existe en la base de datos, Rumi debe indicarlo con claridad y proponer que se agregue un campo o modulo para medirlo.
+
+Listas utiles para administracion:
+- Clientes asistidos por fecha o periodo.
+- Clientes no asistidos por fecha o periodo.
+- Clientes con mas deuda.
+- Procedimientos o servicios mas realizados.
+- Insumos faltantes o productos sin stock.
+- Ingresos por servicios y productos.
+- Rendimiento por sucursal.
+- Profesional con mas consultas.
+
 GUIA RAPIDA DE MODULOS
 
 Inicio:

@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\Appointment;
+use App\Models\Client;
+use App\Models\ClientCharge;
 use App\Models\Branch;
 use App\Models\Company;
 use App\Models\Expense;
@@ -13,6 +15,7 @@ use App\Models\User;
 use App\Support\Money;
 use App\Support\RumikaAccess;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -132,6 +135,14 @@ class RumiAiAssistant
 
     private function localAnswer(User $user, Company $company, ?Branch $branch, string $normalized): ?array
     {
+        if ($this->isAdminReportQuestion($normalized)) {
+            return $this->adminReportAnswer($user, $company, $branch, $normalized);
+        }
+
+        if ($this->isClientListQuestion($normalized)) {
+            return $this->clientListAnswer($user, $company, $branch, $normalized);
+        }
+
         if ($this->isSalesQuestion($normalized)) {
             return $this->salesSummary($user, $company, $branch, $normalized);
         }
@@ -176,6 +187,299 @@ class RumiAiAssistant
         }
 
         return null;
+    }
+
+    private function isAdminReportQuestion(string $normalized): bool
+    {
+        return str_contains($normalized, 'reporte')
+            || str_contains($normalized, 'pacientes nuevos')
+            || str_contains($normalized, 'pacientes de seguimiento')
+            || str_contains($normalized, 'procedimientos realizados')
+            || str_contains($normalized, 'ingresos de la semana')
+            || str_contains($normalized, 'insumos faltantes')
+            || str_contains($normalized, 'consultas provenientes')
+            || str_contains($normalized, 'citas generadas')
+            || str_contains($normalized, 'que necesita')
+            || str_contains($normalized, 'que podemos mejorar');
+    }
+
+    private function isClientListQuestion(string $normalized): bool
+    {
+        return str_contains($normalized, 'clientes no asistidos')
+            || str_contains($normalized, 'pacientes no asistidos')
+            || str_contains($normalized, 'clientes asistidos')
+            || str_contains($normalized, 'pacientes asistidos')
+            || str_contains($normalized, 'clientes con mas deuda')
+            || str_contains($normalized, 'pacientes con mas deuda')
+            || str_contains($normalized, 'mas deuda')
+            || str_contains($normalized, 'procedimientos mas')
+            || str_contains($normalized, 'servicios mas');
+    }
+
+    private function adminReportAnswer(User $user, Company $company, ?Branch $branch, string $normalized): array
+    {
+        if (! $this->can($user, 'reportes', company: $company)
+            && ! $this->can($user, 'estadisticas', company: $company)
+            && ! $this->can($user, 'resumen_financiero', company: $company)) {
+            return $this->response('Tu rol no tiene permiso para generar reportes administrativos. Pide acceso a Reportes, Estadisticas o Resumen financiero.');
+        }
+
+        if (! $branch) {
+            return $this->response('No encontre una sucursal activa para generar el reporte.');
+        }
+
+        [$from, $to, $label] = $this->reportPeriodFromQuestion($normalized);
+        [$branchIds, $scope] = $this->reportBranchScope($user, $company, $branch, $normalized);
+        $weekRange = [now()->copy()->startOfWeek(), now()->copy()->endOfWeek()];
+
+        $newClients = Client::query()
+            ->where('company_id', $company->id)
+            ->whereBetween('created_at', [$from, $to])
+            ->count();
+
+        $followUpClients = Client::query()
+            ->where('company_id', $company->id)
+            ->whereHas('appointments', fn ($query) => $query
+                ->whereIn('branch_id', $branchIds)
+                ->whereBetween('scheduled_at', [$from, $to]), '>=', 2)
+            ->count();
+
+        $appointments = Appointment::query()
+            ->where('company_id', $company->id)
+            ->whereIn('branch_id', $branchIds)
+            ->whereBetween('scheduled_at', [$from, $to])
+            ->get();
+
+        $procedures = (int) DB::table('appointment_services')
+            ->join('appointments', 'appointments.id', '=', 'appointment_services.appointment_id')
+            ->where('appointments.company_id', $company->id)
+            ->whereIn('appointments.branch_id', $branchIds)
+            ->whereBetween('appointments.scheduled_at', [$from, $to])
+            ->count();
+
+        $weekServices = (float) TreatmentPayment::query()
+            ->where('company_id', $company->id)
+            ->whereIn('branch_id', $branchIds)
+            ->whereBetween('paid_at', $weekRange)
+            ->sum('amount');
+
+        $weekProducts = (float) ProductSale::query()
+            ->where('company_id', $company->id)
+            ->whereIn('branch_id', $branchIds)
+            ->whereBetween('sold_at', $weekRange)
+            ->sum('paid_amount');
+
+        $lowStock = InventoryProductBatch::query()
+            ->with('product')
+            ->where('company_id', $company->id)
+            ->whereIn('branch_id', $branchIds)
+            ->where('status', 'active')
+            ->where('current_quantity', '<=', 0)
+            ->count();
+
+        $topProcedures = $this->topProcedures($company, $branchIds, $from, $to);
+        $topDebtors = $this->topDebtors($company, $branchIds, $from, $to);
+
+        $answer = "REPORTE {$scope}\nPeriodo: {$label}\n\n"
+            . "PACIENTES\n"
+            . "- Pacientes nuevos: {$newClients}\n"
+            . "- Pacientes de seguimiento: {$followUpClients}\n"
+            . "- Procedimientos realizados: {$procedures}\n"
+            . "- Citas generadas: {$appointments->count()}\n"
+            . "- Asistieron: {$appointments->where('attended', true)->count()}\n"
+            . "- No asistieron: {$appointments->where('status', 'no_show')->count()}\n\n"
+            . "INGRESOS\n"
+            . "- Ingresos de la semana: " . Money::symbol() . ' ' . number_format($weekServices + $weekProducts, 2) . "\n"
+            . "- Servicios semana: " . Money::symbol() . ' ' . number_format($weekServices, 2) . "\n"
+            . "- Productos semana: " . Money::symbol() . ' ' . number_format($weekProducts, 2) . "\n\n"
+            . "MARKETING\n"
+            . "- Consultas provenientes de redes: no hay campo estructurado todavia. Recomendacion: agregar origen del cliente/cita para medir Facebook, TikTok, WhatsApp, referidos y organico.\n"
+            . "- Citas generadas: {$appointments->count()}\n\n"
+            . "OPERACION\n"
+            . "- Insumos faltantes: {$lowStock} lote(s)/producto(s) sin stock.\n"
+            . "- Problemas de equipos: no hay registro estructurado todavia. Recomendacion: registrarlo como incidencia operativa o activo en mantenimiento.\n"
+            . "- Reclamos: no hay registro estructurado todavia. Recomendacion: crear modulo simple de reclamos por cliente/sucursal.\n\n"
+            . "PERSONAL\n"
+            . "- Ausencias: usa No asistio para clientes; para personal falta registro dedicado de asistencia interna.\n"
+            . "- Incidencias: revisar Bitacora para acciones del personal. Si necesitas incidencias laborales, conviene crear un tipo especifico.\n\n"
+            . "TOP PROCEDIMIENTOS\n"
+            . $this->formatNameCountList($topProcedures, 'Sin procedimientos registrados') . "\n\n"
+            . "CLIENTES CON MAS DEUDA\n"
+            . $this->formatDebtList($topDebtors) . "\n\n"
+            . "NECESIDADES\n"
+            . "- Revisar insumos en 0 o negativos, vencimientos proximos y diferencias de inventario.\n"
+            . "- Revisar deudas altas y citas no asistidas para seguimiento.\n\n"
+            . "PROPUESTAS\n"
+            . "- Activar origen de citas para medir redes y campanas.\n"
+            . "- Registrar reclamos/incidencias por sucursal.\n"
+            . "- Usar reportes por fecha y estadisticas para comparar rendimiento por sede y profesional.";
+
+        return $this->response($answer, [
+            $this->actionButton('Ver reportes', 'go_reportes'),
+            $this->actionButton('Ver estadisticas', 'go_estadisticas'),
+            $this->actionButton('Ver deudas', 'go_deudas'),
+            $this->actionButton('Inventario', 'go_inventario'),
+        ]);
+    }
+
+    private function clientListAnswer(User $user, Company $company, ?Branch $branch, string $normalized): array
+    {
+        if (! $this->can($user, 'clientes', company: $company)
+            && ! $this->can($user, 'reportes', company: $company)
+            && ! $this->can($user, 'estadisticas', company: $company)) {
+            return $this->response('Tu rol no tiene permiso para listar clientes o pacientes.');
+        }
+
+        if (! $branch) {
+            return $this->response('No encontre una sucursal activa para generar la lista.');
+        }
+
+        [$from, $to, $label] = $this->reportPeriodFromQuestion($normalized);
+        [$branchIds, $scope] = $this->reportBranchScope($user, $company, $branch, $normalized);
+
+        if (str_contains($normalized, 'mas deuda')) {
+            $rows = $this->topDebtors($company, $branchIds, $from, $to, 10);
+
+            return $this->response(
+                "Clientes con mas deuda en {$scope}\nPeriodo: {$label}\n\n" . $this->formatDebtList($rows),
+                [$this->actionButton('Ver deudas', 'go_deudas')]
+            );
+        }
+
+        if (str_contains($normalized, 'procedimientos mas') || str_contains($normalized, 'servicios mas')) {
+            $rows = $this->topProcedures($company, $branchIds, $from, $to, 10);
+
+            return $this->response(
+                "Servicios/procedimientos mas realizados en {$scope}\nPeriodo: {$label}\n\n" . $this->formatNameCountList($rows, 'Sin procedimientos registrados'),
+                [$this->actionButton('Ver estadisticas', 'go_estadisticas')]
+            );
+        }
+
+        $attended = ! str_contains($normalized, 'no asist');
+        $rows = Appointment::query()
+            ->with(['client', 'branch'])
+            ->where('company_id', $company->id)
+            ->whereIn('branch_id', $branchIds)
+            ->whereBetween('scheduled_at', [$from, $to])
+            ->when($attended, fn ($query) => $query->where('attended', true))
+            ->when(! $attended, fn ($query) => $query->where('status', 'no_show'))
+            ->orderByDesc('scheduled_at')
+            ->limit(10)
+            ->get()
+            ->map(fn ($appointment) => [
+                'name' => $appointment->client?->full_name ?? 'Sin cliente',
+                'meta' => $appointment->scheduled_at?->format('d/m/Y H:i') . ' - ' . ($appointment->branch?->name ?? 'Sin sucursal'),
+            ]);
+
+        $title = $attended ? 'Clientes asistidos' : 'Clientes no asistidos';
+        $list = $rows->isEmpty()
+            ? 'No encontre registros para este periodo.'
+            : $rows->map(fn ($row, $index) => ($index + 1) . '. ' . $row['name'] . ' - ' . $row['meta'])->implode("\n");
+
+        return $this->response(
+            "{$title} en {$scope}\nPeriodo: {$label}\n\n{$list}",
+            [
+                $this->actionButton('Abrir agenda', 'go_agenda'),
+                $this->actionButton('Ver clientes', 'go_clientes'),
+            ]
+        );
+    }
+
+    private function reportPeriodFromQuestion(string $normalized): array
+    {
+        $now = now();
+
+        if (str_contains($normalized, 'marzo')) {
+            $from = Carbon::create($now->year, 3, 1, 0, 0, 0, $now->timezone);
+
+            return [$from, $now->copy()->endOfDay(), 'marzo a la fecha'];
+        }
+
+        if (str_contains($normalized, 'semana')) {
+            return [$now->copy()->startOfWeek(), $now->copy()->endOfWeek(), 'esta semana'];
+        }
+
+        if (str_contains($normalized, 'hoy')) {
+            return [$now->copy()->startOfDay(), $now->copy()->endOfDay(), 'hoy'];
+        }
+
+        if (str_contains($normalized, 'ayer')) {
+            $date = $now->copy()->subDay();
+
+            return [$date->copy()->startOfDay(), $date->copy()->endOfDay(), 'ayer'];
+        }
+
+        return [$now->copy()->startOfMonth(), $now->copy()->endOfDay(), 'este mes a la fecha'];
+    }
+
+    private function reportBranchScope(User $user, Company $company, Branch $branch, string $normalized): array
+    {
+        $canSeeAll = $this->can($user, 'reportes', company: $company)
+            || $this->can($user, 'estadisticas', company: $company)
+            || $this->can($user, 'resumen_financiero', company: $company);
+
+        $asksAll = str_contains($normalized, 'central y')
+            || str_contains($normalized, 'sucursales')
+            || str_contains($normalized, 'todas')
+            || str_contains($normalized, 'general')
+            || str_contains($normalized, 'empresa');
+
+        if ($canSeeAll && $asksAll) {
+            return [$company->branches()->pluck('id')->all(), 'Central y sucursales'];
+        }
+
+        return [[$branch->id], $branch->name];
+    }
+
+    private function topProcedures(Company $company, array $branchIds, Carbon $from, Carbon $to, int $limit = 5)
+    {
+        return DB::table('appointment_services')
+            ->join('appointments', 'appointments.id', '=', 'appointment_services.appointment_id')
+            ->where('appointments.company_id', $company->id)
+            ->whereIn('appointments.branch_id', $branchIds)
+            ->whereBetween('appointments.scheduled_at', [$from, $to])
+            ->selectRaw('appointment_services.name as name, count(*) as total')
+            ->groupBy('appointment_services.name')
+            ->orderByDesc('total')
+            ->limit($limit)
+            ->get();
+    }
+
+    private function topDebtors(Company $company, array $branchIds, Carbon $from, Carbon $to, int $limit = 5)
+    {
+        return ClientCharge::query()
+            ->with('client')
+            ->where('company_id', $company->id)
+            ->whereIn('branch_id', $branchIds)
+            ->where('balance_amount', '>', 0)
+            ->whereBetween('charged_at', [$from, $to])
+            ->selectRaw('client_id, sum(balance_amount) as total_debt')
+            ->groupBy('client_id')
+            ->orderByDesc('total_debt')
+            ->limit($limit)
+            ->get();
+    }
+
+    private function formatNameCountList($rows, string $emptyMessage): string
+    {
+        if ($rows->isEmpty()) {
+            return "- {$emptyMessage}";
+        }
+
+        return $rows
+            ->map(fn ($row, $index) => ($index + 1) . '. ' . ($row->name ?: 'Sin nombre') . ' - ' . $row->total)
+            ->implode("\n");
+    }
+
+    private function formatDebtList($rows): string
+    {
+        if ($rows->isEmpty()) {
+            return '- Sin deudas pendientes para este periodo.';
+        }
+
+        return $rows
+            ->map(fn ($row, $index) => ($index + 1) . '. ' . ($row->client?->full_name ?? 'Sin cliente') . ' - ' . Money::symbol() . ' ' . number_format((float) $row->total_debt, 2))
+            ->implode("\n");
     }
 
     private function helpAnswer(User $user, Company $company, string $normalized): ?array
