@@ -1528,8 +1528,8 @@
 
 .rm-rumi {
     bottom: calc(18px + env(safe-area-inset-bottom));
-    left: 18px;
     position: fixed;
+    right: 18px;
     z-index: 90;
 }
 
@@ -1739,10 +1739,10 @@
     box-shadow: 0 28px 80px rgba(16, 24, 40, 0.2);
     display: grid;
     grid-template-rows: auto minmax(0, 1fr) auto auto;
-    left: 0;
     max-height: min(680px, calc(100dvh - 110px));
     overflow: hidden;
     position: absolute;
+    right: 0;
     width: min(420px, calc(100vw - 36px));
 }
 
@@ -2091,7 +2091,7 @@
 
     .rm-rumi {
         bottom: calc(78px + env(safe-area-inset-bottom));
-        left: 12px;
+        right: 12px;
     }
 
     .rm-rumi-launcher {
@@ -2102,8 +2102,8 @@
     .rm-rumi-panel {
         border-radius: 22px 22px 0 0;
         bottom: calc(-78px - env(safe-area-inset-bottom));
-        left: -12px;
         max-height: calc(100dvh - 116px);
+        right: -12px;
         width: 100vw;
     }
 
