@@ -34,6 +34,7 @@
                 </button>
                 @if ($canCreateAppointments)
                     <button class="rm-button rm-button-primary rm-icon-button" type="button" wire:click="createAppointment"
+                        data-rumi-action="new-appointment"
                         aria-label="Nueva cita" title="Nueva cita">
                         <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2.4">

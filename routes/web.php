@@ -6,33 +6,8 @@ use App\Http\Controllers\RumikaBotController;
 use App\Http\Controllers\WhatsappWebhookController;
 use App\Livewire\Onboarding\CompanySetup;
 
-use Illuminate\Support\Facades\Http;
-
-Route::get('/test-gemini-directo', function () {
-    $apiKey = config('services.google_ai.key');
-    $model = config('services.google_ai.model', 'gemini-3.5-flash');
-
-    $response = Http::withoutVerifying()
-        ->timeout(20)
-        ->post("https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}", [
-            'contents' => [
-                [
-                    'role' => 'user',
-                    'parts' => [
-                        ['text' => 'Responde solamente: OK'],
-                    ],
-                ],
-            ],
-        ]);
-
-    return response()->json([
-        'status' => $response->status(),
-        'model' => $model,
-        'body' => $response->json(),
-    ]);
-});
-
 Route::post('/rumika-bot', [RumikaBotController::class, 'ask'])
+    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding'])
     ->name('rumika.bot');
 
 Route::get('/webhook/whatsapp', [WhatsappWebhookController::class, 'verify'])

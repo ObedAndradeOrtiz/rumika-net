@@ -25,7 +25,7 @@ class RumikaBotController extends Controller
                 ]);
             }
 
-            $model = config('services.google_ai.model', 'gemini-3.5-flash');
+            $model = config('services.google_ai.model', 'gemini-2.0-flash');
 
             $knowledgePath = public_path('rumika-knowledge.txt');
 

@@ -20,6 +20,10 @@
             <main>
                 {{ $slot }}
             </main>
+
+            @auth
+                <livewire:app.rumi-assistant />
+            @endauth
         </div>
     </body>
 </html>

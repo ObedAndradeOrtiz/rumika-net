@@ -37,7 +37,12 @@ return [
 
     'google_ai' => [
         'key' => env('GOOGLE_AI_API_KEY'),
-        'model' => env('GOOGLE_AI_MODEL', 'gemini-3.5-flash'),
+        'model' => env('GOOGLE_AI_MODEL', 'gemini-2.0-flash'),
+    ],
+
+    'rumi_ai' => [
+        'endpoint' => env('RUMI_AI_ENDPOINT'),
+        'token' => env('RUMI_AI_TOKEN'),
     ],
 
     'firebase' => [

@@ -17,7 +17,7 @@
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><path d="M20 8v6M17 11h6"/></svg>
                 <h2>Lista de clientes</h2>
             </div>
-            <button class="rm-button rm-button-primary" type="button" wire:click="createClient">Nuevo cliente</button>
+        <button class="rm-button rm-button-primary" type="button" wire:click="createClient" data-rumi-action="new-client">Nuevo cliente</button>
         </div>
 
         <div class="rm-filter-row">
