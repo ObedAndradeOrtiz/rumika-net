@@ -47,7 +47,7 @@ class StatisticsSummary extends Component
             : $branches->pluck('id');
 
         $appointments = $company->appointments()
-            ->with(['branch', 'client', 'services'])
+            ->with(['branch', 'client', 'services', 'attendedBy'])
             ->whereIn('branch_id', $branchIds)
             ->whereBetween('scheduled_at', [$from, $to])
             ->get();
@@ -108,6 +108,7 @@ class StatisticsSummary extends Component
             'branchRows' => $this->branchRows($branches, $appointments, $payments, $expenses),
             'dailyRows' => $this->dailyRows($appointments, $payments, $expenses, $from, $to),
             'topServices' => $this->topServices($appointments),
+            'topProfessionals' => $this->topProfessionals($appointments),
             'topSellers' => $this->topSellers($payments),
             'topProducts' => $this->topProducts($payments),
             'annualRows' => $this->annualRows($annualAppointments, $annualPayments, $annualExpenses, $year),
@@ -181,6 +182,28 @@ class StatisticsSummary extends Component
             ])
             ->sortByDesc('count')
             ->take(8)
+            ->values();
+    }
+
+    private function topProfessionals($appointments)
+    {
+        $attendedAppointments = $appointments->where('attended', true);
+        $totalAttended = max(1, $attendedAppointments->count());
+
+        return $attendedAppointments
+            ->groupBy(fn ($appointment) => $appointment->attended_by_user_id ?: 'none')
+            ->map(function ($items) use ($totalAttended) {
+                $first = $items->first();
+                $count = $items->count();
+
+                return [
+                    'name' => $first->attendedBy?->name ?? 'Sin profesional asignado',
+                    'count' => $count,
+                    'percentage' => round(($count / $totalAttended) * 100),
+                ];
+            })
+            ->sortByDesc('count')
+            ->take(10)
             ->values();
     }
 

@@ -721,7 +721,7 @@
 .rm-dashboard-kpis {
     display: grid;
     gap: 14px;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
 }
 
 .rm-dashboard-kpis article {
@@ -786,6 +786,11 @@
 .rm-kpi-icon.is-expense {
     background: #f5f3ff;
     color: #6d28d9;
+}
+
+.rm-kpi-icon.is-professional {
+    background: #ecfeff;
+    color: #0e7490;
 }
 
 .rm-dashboard-grid {
@@ -974,12 +979,14 @@
 }
 
 .rm-stat-rank-list,
+.rm-professional-rank-list,
 .rm-weekly-branch-list {
     display: grid;
     gap: 10px;
 }
 
 .rm-stat-rank-list article,
+.rm-professional-rank-list article,
 .rm-weekly-branch-list article {
     align-items: center;
     border: 1px solid var(--rumika-border);
@@ -988,6 +995,10 @@
     gap: 12px;
     grid-template-columns: minmax(0, 1fr) auto;
     padding: 12px;
+}
+
+.rm-professional-rank-list article {
+    grid-template-columns: minmax(0, 1fr) minmax(170px, 0.42fr);
 }
 
 .rm-weekly-branch-list article {
@@ -1003,12 +1014,55 @@
 }
 
 .rm-stat-rank-list small,
+.rm-professional-rank-list small,
 .rm-weekly-branch-list small {
     color: var(--rumika-muted);
     display: block;
     font-size: 12px;
     font-weight: 800;
     margin-top: 3px;
+}
+
+.rm-professional-rank-info {
+    min-width: 0;
+}
+
+.rm-professional-rank-info strong {
+    color: var(--rumika-ink);
+    display: block;
+    font-size: 14px;
+    font-weight: 950;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rm-professional-rank-meter {
+    align-items: center;
+    display: grid;
+    gap: 8px;
+    grid-template-columns: 44px minmax(90px, 1fr);
+}
+
+.rm-professional-rank-meter span {
+    color: var(--rumika-teal-dark);
+    font-size: 13px;
+    font-weight: 950;
+    text-align: right;
+}
+
+.rm-professional-rank-meter div {
+    background: #eef2f7;
+    border-radius: 999px;
+    height: 10px;
+    overflow: hidden;
+}
+
+.rm-professional-rank-meter i {
+    background: linear-gradient(90deg, var(--rumika-teal), #14b8a6);
+    border-radius: inherit;
+    display: block;
+    height: 100%;
 }
 
 .rm-stat-annual-table .rm-stat-table-head,
@@ -2276,8 +2330,13 @@
         font-size: 17px;
     }
 
-    .rm-stat-rank-list article {
+    .rm-stat-rank-list article,
+    .rm-professional-rank-list article {
         grid-template-columns: 1fr;
+    }
+
+    .rm-professional-rank-meter {
+        grid-template-columns: 44px minmax(0, 1fr);
     }
 
     .rm-module-grid {

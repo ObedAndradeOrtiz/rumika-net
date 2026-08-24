@@ -66,6 +66,7 @@ class HomeSummary extends Component
             'upcomingExpirations' => $upcomingExpirations,
             'monthExpenses' => $monthExpenses,
             'recentExpenses' => $recentExpenses,
+            'topProfessional' => $this->topProfessional($company, $branch, $monthRange),
         ]);
     }
 
@@ -154,6 +155,36 @@ class HomeSummary extends Component
             })
             ->filter(fn ($row) => $row['scheduled'] > 0)
             ->values();
+    }
+
+    private function topProfessional(Company $company, Branch $branch, array $monthRange): ?array
+    {
+        $attendedAppointments = $company->appointments()
+            ->with('attendedBy')
+            ->where('branch_id', $branch->id)
+            ->where('attended', true)
+            ->whereBetween('scheduled_at', $monthRange)
+            ->get();
+
+        $totalAttended = $attendedAppointments->count();
+
+        if ($totalAttended === 0) {
+            return null;
+        }
+
+        return $attendedAppointments
+            ->groupBy(fn ($appointment) => $appointment->attended_by_user_id ?: 'none')
+            ->map(function ($items) use ($totalAttended) {
+                $count = $items->count();
+
+                return [
+                    'name' => $items->first()->attendedBy?->name ?? 'Sin profesional asignado',
+                    'count' => $count,
+                    'percentage' => round(($count / $totalAttended) * 100),
+                ];
+            })
+            ->sortByDesc('count')
+            ->first();
     }
 
     private function company(): Company

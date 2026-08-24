@@ -53,6 +53,21 @@
             </span>
             <div><strong>{{ \App\Support\Money::symbol() }} {{ number_format($monthExpenses, 2) }}</strong><span>Gastos del mes</span></div>
         </article>
+        <article>
+            <span class="rm-kpi-icon is-professional">
+                <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><path d="M20 8v8M16 12h8"/></svg>
+            </span>
+            <div>
+                <strong>{{ $topProfessional['name'] ?? 'Sin datos' }}</strong>
+                <span>
+                    @if ($topProfessional)
+                        {{ $topProfessional['count'] }} consulta(s) - {{ $topProfessional['percentage'] }}%
+                    @else
+                        Profesional con mas consultas
+                    @endif
+                </span>
+            </div>
+        </article>
     </section>
 
     <div class="rm-dashboard-grid">

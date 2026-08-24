@@ -112,6 +112,32 @@
         </div>
     </section>
 
+    <section class="rm-panel">
+        <div class="rm-panel-title">
+            <div>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><path d="M20 8v8M16 12h8"/></svg>
+                <h2>Profesionales con mas consultas</h2>
+            </div>
+            <span>{{ $topProfessionals->count() }}</span>
+        </div>
+        <div class="rm-professional-rank-list">
+            @forelse ($topProfessionals as $professional)
+                <article>
+                    <div class="rm-professional-rank-info">
+                        <strong>{{ $professional['name'] }}</strong>
+                        <small>{{ $professional['count'] }} consulta(s) atendida(s)</small>
+                    </div>
+                    <div class="rm-professional-rank-meter">
+                        <span>{{ $professional['percentage'] }}%</span>
+                        <div><i style="width: {{ $professional['percentage'] }}%"></i></div>
+                    </div>
+                </article>
+            @empty
+                <div class="rm-dashboard-empty">Sin consultas atendidas en este rango.</div>
+            @endforelse
+        </div>
+    </section>
+
     <div class="rm-stat-sales-grid">
         <section class="rm-panel">
             <div class="rm-panel-title">
