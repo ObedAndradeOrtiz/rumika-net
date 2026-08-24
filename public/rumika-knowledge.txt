@@ -1,26 +1,154 @@
-Rumika SaaS es un sistema base modular creado por DigitBol.
+Rumika SaaS es un sistema modular creado por DigitBol para clinicas, spas, centros de belleza, barberias, dentistas, farmacias, tiendas y negocios con agenda, clientes, inventario, ventas, caja, reportes, CRM, sucursales, usuarios y roles.
 
-Rumika está diseñado para clínicas, spas, centros de belleza, barberías, dentistas y otros negocios que necesitan administrar agenda, clientes, inventario, pagos, caja, reportes, historial y sucursales.
+Rumika se adapta por sucursal. Una empresa puede tener varias sucursales y cada sucursal puede tener un tipo de negocio diferente. Los clientes pertenecen a la empresa en general, pero agenda, caja, inventario, ventas, gastos y operaciones se trabajan por sucursal.
 
-Rumika permite que cada empresa o sucursal active módulos según su tipo de negocio.
+Rumi es el asistente interno del sistema. Rumi debe explicar funciones, ubicar pantallas y resumir datos solo si el usuario tiene permiso por rol. Rumi no debe inventar informacion, no debe mostrar datos sensibles sin permiso y no debe ejecutar acciones destructivas sin confirmacion del usuario.
 
-Módulos principales:
-- Agenda de citas
-- Clientes
-- Historial de atención
-- Sucursales
-- Inventario
-- Productos
-- Servicios
-- Pagos
-- Caja
-- Reportes
-- Usuarios y roles
+GUIA RAPIDA DE MODULOS
 
-Rumika ayuda a ordenar la atención diaria, evitar pérdida de información, controlar citas, revisar historial de clientes y administrar sucursales de forma profesional.
+Inicio:
+- Muestra resumen de la sucursal activa.
+- Incluye citas de hoy, caja del dia, clientes nuevos, bajo stock, vencimientos, gastos del mes, asistencia y profesional con mas consultas.
+- Sirve para saber rapidamente como va el negocio.
 
-DigitBol es el creador de Rumika SaaS. DigitBol desarrolla sistemas web, plataformas SaaS, sistemas administrativos y soluciones digitales para empresas.
+Agenda:
+- Sirve para crear citas, registrar asistencia, reagendar, cobrar y abrir historial.
+- Asistio marca que el cliente llego y cuenta en estadisticas.
+- No asistio registra inasistencia sin borrar la cita original.
+- Cobrar registra pagos de servicios, productos y abonos pendientes.
+- Reagendar crea una nueva cita sin mover la cita original.
+- Agregar servicio permite sumar tratamientos adicionales a una cita. Puede registrarse quien agrego el servicio.
+- Historia clinica abre fichas, recetas, archivos y evolucion del paciente si el rol tiene permiso.
+- Ver historial muestra servicios, productos comprados, pagos y deudas del cliente.
+- Eliminar cita debe usarse solo si fue un error y solo por personal autorizado.
 
-Para hablar con un representante de Rumika, el cliente puede escribir por WhatsApp al número 59177348087.
+Clientes:
+- Los clientes son generales de la empresa, no de una sucursal.
+- Se puede buscar por nombre, CI/documento, NIT o telefono.
+- Un cliente puede tener varios telefonos y uno principal.
+- El telefono debe respetar el pais configurado cuando aplique.
+- El historial debe mostrar citas, servicios, productos comprados, productos a cuenta, pagos y pendientes.
 
-Si preguntan por precios, responder que los planes pueden variar según módulos, sucursales y necesidades del negocio, y recomendar comunicarse con un representante.
+Historia clinica:
+- Guarda fichas, evoluciones, recetas, imagenes, PDF y documentos del paciente.
+- Las fichas pueden usar plantillas creadas por la empresa.
+- Los doctores o profesionales solo deben ver pacientes asignados o autorizados.
+- Los accesos a historial se controlan desde roles y desde permisos clinicos.
+- Puede asociarse una ficha, archivo o receta a una cita, tratamiento o servicio.
+
+Servicios y paquetes:
+- Servicios son tratamientos o trabajos individuales.
+- Paquetes agrupan varios servicios con precio general, vigencia y estado.
+- Los servicios y paquetes activos aparecen al crear citas o cobros.
+- El precio base puede cambiarse en el cobro si el negocio lo permite.
+
+Inventario:
+- Producto es el articulo general del catalogo.
+- Lote identifica una entrada especifica, vencimiento o grupo de productos.
+- Zona o area de uso indica donde se usa o guarda el producto: gabinete, venta, recepcion, farmacia u otra zona creada.
+- Proveedor y marca ayudan a filtrar, comprar y reportar.
+- Cada sucursal tiene stock propio. No se debe copiar stock entre sucursales.
+- Los productos con stock cero pueden ocultarse para venta normal, dejando solo una opcion de emergencia si el negocio lo permite.
+- La imagen del producto ayuda a confirmar visualmente antes de vender.
+
+Operaciones de inventario:
+- Entrada aumenta stock por compra, reposicion o carga manual.
+- Salida reduce stock por uso autorizado.
+- Gabinete registra consumo interno en atenciones o procedimientos.
+- Traspaso mueve productos entre sucursales.
+- Desecho o baja reduce stock por vencimiento, defecto, perdida o producto inutilizable. Debe registrarse motivo.
+- Ajuste corrige diferencias entre conteo fisico y sistema. Debe usarse cuando hubo mal conteo o diferencia real.
+- Todo movimiento debe quedar en historial para auditoria.
+
+Cierres de inventario:
+- Abrir inventario permite tomar una foto inicial por sucursal y zona.
+- Cerrar inventario compara apertura, entradas, salidas, ventas, bajas, ajustes y cierre fisico.
+- Diferencia muestra lo que no coincide.
+- Producto nuevo aparece cuando no existia comparacion anterior.
+- El detalle puede exportarse para revision.
+
+Ventas directas:
+- Sirve para vender productos sin cita ni paciente.
+- Puede usarse para farmacia, tienda o ventas de mostrador.
+- Comprador puede ser consumidor final o tener nombre, NIT, telefono y email.
+- Si pide factura, se debe registrar NIT o razon social.
+- Se puede buscar producto por nombre, codigo, marca o zona.
+- Si no alcanza el stock y se permite venta de emergencia, debe registrar motivo de faltante.
+- Si hay impresora activa, al confirmar venta puede imprimirse ticket.
+
+Caja:
+- Caja trabaja por sucursal y por turno.
+- Abrir caja define monto inicial.
+- Cerrar caja cierra el turno desde la apertura hasta ese momento.
+- Se pueden abrir varios turnos al dia, pero no debe abrirse otra caja si ya hay una abierta por otra persona.
+- Imprimir o reimprimir no debe cerrar caja.
+- La caja separa efectivo, QR, gastos de caja, caja neta, facturacion y tickets guardados.
+- Los tickets deben usar la moneda de la sucursal.
+
+Gastos:
+- Gasto de caja descuenta de la caja cuando el dinero salio de caja.
+- Gasto externo se registra como gasto general, pero no afecta caja.
+- Tipos de gasto pueden indicar si requieren personal, como adelantos, pagos o liquidaciones.
+- Si no requiere personal, debe guardar el responsable del gasto.
+- El historial se consulta por fecha desde/hasta.
+
+Deudas:
+- Muestra saldos pendientes de servicios y productos.
+- Los clientes pueden pagar parcialmente servicios o productos.
+- Cada abono debe dividirse en efectivo, QR u otro metodo si corresponde.
+- Al cobrar una nueva atencion, Rumika debe avisar si el cliente tiene pendientes.
+
+Facturacion:
+- Agrupa ventas o cobros marcados para facturar.
+- Si el cliente no solicita factura, no es necesario pedir NIT.
+- Si solicita factura, se debe guardar NIT y razon social segun corresponda al pais.
+
+Reportes:
+- Reportes ayuda a gerencia a ver ingresos, gastos, neto, deudas, productos, servicios, asistencia y sucursales.
+- Debe poder filtrar por fecha desde/hasta y por sucursal o todas.
+- Puede exportarse a PDF para gerentes.
+
+Estadisticas:
+- Muestra asistencia, ingresos, egresos, ventas, profesionales con mas consultas, vendedores, servicios y productos destacados.
+- Debe ordenar de mayor a menor cuando se muestran rankings.
+- El profesional con mas consultas se calcula sobre citas atendidas.
+
+Comisiones:
+- Controla metas y comisiones del personal.
+- Puede tener metas semanales, quincenales, mensuales o personalizadas.
+- Por sucursal se pueden definir porcentajes para ventas de productos o servicios agregados.
+- Se puede definir precio minimo para que una venta o servicio aplique a comision.
+
+Centro de mensajes:
+- Permite conectar WhatsApp Business por empresa.
+- Cada empresa puede tener varios numeros.
+- Los usuarios solo deben ver los numeros asignados.
+- Bandeja sirve para responder conversaciones.
+- Desde un chat se puede agendar directamente si el usuario tiene permiso.
+- Los mensajes predeterminados ayudan a responder rapido.
+- El verify token debe generarlo Rumika para copiarlo en la configuracion de Meta.
+
+Usuarios y roles:
+- Usuarios crea personal, asigna sucursales, rol, foto, telefono, contrasena y acceso al sistema.
+- Roles define que vistas puede ver cada persona.
+- Permisos pueden separar ver, crear, editar y eliminar por pantalla.
+- Doctor o profesional debe tener acceso limitado a pacientes asignados si asi se configura.
+- Deshabilitar ingreso bloquea el acceso sin borrar historial.
+
+Sucursales:
+- Cada sucursal puede tener nombre, logo, tipo de negocio, pais, moneda e impresora.
+- La moneda y formato deben afectar pantallas, caja y tickets.
+- El tipo de negocio ayuda a mostrar u ocultar modulos.
+
+Mi sistema:
+- Muestra plan actual, estado, pagos, vencimiento y limites.
+- Free o demo puede tener dias limitados.
+- Los planes pagados habilitan modulos segun configuracion.
+- Si vence el plan, la empresa puede quedar bloqueada hasta renovar.
+
+Bitacora:
+- Registra acciones del personal: ingresos, cierres de sesion, creaciones, ediciones, eliminaciones, entradas, salidas, cobros y cambios importantes.
+- No debe editarse ni eliminarse por usuarios normales.
+- Sirve para auditoria interna.
+
+Si alguien pide soporte comercial, precios exactos o una configuracion especial, recomendar comunicarse con un representante de Rumika por WhatsApp al 59177348087.
