@@ -679,14 +679,17 @@
 
         .business-strip {
             display: flex;
+            flex-wrap: wrap;
             gap: 10px;
-            overflow-x: auto;
-            padding: 2px 2px 14px;
-            scrollbar-width: thin;
+            justify-content: center;
+            margin-inline: auto;
+            max-width: 980px;
+            overflow: visible;
+            padding: 2px;
         }
 
         .business-pill {
-            min-width: max-content;
+            min-width: 0;
             padding: 14px 18px;
             border: 1px solid var(--border);
             border-radius: 999px;
@@ -694,6 +697,7 @@
             color: var(--text);
             font-size: 14px;
             font-weight: 900;
+            text-align: center;
             box-shadow: 0 10px 24px rgba(15, 23, 42, .05);
         }
 
@@ -961,6 +965,24 @@
             .feature,
             .plan {
                 border-radius: 22px;
+            }
+
+            .business-strip {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 10px;
+                max-width: none;
+                overflow: visible;
+                padding: 0;
+            }
+
+            .business-pill {
+                align-items: center;
+                display: flex;
+                justify-content: center;
+                min-height: 52px;
+                padding: 10px 12px;
+                white-space: normal;
             }
 
             .whatsapp-float {
