@@ -404,9 +404,9 @@ class RumiAiAssistant
                     return trim((string) ($response->json('answer') ?? $response->json('message')));
                 }
 
-                Log::warning('Rumi AI endpoint error', ['status' => $response->status(), 'body' => $response->body()]);
+                Log::warning('Rumi endpoint error', ['status' => $response->status(), 'body' => $response->body()]);
             } catch (\Throwable $e) {
-                Log::warning('Rumi AI endpoint exception', ['message' => $e->getMessage()]);
+                Log::warning('Rumi endpoint exception', ['message' => $e->getMessage()]);
             }
         }
 
@@ -418,7 +418,7 @@ class RumiAiAssistant
 
         try {
             $model = config('services.google_ai.model', 'gemini-2.0-flash');
-            $prompt = "Eres Rumi IA, asistente interno de Rumika SaaS. Responde en espanol, breve y claro. Solo usa el contexto permitido. No inventes datos. No digas que puedes editar, eliminar, cobrar o cerrar caja. Contexto permitido: "
+            $prompt = "Eres Rumi, asistente interno de Rumika SaaS. Responde en espanol, breve y claro. Solo usa el contexto permitido. No inventes datos. No digas que puedes editar, eliminar, cobrar o cerrar caja. Contexto permitido: "
                 . json_encode($context, JSON_UNESCAPED_UNICODE)
                 . "\nPregunta: {$question}";
 
@@ -431,14 +431,14 @@ class RumiAiAssistant
                 ]);
 
             if (! $response->successful()) {
-                Log::warning('Gemini Rumi AI error', ['status' => $response->status(), 'body' => $response->body()]);
+                Log::warning('Gemini Rumi error', ['status' => $response->status(), 'body' => $response->body()]);
 
                 return null;
             }
 
             return trim((string) data_get($response->json(), 'candidates.0.content.parts.0.text'));
         } catch (\Throwable $e) {
-            Log::warning('Gemini Rumi AI exception', ['message' => $e->getMessage()]);
+            Log::warning('Gemini Rumi exception', ['message' => $e->getMessage()]);
 
             return null;
         }

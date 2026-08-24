@@ -21,7 +21,7 @@ class RumiAssistant extends Component
         $this->messages = [
             [
                 'role' => 'assistant',
-                'text' => 'Hola, soy Rumi IA. Puedo ayudarte a encontrar pantallas, abrir acciones seguras y resumir datos permitidos por tu rol.',
+                'text' => 'Hola, soy Rumi. Puedo ayudarte a encontrar pantallas, abrir acciones seguras y resumir datos permitidos por tu rol.',
                 'actions' => [
                     ['label' => 'Resumen de hoy', 'prompt' => 'Dame un resumen de hoy'],
                     ['label' => 'Mi rol', 'prompt' => 'Que puedo hacer con mi rol'],

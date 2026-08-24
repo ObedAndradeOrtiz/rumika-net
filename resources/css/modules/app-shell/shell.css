@@ -1540,10 +1540,23 @@
     border-radius: 999px;
     box-shadow: 0 18px 46px rgba(15, 118, 110, 0.18);
     color: var(--rumika-teal-dark);
+    cursor: grab;
     display: inline-flex;
     gap: 9px;
     min-height: 52px;
     padding: 7px 15px 7px 7px;
+    touch-action: none;
+    user-select: none;
+}
+
+.rm-rumi.is-dragging,
+.rm-rumi.is-dragging .rm-rumi-launcher {
+    cursor: grabbing;
+}
+
+.rm-rumi.is-custom-position .rm-rumi-panel {
+    bottom: calc(76px + env(safe-area-inset-bottom));
+    right: 0;
 }
 
 .rm-rumi-launcher strong {
@@ -2105,6 +2118,14 @@
         max-height: calc(100dvh - 116px);
         right: -12px;
         width: 100vw;
+    }
+
+    .rm-rumi.is-custom-position .rm-rumi-panel {
+        border-radius: 22px;
+        bottom: calc(58px + env(safe-area-inset-bottom));
+        max-height: min(620px, calc(100dvh - 112px));
+        right: 0;
+        width: min(420px, calc(100vw - 24px));
     }
 
     .rm-tabs,

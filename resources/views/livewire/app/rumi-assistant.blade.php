@@ -1,5 +1,5 @@
 <div class="rm-rumi" data-rumi-assistant>
-    <button class="rm-rumi-launcher" type="button" wire:click="toggle" aria-label="Abrir Rumi IA" wire:loading.class="is-thinking">
+    <button class="rm-rumi-launcher" type="button" wire:click="toggle" aria-label="Abrir Rumi" wire:loading.class="is-thinking" data-rumi-drag-handle>
         <span class="rm-rumi-alpaca" aria-hidden="true">
             <i class="ear left"></i>
             <i class="ear right"></i>
@@ -10,19 +10,19 @@
             <b class="eye right"></b>
             <em></em>
         </span>
-        <strong>Rumi IA</strong>
+        <strong>Rumi</strong>
     </button>
 
     @if ($open)
-        <section class="rm-rumi-panel" aria-label="Rumi IA">
+        <section class="rm-rumi-panel" aria-label="Rumi">
             <div class="rm-rumi-head">
                 <div>
                     <span>Asistente interno</span>
-                    <h2><span class="rm-rumi-alpaca is-small" aria-hidden="true"><i class="ear left"></i><i class="ear right"></i><i class="wool one"></i><i class="wool two"></i><i class="wool three"></i><b class="eye left"></b><b class="eye right"></b><em></em></span> Rumi IA</h2>
+                    <h2><span class="rm-rumi-alpaca is-small" aria-hidden="true"><i class="ear left"></i><i class="ear right"></i><i class="wool one"></i><i class="wool two"></i><i class="wool three"></i><b class="eye left"></b><b class="eye right"></b><em></em></span> Rumi</h2>
                 </div>
                 <div class="rm-rumi-head-actions">
                     <button type="button" wire:click="clear">Limpiar</button>
-                    <button type="button" wire:click="toggle" aria-label="Cerrar Rumi IA">x</button>
+                    <button type="button" wire:click="toggle" aria-label="Cerrar Rumi">x</button>
                 </div>
             </div>
 
@@ -54,7 +54,7 @@
             @endif
 
             <form class="rm-rumi-form" wire:submit="ask">
-                <input type="text" wire:model="question" placeholder="Preguntale algo a Rumi IA">
+                <input type="text" wire:model="question" placeholder="Preguntale algo a Rumi">
                 <button type="submit">Enviar</button>
             </form>
 
