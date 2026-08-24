@@ -2472,46 +2472,36 @@
 }
 
 .rm-appointment-row .rm-commerce-actions {
-    align-items: end;
-    display: grid;
-    gap: 10px;
-    grid-template-columns: minmax(132px, 0.8fr) minmax(240px, 1.5fr) minmax(240px, 1.5fr);
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
     margin-left: auto;
-    max-width: 760px;
-    width: min(100%, 760px);
+    max-width: 640px;
+    width: auto;
 }
 
 .rm-appointment-row .rm-attendance-actions,
 .rm-appointment-row .rm-icon-actions,
 .rm-appointment-row .rm-secondary-actions {
-    align-items: center;
-    display: grid;
-    gap: 8px;
-}
-
-.rm-appointment-row .rm-attendance-actions {
-    grid-template-columns: 1fr;
-}
-
-.rm-appointment-row .rm-icon-actions,
-.rm-appointment-row .rm-secondary-actions {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    display: contents;
 }
 
 .rm-appointment-row .rm-commerce-actions button,
 .rm-appointment-row .rm-commerce-actions a.rm-icon-button {
-    border-radius: 14px;
+    border-radius: 999px;
     gap: 7px;
     justify-content: center;
-    min-height: 40px;
+    min-height: 36px;
     min-width: 0;
-    padding: 0 12px;
+    padding: 0 11px;
     text-align: center;
-    width: 100%;
+    width: auto;
 }
 
 .rm-appointment-row .rm-commerce-actions .rm-locked-payment-button {
-    min-height: 42px;
+    min-height: 36px;
 }
 
 .rm-appointment-row .rm-icon-actions .rm-icon-button span,
@@ -3895,25 +3885,23 @@
     .rm-appointment-row .rm-commerce-actions {
         display: grid;
         gap: 8px;
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         margin-top: 0;
         width: 100%;
     }
 
     .rm-appointment-row .rm-attendance-actions {
-        align-items: start;
-        display: grid;
-        gap: 8px;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        width: 100%;
+        display: contents;
     }
 
     .rm-appointment-row .rm-attendance-actions button {
         border-radius: 14px;
+        font-size: 10px;
         justify-content: center;
         line-height: 1.1;
         min-height: 40px;
-        padding: 0 8px;
+        padding: 0 5px;
+        white-space: normal;
         width: 100%;
     }
 
@@ -3923,28 +3911,21 @@
     }
 
     .rm-appointment-row .rm-icon-actions {
-        align-items: start;
-        display: grid;
-        gap: 8px;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        width: 100%;
+        display: contents;
     }
 
     .rm-appointment-row .rm-secondary-actions {
-        display: grid;
-        gap: 8px;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        width: 100%;
+        display: contents;
     }
 
     .rm-appointment-row .rm-icon-actions .rm-icon-button {
         aspect-ratio: auto;
         border-radius: 14px;
-        font-size: 11px;
-        gap: 6px;
+        font-size: 10px;
+        gap: 4px;
         justify-self: stretch;
-        min-height: 42px;
-        padding: 0 9px;
+        min-height: 40px;
+        padding: 0 5px;
         width: 100%;
     }
 
@@ -3962,12 +3943,12 @@
     .rm-appointment-row .rm-secondary-actions .rm-icon-button.is-clinical-history,
     .rm-appointment-row .rm-secondary-actions .rm-icon-button.is-whatsapp {
         aspect-ratio: auto;
-        font-size: 11px;
-        gap: 5px;
+        font-size: 10px;
+        gap: 4px;
         justify-content: center;
-        min-height: 42px;
-        padding-inline: 6px;
-        white-space: nowrap;
+        min-height: 40px;
+        padding: 0 5px;
+        white-space: normal;
     }
 
     .rm-appointment-row .rm-icon-actions .rm-icon-button,
@@ -3986,7 +3967,7 @@
         min-width: 0;
         overflow: hidden;
         text-overflow: ellipsis;
-        white-space: nowrap;
+        white-space: normal;
     }
 
     .rm-appointment-row .rm-commerce-actions .rm-locked-payment-button {
@@ -4395,12 +4376,12 @@
 
     .rm-appointment-row .rm-secondary-actions .rm-icon-button.is-delete {
         aspect-ratio: auto;
-        font-size: 11px;
-        gap: 5px;
+        font-size: 10px;
+        gap: 4px;
         justify-content: center;
-        min-height: 42px;
-        padding-inline: 6px;
-        white-space: nowrap;
+        min-height: 40px;
+        padding: 0 5px;
+        white-space: normal;
     }
 
     .rm-appointment-row .rm-secondary-actions .rm-icon-button.is-delete span {
