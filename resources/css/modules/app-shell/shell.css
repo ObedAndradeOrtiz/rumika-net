@@ -1067,6 +1067,36 @@
     padding-right: 4px;
 }
 
+.rm-dashboard-agenda-row {
+    align-items: flex-start;
+    grid-template-columns: 58px minmax(0, 1fr);
+    padding: 12px 0;
+}
+
+.rm-dashboard-agenda-detail {
+    display: grid;
+    gap: 5px;
+    min-width: 0;
+}
+
+.rm-dashboard-agenda-detail .rm-row-main {
+    min-width: 0;
+}
+
+.rm-dashboard-agenda-detail .rm-row-main strong,
+.rm-dashboard-agenda-detail .rm-row-main span {
+    overflow-wrap: break-word;
+    word-break: normal;
+}
+
+.rm-dashboard-agenda-detail .rm-status {
+    grid-column: auto;
+    grid-row: auto;
+    justify-self: start;
+    margin-top: 3px;
+    position: static;
+}
+
 .rm-cash-summary-list,
 .rm-alert-list {
     display: grid;
@@ -1849,5 +1879,11 @@
         max-width: 100%;
         padding: 6px 9px;
         white-space: nowrap;
+    }
+
+    .rm-agenda-row .rm-dashboard-agenda-detail .rm-status {
+        grid-column: 1;
+        grid-row: auto;
+        margin-top: 4px;
     }
 }

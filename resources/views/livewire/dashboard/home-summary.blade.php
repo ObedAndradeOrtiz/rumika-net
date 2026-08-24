@@ -66,15 +66,17 @@
             </div>
             <div class="rm-agenda-list">
                 @forelse ($appointmentsToday as $appointment)
-                    <article class="rm-agenda-row">
+                    <article class="rm-agenda-row rm-dashboard-agenda-row">
                         <span class="rm-agenda-time">{{ $appointment->scheduled_at->format('H:i') }}</span>
-                        <div class="rm-row-main">
-                            <strong>{{ $appointment->client->full_name }}</strong>
-                            <span>{{ $appointment->services->pluck('name')->take(2)->join(' + ') ?: 'Sin tratamientos' }}</span>
+                        <div class="rm-dashboard-agenda-detail">
+                            <div class="rm-row-main">
+                                <strong>{{ $appointment->client->full_name }}</strong>
+                                <span>{{ $appointment->services->pluck('name')->take(2)->join(' + ') ?: 'Sin tratamientos' }}</span>
+                            </div>
+                            <span class="rm-status {{ $appointment->attended ? 'ok' : ($appointment->status === 'no_show' ? 'danger' : 'warn') }}">
+                                {{ $appointment->attended ? 'Asistió' : ($appointment->status === 'no_show' ? 'No asistió' : 'Pendiente') }}
+                            </span>
                         </div>
-                        <span class="rm-status {{ $appointment->attended ? 'ok' : ($appointment->status === 'no_show' ? 'danger' : 'warn') }}">
-                                        {{ $appointment->attended ? 'Asistió' : ($appointment->status === 'no_show' ? 'No asistió' : 'Pendiente') }}
-                        </span>
                     </article>
                 @empty
                     <div class="rm-dashboard-empty">Sin citas para hoy.</div>
