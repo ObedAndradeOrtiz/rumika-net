@@ -2490,11 +2490,12 @@
 
 .rm-appointment-row .rm-commerce-actions button,
 .rm-appointment-row .rm-commerce-actions a.rm-icon-button {
-    border-radius: 999px;
+    aspect-ratio: auto;
+    border-radius: 14px;
     gap: 7px;
     justify-content: center;
     min-height: 36px;
-    min-width: 0;
+    min-width: 92px;
     padding: 0 11px;
     text-align: center;
     width: auto;
@@ -3712,27 +3713,43 @@
 
     .rm-client-list-row {
         align-items: stretch;
+        box-sizing: border-box;
         gap: 12px;
         grid-template-columns: minmax(0, 1fr);
+        overflow: hidden;
         padding: 14px;
+        width: 100%;
     }
 
     .rm-client-list-row .rm-row-main {
+        display: grid;
+        gap: 4px;
         min-width: 0;
+        width: 100%;
     }
 
     .rm-client-list-row .rm-row-main strong {
+        display: -webkit-box;
         font-size: 16px;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
         line-height: 1.25;
         max-width: 100%;
+        overflow: hidden;
         overflow-wrap: break-word;
-        text-wrap: pretty;
+        white-space: normal;
+        word-break: normal;
     }
 
     .rm-client-list-row .rm-row-main > span {
         color: var(--rumika-muted);
         font-size: 13px;
         font-weight: 850;
+        margin-top: 0;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     .rm-client-list-row .rm-commerce-meta {
@@ -3741,6 +3758,7 @@
         gap: 6px;
         margin-top: 10px;
         min-width: 0;
+        width: 100%;
     }
 
     .rm-client-list-row .rm-commerce-meta span {
@@ -3761,6 +3779,7 @@
     }
 
     .rm-client-list-row .rm-commerce-actions button {
+        font-size: 12px;
         min-height: 42px;
         padding-inline: 8px;
         width: 100%;
@@ -3885,8 +3904,10 @@
     .rm-appointment-row .rm-commerce-actions {
         display: grid;
         gap: 8px;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         margin-top: 0;
+        max-width: none;
+        margin-left: 0;
         width: 100%;
     }
 
@@ -3900,6 +3921,7 @@
         justify-content: center;
         line-height: 1.1;
         min-height: 40px;
+        min-width: 0;
         padding: 0 5px;
         white-space: normal;
         width: 100%;
@@ -3925,6 +3947,7 @@
         gap: 4px;
         justify-self: stretch;
         min-height: 40px;
+        min-width: 0;
         padding: 0 5px;
         width: 100%;
     }
@@ -3947,6 +3970,7 @@
         gap: 4px;
         justify-content: center;
         min-height: 40px;
+        min-width: 0;
         padding: 0 5px;
         white-space: normal;
     }
@@ -4380,6 +4404,7 @@
         gap: 4px;
         justify-content: center;
         min-height: 40px;
+        min-width: 0;
         padding: 0 5px;
         white-space: normal;
     }
