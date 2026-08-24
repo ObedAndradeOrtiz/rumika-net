@@ -205,9 +205,9 @@
                     <label class="rm-field"><span>CI</span><input wire:model="clientCi" type="text"></label>
                 </div>
                 <div class="rm-field rm-phone-editor">
-                    <span>Telefonos</span>
+                    <span>Teléfonos</span>
                     <label class="rm-field rm-field-compact">
-                        <span>Pais</span>
+                        <span>País</span>
                         <select wire:model="clientPhoneCountry">
                             @foreach ($phoneCountries as $countryCode => $countryRule)
                                 <option value="{{ $countryCode }}">{{ $countryRule['name'] }} (+{{ $countryRule['code'] }})</option>
@@ -217,14 +217,20 @@
                     </label>
                     <div class="rm-phone-list">
                         @foreach ($clientPhones as $index => $phoneRow)
-                            <div class="rm-phone-row" wire:key="agenda-client-phone-{{ $index }}">
-                                <input wire:model="clientPhones.{{ $index }}.phone" type="text" placeholder="70000000">
-                                <input wire:model="clientPhones.{{ $index }}.label" type="text" placeholder="{{ $index === 0 ? 'Principal' : 'Casa, trabajo, familiar' }}">
-                                <button class="rm-button rm-button-outline" type="button" wire:click="removeClientPhone({{ $index }})">Quitar</button>
+                            <div class="rm-phone-row is-simple" wire:key="agenda-client-phone-{{ $index }}">
+                                <label>
+                                    <span>Número</span>
+                                    <input wire:model="clientPhones.{{ $index }}.phone" type="text" placeholder="70000000">
+                                </label>
+                                <label>
+                                    <span>Etiqueta</span>
+                                    <input wire:model="clientPhones.{{ $index }}.label" type="text" placeholder="{{ $index === 0 ? 'Principal' : 'Casa, trabajo, familiar' }}">
+                                </label>
+                                <button class="rm-phone-remove" type="button" wire:click="removeClientPhone({{ $index }})">Quitar</button>
                             </div>
                         @endforeach
                     </div>
-                    <button class="rm-button rm-button-outline" type="button" wire:click="addClientPhone">Agregar telefono</button>
+                    <button class="rm-button rm-button-outline" type="button" wire:click="addClientPhone">Agregar teléfono</button>
                     @error('clientPhones.*.phone')<small>{{ $message }}</small>@enderror
                 </div>
                 <label class="rm-field"><span>Email</span><input wire:model="clientEmail" type="email">@error('clientEmail')<small>{{ $message }}</small>@enderror</label>
@@ -843,7 +849,7 @@
                                     @endforeach
                                 </div>
                                 <div class="rm-commerce-meta">
-                                    <span>{{ $item->attended ? 'Asistio' : 'Sin asistencia' }}</span>
+                                        <span>{{ $item->attended ? 'Asistió' : 'Sin asistencia' }}</span>
                                     <span>Pagos {{ \App\Support\Money::symbol() }} {{ number_format((float) $item->payments->sum('amount'), 2) }}</span>
                                     @if ($item->reschedule_reason)
                                         <span>Motivo: {{ $item->reschedule_reason }}</span>

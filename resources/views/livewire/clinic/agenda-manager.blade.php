@@ -158,9 +158,9 @@
                                 </button>
                             @else
                                 <button type="button"
-                                    wire:click="markAttended({{ $appointment->id }})">Asistio</button>
+                                wire:click="markAttended({{ $appointment->id }})">Asistió</button>
                                 <button type="button" wire:click="markNoShow({{ $appointment->id }})">No
-                                    asistio</button>
+                                asistió</button>
                             @endif
                         </div>
                         <div class="rm-icon-actions">
@@ -191,6 +191,7 @@
                                             <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2M12 11v4M10 13h4" />
                                         </svg>
                                     @endif
+                                    <span>{{ $payment ? 'Editar cobro' : 'Cobrar' }}</span>
                                 </button>
                             @endforeach
                             <button class="rm-icon-button is-reschedule" type="button"
@@ -202,6 +203,7 @@
                                     <rect x="3" y="4" width="18" height="18" rx="3" />
                                     <path d="m15 14 2 2-2 2M9 18l-2-2 2-2M7 16h10" />
                                 </svg>
+                                <span>Reagendar</span>
                             </button>
                             <button class="rm-icon-button is-add-service" type="button"
                                 wire:click="openAddServices({{ $appointment->id }})" aria-label="Agregar servicios"
@@ -211,6 +213,7 @@
                                     <path d="M12 5v14M5 12h14" />
                                     <path d="M4 4h16v16H4z" />
                                 </svg>
+                                <span>Agregar servicio</span>
                             </button>
                         </div>
                         <div class="rm-secondary-actions">

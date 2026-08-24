@@ -2243,6 +2243,10 @@
     padding: 10px;
 }
 
+.rm-phone-row.is-simple {
+    grid-template-columns: minmax(220px, 1.15fr) minmax(180px, 0.85fr) minmax(120px, auto);
+}
+
 .rm-phone-row.is-primary {
     background: #edf9f7;
     border-color: #b7e4dc;
@@ -2462,6 +2466,10 @@
 }
 
 .rm-commerce-actions .rm-icon-button.is-delete span {
+    display: none;
+}
+
+.rm-commerce-actions .rm-icon-actions .rm-icon-button span {
     display: none;
 }
 
@@ -3689,6 +3697,10 @@
         grid-template-columns: 42px minmax(0, 1fr);
     }
 
+    .rm-phone-row.is-simple {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
     .rm-phone-header {
         align-items: stretch;
         grid-template-columns: 1fr;
@@ -3697,6 +3709,11 @@
     .rm-phone-row label:nth-of-type(2),
     .rm-phone-remove {
         grid-column: 1 / -1;
+    }
+
+    .rm-phone-row.is-simple label,
+    .rm-phone-row.is-simple .rm-phone-remove {
+        grid-column: auto;
     }
 
     .rm-phone-remove {
@@ -3826,7 +3843,7 @@
         align-items: start;
         display: grid;
         gap: 8px;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         width: 100%;
     }
 
@@ -3838,13 +3855,23 @@
     }
 
     .rm-appointment-row .rm-icon-actions .rm-icon-button {
-        aspect-ratio: 1;
+        aspect-ratio: auto;
+        border-radius: 14px;
+        font-size: 11px;
+        gap: 6px;
         justify-self: stretch;
         min-height: 42px;
+        padding: 0 9px;
         width: 100%;
     }
 
+    .rm-appointment-row .rm-icon-actions .rm-icon-button span {
+        display: inline;
+        line-height: 1.1;
+    }
+
     .rm-appointment-row .rm-secondary-actions .rm-icon-button {
+        border-radius: 14px;
         width: 100%;
     }
 
@@ -3858,6 +3885,31 @@
         min-height: 42px;
         padding-inline: 6px;
         white-space: nowrap;
+    }
+
+    .rm-appointment-row .rm-icon-actions .rm-icon-button,
+    .rm-appointment-row .rm-secondary-actions .rm-icon-button {
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .rm-appointment-row .rm-icon-actions .rm-icon-button svg,
+    .rm-appointment-row .rm-secondary-actions .rm-icon-button svg {
+        flex: 0 0 auto;
+    }
+
+    .rm-appointment-row .rm-icon-actions .rm-icon-button span,
+    .rm-appointment-row .rm-secondary-actions .rm-icon-button span {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .rm-appointment-row .rm-commerce-actions .rm-locked-payment-button {
+        border-radius: 14px;
+        justify-content: center;
+        white-space: normal;
     }
 
     .rm-appointment-row .rm-secondary-actions .rm-icon-button.is-history span,

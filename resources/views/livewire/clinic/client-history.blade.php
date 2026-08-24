@@ -125,12 +125,12 @@
                 <div class="rm-field rm-phone-editor">
                     <div class="rm-phone-header">
                         <div>
-                            <span>Telefonos</span>
-                            <strong>{{ collect($phones)->firstWhere('is_primary', true)['phone'] ?? 'Sin numero principal' }}</strong>
-                            <small>Marca cual sera el numero principal del cliente.</small>
+                            <span>Teléfonos</span>
+                            <strong>{{ collect($phones)->firstWhere('is_primary', true)['phone'] ?? 'Sin número principal' }}</strong>
+                            <small>Marca cuál será el número principal del cliente.</small>
                         </div>
                         <label class="rm-field rm-field-compact">
-                            <span>Pais</span>
+                            <span>País</span>
                             <select wire:model="phoneCountry">
                                 @foreach ($phoneCountries as $countryCode => $countryRule)
                                     <option value="{{ $countryCode }}">{{ $countryRule['name'] }} (+{{ $countryRule['code'] }})</option>
@@ -142,7 +142,7 @@
                     <div class="rm-phone-list">
                         @foreach ($phones as $index => $phoneRow)
                             <div class="rm-phone-row {{ ! empty($phoneRow['is_primary']) ? 'is-primary' : '' }}" wire:key="client-phone-{{ $index }}">
-                                <button class="rm-phone-primary" type="button" wire:click="setPrimaryPhone({{ $index }})" aria-label="Marcar telefono principal">
+                                <button class="rm-phone-primary" type="button" wire:click="setPrimaryPhone({{ $index }})" aria-label="Marcar teléfono principal">
                                     @if (! empty($phoneRow['is_primary']))
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6">
                                             <path d="m5 12 4 4L19 6" />
@@ -152,7 +152,7 @@
                                     @endif
                                 </button>
                                 <label>
-                                    <span>Numero</span>
+                                    <span>Número</span>
                                     <input wire:model="phones.{{ $index }}.phone" type="text" placeholder="70000000">
                                 </label>
                                 <label>
@@ -163,7 +163,7 @@
                             </div>
                         @endforeach
                     </div>
-                    <button class="rm-button rm-button-outline" type="button" wire:click="addPhone">Agregar telefono</button>
+                    <button class="rm-button rm-button-outline" type="button" wire:click="addPhone">Agregar teléfono</button>
                     @error('phones.*.phone') <small>{{ $message }}</small> @enderror
                 </div>
 
@@ -242,7 +242,7 @@
                                     <div class="rm-commerce-icon">{{ $appointment->scheduled_at->format('d/m') }}</div>
                                     <div class="rm-row-main">
                                         <strong>{{ $appointment->services->pluck('name')->join(' + ') ?: 'Atencion programada' }}</strong>
-                                        <span>{{ $appointment->scheduled_at->format('d/m/Y H:i') }} - {{ match($appointment->status) { 'scheduled' => 'Programada', 'rescheduled' => 'Reagendada', 'completed' => 'Finalizada', 'no_show' => 'No asistio', default => 'Pendiente' } }}</span>
+                                <span>{{ $appointment->scheduled_at->format('d/m/Y H:i') }} - {{ match($appointment->status) { 'scheduled' => 'Programada', 'rescheduled' => 'Reagendada', 'completed' => 'Finalizada', 'no_show' => 'No asistió', default => 'Pendiente' } }}</span>
                                         <div class="rm-service-scroll">
                                             @foreach ($appointment->services as $service)
                                                 <span class="rm-service-pill {{ $service->status === 'completed' ? 'is-completed' : '' }}">
@@ -252,7 +252,7 @@
                                             @endforeach
                                         </div>
                                         <div class="rm-commerce-meta">
-                                            <span>{{ $appointment->attended ? 'Asistio' : 'Sin asistencia' }}</span>
+                                <span>{{ $appointment->attended ? 'Asistió' : 'Sin asistencia' }}</span>
                                             @if ($appointment->attendedBy)
                                                 <span>Doctor {{ $appointment->attendedBy->name }}</span>
                                             @endif

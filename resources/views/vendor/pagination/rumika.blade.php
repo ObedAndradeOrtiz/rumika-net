@@ -1,5 +1,5 @@
 @if ($paginator->hasPages())
-    <nav class="rm-pagination" role="navigation" aria-label="Paginacion">
+    <nav class="rm-pagination" role="navigation" aria-label="Paginación">
         <p class="rm-pagination-summary">
             Mostrando {{ $paginator->firstItem() }} a {{ $paginator->lastItem() }} de {{ $paginator->total() }} registros
         </p>
@@ -25,7 +25,7 @@
                         @if ($page == $paginator->currentPage())
                             <span class="rm-pagination-button is-active" aria-current="page">{{ $page }}</span>
                         @else
-                            <button class="rm-pagination-button" type="button" wire:click="gotoPage({{ $page }}, '{{ $paginator->getPageName() }}')" wire:loading.attr="disabled" aria-label="Ir a pagina {{ $page }}">
+                            <button class="rm-pagination-button" type="button" wire:click="gotoPage({{ $page }}, '{{ $paginator->getPageName() }}')" wire:loading.attr="disabled" aria-label="Ir a página {{ $page }}">
                                 {{ $page }}
                             </button>
                         @endif

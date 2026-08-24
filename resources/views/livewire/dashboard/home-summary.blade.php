@@ -73,7 +73,7 @@
                             <span>{{ $appointment->services->pluck('name')->take(2)->join(' + ') ?: 'Sin tratamientos' }}</span>
                         </div>
                         <span class="rm-status {{ $appointment->attended ? 'ok' : ($appointment->status === 'no_show' ? 'danger' : 'warn') }}">
-                            {{ $appointment->attended ? 'Asistio' : ($appointment->status === 'no_show' ? 'No asistio' : 'Pendiente') }}
+                                        {{ $appointment->attended ? 'Asistió' : ($appointment->status === 'no_show' ? 'No asistió' : 'Pendiente') }}
                         </span>
                     </article>
                 @empty

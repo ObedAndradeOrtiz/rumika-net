@@ -1664,6 +1664,42 @@
     .rm-mobile-tabs {
         display: grid;
     }
+
+    .rm-tabs,
+    .rm-crm-tabs,
+    .rm-cashbox-history-tabs,
+    .rm-inventory-tabs {
+        overflow-x: auto;
+        overscroll-behavior-inline: contain;
+        scrollbar-width: thin;
+    }
+
+    .rm-tabs button,
+    .rm-crm-tabs button,
+    .rm-cashbox-history-tabs button,
+    .rm-inventory-tabs button {
+        min-width: max(120px, 45vw);
+        white-space: nowrap;
+    }
+
+    .rm-panel,
+    .rm-card,
+    .rm-modal-panel {
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    .rm-section-heading,
+    .rm-panel-title {
+        min-width: 0;
+    }
+
+    .rm-section-heading h1,
+    .rm-section-heading h2,
+    .rm-panel-title h1,
+    .rm-panel-title h2 {
+        overflow-wrap: anywhere;
+    }
 }
 
 @media (max-width: 520px) {
