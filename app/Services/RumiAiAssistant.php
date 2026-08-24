@@ -132,6 +132,10 @@ class RumiAiAssistant
 
     private function localAnswer(User $user, Company $company, ?Branch $branch, string $normalized): ?array
     {
+        if ($this->isSalesQuestion($normalized)) {
+            return $this->salesSummary($user, $company, $branch, $normalized);
+        }
+
         if (str_contains($normalized, 'resumen') || str_contains($normalized, 'hoy') || str_contains($normalized, 'como vamos')) {
             return $this->todaySummary($user, $company, $branch);
         }
@@ -166,6 +170,91 @@ class RumiAiAssistant
         }
 
         return null;
+    }
+
+    private function isSalesQuestion(string $normalized): bool
+    {
+        $hasSalesWord = str_contains($normalized, 'vendi')
+            || str_contains($normalized, 'vendido')
+            || str_contains($normalized, 'ventas')
+            || str_contains($normalized, 'ingreso')
+            || str_contains($normalized, 'facture')
+            || str_contains($normalized, 'facturado');
+
+        $hasPeriodWord = str_contains($normalized, 'mes')
+            || str_contains($normalized, 'semana')
+            || str_contains($normalized, 'hoy')
+            || str_contains($normalized, 'ayer');
+
+        return $hasSalesWord && $hasPeriodWord;
+    }
+
+    private function salesSummary(User $user, Company $company, ?Branch $branch, string $normalized): array
+    {
+        if (! $this->can($user, 'caja', company: $company)
+            && ! $this->can($user, 'reportes', company: $company)
+            && ! $this->can($user, 'resumen_financiero', company: $company)
+            && ! $this->can($user, 'estadisticas', company: $company)) {
+            return $this->response('Tu rol no tiene permiso para ver montos de ventas o ingresos.');
+        }
+
+        if (! $branch) {
+            return $this->response('No encontre una sucursal activa para revisar ventas.');
+        }
+
+        [$from, $to, $label] = $this->periodFromQuestion($normalized);
+        $useAllBranches = str_contains($normalized, 'todas') || str_contains($normalized, 'general') || str_contains($normalized, 'empresa');
+        $branchIds = $useAllBranches && $this->can($user, 'reportes', company: $company)
+            ? $company->branches()->pluck('id')->all()
+            : [$branch->id];
+
+        $serviceIncome = (float) TreatmentPayment::query()
+            ->where('company_id', $company->id)
+            ->whereIn('branch_id', $branchIds)
+            ->whereBetween('paid_at', [$from, $to])
+            ->sum('amount');
+
+        $productIncome = (float) ProductSale::query()
+            ->where('company_id', $company->id)
+            ->whereIn('branch_id', $branchIds)
+            ->whereBetween('sold_at', [$from, $to])
+            ->sum('paid_amount');
+
+        $total = $serviceIncome + $productIncome;
+        $scope = count($branchIds) > 1 ? 'todas las sucursales' : $branch->name;
+
+        return $this->response(
+            "Ventas de {$label} en {$scope}:\n"
+            . 'Servicios: ' . Money::symbol() . ' ' . number_format($serviceIncome, 2) . "\n"
+            . 'Productos: ' . Money::symbol() . ' ' . number_format($productIncome, 2) . "\n"
+            . 'Total vendido: ' . Money::symbol() . ' ' . number_format($total, 2),
+            [
+                $this->actionButton('Abrir caja', 'open_quick_cashbox'),
+                $this->actionButton('Ver reportes', 'go_reportes'),
+                $this->actionButton('Ver estadisticas', 'go_estadisticas'),
+            ]
+        );
+    }
+
+    private function periodFromQuestion(string $normalized): array
+    {
+        $now = now();
+
+        if (str_contains($normalized, 'ayer')) {
+            $date = $now->copy()->subDay();
+
+            return [$date->copy()->startOfDay(), $date->copy()->endOfDay(), 'ayer'];
+        }
+
+        if (str_contains($normalized, 'hoy')) {
+            return [$now->copy()->startOfDay(), $now->copy()->endOfDay(), 'hoy'];
+        }
+
+        if (str_contains($normalized, 'semana')) {
+            return [$now->copy()->startOfWeek(), $now->copy()->endOfWeek(), 'esta semana'];
+        }
+
+        return [$now->copy()->startOfMonth(), $now->copy()->endOfMonth(), 'este mes'];
     }
 
     private function todaySummary(User $user, Company $company, ?Branch $branch): array
