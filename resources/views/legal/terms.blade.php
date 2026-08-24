@@ -60,6 +60,7 @@
                         <li>La persona que registra la empresa declara tener autorización para administrar sus datos, usuarios, sucursales y configuración.</li>
                         <li>Cada empresa es responsable de crear usuarios, asignar roles, limitar permisos y deshabilitar accesos cuando corresponda.</li>
                         <li>El usuario debe mantener protegida su cuenta y no compartir accesos con terceros.</li>
+                        <li>Si la empresa activa verificación facial, debe informar y obtener la autorización correspondiente de su personal. La función sirve como capa adicional de seguridad y no reemplaza controles legales, laborales o internos de la empresa.</li>
                     </ul>
                 </section>
 

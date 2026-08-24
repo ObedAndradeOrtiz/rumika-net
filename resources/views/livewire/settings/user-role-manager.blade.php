@@ -221,6 +221,12 @@
                     @error('userStatus') <small>{{ $message }}</small> @enderror
                 </label>
 
+                <label class="rm-check-option">
+                    <input wire:model="userRequiresFaceVerification" type="checkbox">
+                    <span>Verificacion facial al ingresar</span>
+                    <small>Si cambia de IP o inicia una nueva sesion, Rumika pedira validar el rostro con camara. La primera vez registrara la huella facial del usuario.</small>
+                </label>
+
                 <div class="rm-field">
                     <span>Sucursales o comercios</span>
                     <div class="rm-check-grid">

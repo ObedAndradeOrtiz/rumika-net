@@ -1,4 +1,10 @@
 {
+  "node_modules/@vladmandic/face-api/dist/face-api.esm.js": {
+    "file": "assets/face-api.esm-CD9jNrC-.js",
+    "name": "face-api.esm",
+    "src": "node_modules/@vladmandic/face-api/dist/face-api.esm.js",
+    "isDynamicEntry": true
+  },
   "resources/css/app.css": {
     "file": "assets/app-Can1Ymsu.css",
     "src": "resources/css/app.css",
@@ -9,9 +15,12 @@
     ]
   },
   "resources/js/app.js": {
-    "file": "assets/app-CGJBo5ys.js",
+    "file": "assets/app-DF2GcIl9.js",
     "name": "app",
     "src": "resources/js/app.js",
-    "isEntry": true
+    "isEntry": true,
+    "dynamicImports": [
+      "node_modules/@vladmandic/face-api/dist/face-api.esm.js"
+    ]
   }
 }

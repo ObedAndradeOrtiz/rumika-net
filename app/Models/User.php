@@ -28,6 +28,11 @@ class User extends Authenticatable
         'auth_provider',
         'profile_photo_path',
         'status',
+        'requires_face_verification',
+        'face_descriptor',
+        'face_registered_at',
+        'last_face_verified_at',
+        'last_face_verified_ip',
         'is_saas_admin',
         'terms_accepted_at',
         'terms_version',
@@ -54,6 +59,10 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'terms_accepted_at' => 'datetime',
+            'requires_face_verification' => 'boolean',
+            'face_descriptor' => 'array',
+            'face_registered_at' => 'datetime',
+            'last_face_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_saas_admin' => 'boolean',
         ];

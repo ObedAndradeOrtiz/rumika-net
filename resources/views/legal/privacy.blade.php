@@ -57,6 +57,7 @@
                         <li>Datos operativos ingresados por la empresa: clientes, pacientes, compradores, CI/documento, NIT, teléfonos, email, citas, servicios, productos, pagos, caja, gastos, deudas, inventario, reportes y bitácora.</li>
                         <li>Datos clínicos o sensibles si la empresa los registra: fichas, documentos, imágenes, recetas, notas, diagnósticos o información asociada a una atención.</li>
                         <li>Datos técnicos: IP, navegador, eventos de seguridad, errores, inicio/cierre de sesión y aceptación de términos.</li>
+                        <li>Si la empresa activa verificación facial para sus usuarios, Rumika procesa una huella numérica del rostro para validar ingresos. No se almacena la fotografía tomada por la cámara.</li>
                     </ul>
                 </section>
 
@@ -87,7 +88,7 @@
 
                 <section>
                     <h2>7. Seguridad</h2>
-                    <p>Rumika aplica medidas razonables de seguridad, autenticación, permisos, separación por empresa/sucursal y registros de actividad. Ningún sistema es completamente infalible, por lo que la empresa debe proteger sus credenciales, equipos, impresoras, redes y accesos de personal.</p>
+                    <p>Rumika aplica medidas razonables de seguridad, autenticación, permisos, separación por empresa/sucursal, registros de actividad y, cuando se active, verificación visual por usuario. Ningún sistema es completamente infalible, por lo que la empresa debe proteger sus credenciales, equipos, impresoras, redes y accesos de personal.</p>
                 </section>
 
                 <section>

@@ -1,6 +1,7 @@
 import './bootstrap';
 import './modules/auth/password-toggle';
 import './modules/auth/firebase-google';
+import './modules/auth/face-security';
 import './modules/app-shell/sidebar-toggle';
 import './modules/app-shell/mobile-more';
 import './modules/app-shell/rumi-assistant';
