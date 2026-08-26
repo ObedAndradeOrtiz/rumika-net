@@ -50,6 +50,8 @@ class UserRoleManager extends Component
 
     public array $userBranchIds = [];
 
+    public array $userTransferBranchIds = [];
+
     public array $userWhatsappChannelIds = [];
 
     public ?int $editingRoleId = null;
@@ -128,6 +130,8 @@ class UserRoleManager extends Component
             'userRoleId' => ['required', Rule::exists('roles', 'id')->where('company_id', $company->id)],
             'userBranchIds' => ['required', 'array', 'min:1'],
             'userBranchIds.*' => [Rule::exists('branches', 'id')->where('company_id', $company->id)],
+            'userTransferBranchIds' => ['array'],
+            'userTransferBranchIds.*' => [Rule::exists('branches', 'id')->where('company_id', $company->id)],
             'userWhatsappChannelIds' => ['array'],
             'userWhatsappChannelIds.*' => [Rule::exists('whatsapp_channels', 'id')->where('company_id', $company->id)],
         ]);
@@ -182,6 +186,29 @@ class UserRoleManager extends Component
                 ->all()
         );
 
+        DB::table('branch_transfer_permissions')
+            ->where('company_id', $company->id)
+            ->where('user_id', $user->id)
+            ->delete();
+
+        $transferRows = collect($validated['userTransferBranchIds'] ?? [])
+            ->unique()
+            ->map(fn (string|int $branchId) => [
+                'company_id' => $company->id,
+                'user_id' => $user->id,
+                'from_branch_id' => null,
+                'to_branch_id' => (int) $branchId,
+                'granted_by_user_id' => Auth::id(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ])
+            ->values()
+            ->all();
+
+        if ($transferRows) {
+            DB::table('branch_transfer_permissions')->insert($transferRows);
+        }
+
         $user->whatsappChannels()->sync(
             collect($validated['userWhatsappChannelIds'] ?? [])
                 ->mapWithKeys(fn (string|int $channelId) => [
@@ -212,6 +239,12 @@ class UserRoleManager extends Component
         $this->userRequiresFaceVerification = (bool) $user->requires_face_verification;
         $this->currentUserPhotoPath = $user->profile_photo_path;
         $this->userBranchIds = $user->branches->pluck('id')->map(fn ($id) => (string) $id)->all();
+        $this->userTransferBranchIds = DB::table('branch_transfer_permissions')
+            ->where('company_id', $company->id)
+            ->where('user_id', $user->id)
+            ->pluck('to_branch_id')
+            ->map(fn ($id) => (string) $id)
+            ->all();
         $this->userWhatsappChannelIds = $user->whatsappChannels()
             ->where('whatsapp_channels.company_id', $company->id)
             ->pluck('whatsapp_channels.id')
@@ -363,7 +396,7 @@ class UserRoleManager extends Component
     {
         $company ??= $this->company();
 
-        $this->reset(['editingUserId', 'userName', 'userEmail', 'userPassword', 'currentUserPhotoPath', 'userPhoto', 'userWhatsappChannelIds']);
+        $this->reset(['editingUserId', 'userName', 'userEmail', 'userPassword', 'currentUserPhotoPath', 'userPhoto', 'userWhatsappChannelIds', 'userTransferBranchIds']);
         $this->userStatus = 'active';
         $this->userRequiresFaceVerification = false;
         $this->userRoleId = $company->roles()->where('slug', 'recepcion')->value('id')

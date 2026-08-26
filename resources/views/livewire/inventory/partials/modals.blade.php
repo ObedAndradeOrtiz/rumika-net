@@ -205,13 +205,14 @@
                     <span>Sucursal destino</span>
                     <select wire:model="relatedBranchId">
                         <option value="">Seleccionar</option>
-                        @foreach ($branches as $targetBranch)
-                            @if ($targetBranch->id !== $branch->id)
-                                <option value="{{ $targetBranch->id }}">{{ $targetBranch->name }}</option>
-                            @endif
+                        @foreach (($transferBranches ?? $branches) as $targetBranch)
+                            <option value="{{ $targetBranch->id }}">{{ $targetBranch->name }}</option>
                         @endforeach
                     </select>
                     @error('relatedBranchId')<small>{{ $message }}</small>@enderror
+                    @if (($transferBranches ?? collect())->isEmpty())
+                        <small>No tienes sucursales destino habilitadas para traspasar.</small>
+                    @endif
                 </label>
             @endif
 

@@ -82,6 +82,13 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
+    public function transferDestinationBranches(): BelongsToMany
+    {
+        return $this->belongsToMany(Branch::class, 'branch_transfer_permissions', 'user_id', 'to_branch_id')
+            ->withPivot(['company_id', 'from_branch_id', 'granted_by_user_id'])
+            ->withTimestamps();
+    }
+
     public function clinicalSpecialties(): BelongsToMany
     {
         return $this->belongsToMany(ClinicalSpecialty::class, 'clinical_specialty_user')->withTimestamps();

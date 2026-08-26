@@ -217,6 +217,18 @@
                             <span>Agregar servicio</span>
                         </button>
 
+                        <button class="rm-icon-button is-doctor" type="button"
+                            wire:click="openDoctorAssignment({{ $appointment->id }})" aria-label="Asignar doctor"
+                            title="Asignar doctor">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2.3">
+                                <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Z" />
+                                <path d="M4 21a8 8 0 0 1 16 0" />
+                                <path d="M19 8v4M17 10h4" />
+                            </svg>
+                            <span>Doctor</span>
+                        </button>
+
                         @if ($canUseWhatsapp && $appointment->client?->displayPhone())
                             <button class="rm-icon-button is-whatsapp" type="button"
                                 wire:click="openWhatsappConversation({{ $appointment->id }})"

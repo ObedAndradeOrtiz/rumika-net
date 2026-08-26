@@ -17,6 +17,7 @@ use App\Models\TreatmentPaymentItem;
 use App\Models\TreatmentPayment;
 use App\Models\InventoryUseArea;
 use App\Support\CompanyPlanLimits;
+use App\Support\RumikaAccess;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -490,6 +491,12 @@ class InventoryManager extends Component
             return;
         }
 
+        if ($type === 'transfer' && ! $this->canTransferInventory()) {
+            $this->addError('movementType', 'Tu rol no tiene permiso para realizar traspasos.');
+
+            return;
+        }
+
         $this->resetMovementForm();
         $this->movementType = $type;
         $this->movementReceivedAt = now()->format('Y-m-d');
@@ -501,7 +508,7 @@ class InventoryManager extends Component
         $company = $this->company();
         $branch = $this->activeBranch();
         $productIds = $company->inventoryProducts()->pluck('id')->all();
-        $branchIds = $this->availableBranches()->pluck('id')->reject(fn ($id) => $id === $branch->id)->all();
+        $branchIds = $this->transferBranches()->pluck('id')->reject(fn ($id) => $id === $branch->id)->all();
 
         // Para salidas/traspasos/desechos/ajustes solo son válidos los lotes
         // de la sucursal actual que además pertenezcan al producto elegido.
@@ -535,6 +542,12 @@ class InventoryManager extends Component
         }
 
         if ($this->movementType === 'transfer') {
+            if (! $this->canTransferInventory()) {
+                $this->addError('relatedBranchId', 'Tu rol no tiene permiso para realizar traspasos.');
+
+                return;
+            }
+
             $rules['relatedBranchId'] = ['required', Rule::in($branchIds)];
         }
 
@@ -625,7 +638,7 @@ class InventoryManager extends Component
             );
 
             if ($this->movementType === 'transfer') {
-                $targetBranch = $this->availableBranches()
+                $targetBranch = $this->transferBranches()
                     ->where('id', $validated['relatedBranchId'])
                     ->firstOrFail();
 
@@ -1335,6 +1348,7 @@ class InventoryManager extends Component
             'currentCount' => $this->currentInventoryCount($branch),
             'summary' => $this->summary($company, $branch),
             'branches' => $this->availableBranches(),
+            'transferBranches' => $this->transferBranches(),
             'selectedCount' => $selectedCount,
             'selectedCountItems' => $selectedCountItems,
             'selectedProduct' => $selectedProduct,
@@ -1798,6 +1812,60 @@ class InventoryManager extends Component
         return $branches->isNotEmpty()
             ? $branches
             : $company->branches()->orderBy('name')->get();
+    }
+
+    private function transferBranches()
+    {
+        $company = $this->company();
+        $branch = $this->activeBranch();
+        $user = Auth::user();
+
+        if ($this->userIsCompanyAdmin($company)) {
+            return $company->branches()
+                ->whereKeyNot($branch->id)
+                ->orderBy('name')
+                ->get();
+        }
+
+        if (! $this->canTransferInventory()) {
+            return collect();
+        }
+
+        $assignedBranches = $this->availableBranches()
+            ->reject(fn (Branch $availableBranch) => $availableBranch->id === $branch->id);
+
+        $configuredBranches = $user->transferDestinationBranches()
+            ->where('branches.company_id', $company->id)
+            ->where('branches.id', '!=', $branch->id)
+            ->orderBy('branches.name')
+            ->get();
+
+        return $assignedBranches
+            ->merge($configuredBranches)
+            ->unique('id')
+            ->sortBy('name')
+            ->values();
+    }
+
+    private function canTransferInventory(): bool
+    {
+        return RumikaAccess::can(
+            Auth::user(),
+            'inventario_operaciones',
+            'transfer',
+            $this->activeBranch()->id,
+            $this->company()
+        );
+    }
+
+    private function userIsCompanyAdmin(Company $company): bool
+    {
+        $companyRole = Auth::user()
+            ->companies()
+            ->where('companies.id', $company->id)
+            ->value('company_user.role');
+
+        return in_array($companyRole, RumikaAccess::ADMIN_ROLES, true);
     }
 
     private function generateProductCode(string $name): string

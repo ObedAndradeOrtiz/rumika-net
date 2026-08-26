@@ -243,6 +243,20 @@
                 </div>
 
                 <div class="rm-field">
+                    <span>Destinos permitidos para traspasos</span>
+                    <div class="rm-check-grid">
+                        @foreach ($branches as $branch)
+                            <label class="rm-check-option">
+                                <input wire:model="userTransferBranchIds" type="checkbox" value="{{ $branch->id }}">
+                                <span>{{ $branch->name }}</span>
+                                <small>Puede enviar stock hacia esta sucursal si su rol tiene Traspasar.</small>
+                            </label>
+                        @endforeach
+                    </div>
+                    @error('userTransferBranchIds.*') <small>{{ $message }}</small> @enderror
+                </div>
+
+                <div class="rm-field">
                     <span>Numeros de WhatsApp permitidos</span>
                     @if ($whatsappChannels->isNotEmpty())
                         <div class="rm-check-grid">

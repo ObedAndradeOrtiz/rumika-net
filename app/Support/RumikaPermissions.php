@@ -35,7 +35,7 @@ class RumikaPermissions
             'inventario_operaciones' => [
                 'label' => 'Operaciones',
                 'group' => 'Gestion de inventario',
-                'actions' => ['view', 'create', 'edit', 'delete'],
+                'actions' => ['view', 'create', 'edit', 'delete', 'transfer'],
             ],
             'caja' => [
                 'label' => 'Caja',
@@ -124,6 +124,7 @@ class RumikaPermissions
             'delete' => 'Eliminar',
             'view_full' => 'Ver historial completo',
             'manage_access' => 'Autorizar doctores',
+            'transfer' => 'Traspasar',
         ];
     }
 

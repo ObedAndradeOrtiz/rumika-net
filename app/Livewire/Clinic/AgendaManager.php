@@ -8,6 +8,7 @@ use App\Models\Branch;
 use App\Models\CashboxTicket;
 use App\Models\Client;
 use App\Models\ClientCharge;
+use App\Models\ClinicalPatientAccess;
 use App\Models\Company;
 use App\Models\CrmContact;
 use App\Models\CrmConversation;
@@ -112,6 +113,10 @@ class AgendaManager extends Component
     public bool $showAttendanceModal = false;
     public ?int $attendanceAppointmentId = null;
     public ?int $attendanceUserId = null;
+
+    public bool $showDoctorModal = false;
+    public ?int $doctorAppointmentId = null;
+    public ?int $doctorUserId = null;
 
     public bool $showNoShowModal = false;
     public ?int $noShowAppointmentId = null;
@@ -301,6 +306,12 @@ class AgendaManager extends Component
                 ]);
             }
 
+            $this->grantClinicalAccessToDoctor(
+                $appointment,
+                $validated['appointmentAttendedByUserId'] ?? null,
+                'Asignado al crear cita'
+            );
+
             $initialPaymentAmount = $this->initialAppointmentPaymentAmount($validated);
 
             if ($initialPaymentAmount > 0) {
@@ -376,12 +387,25 @@ class AgendaManager extends Component
             ->firstOrFail();
 
         $wasAlreadyAttended = (bool) $appointment->attended;
+        $previousDoctorId = $appointment->attended_by_user_id;
 
         $appointment->update([
             'attended' => true,
             'status' => 'attended',
             'attended_by_user_id' => $this->attendanceUserId,
         ]);
+
+        $appointment->services()
+            ->where(function ($query) use ($previousDoctorId) {
+                $query->whereNull('performed_by_user_id');
+
+                if ($previousDoctorId) {
+                    $query->orWhere('performed_by_user_id', $previousDoctorId);
+                }
+            })
+            ->update(['performed_by_user_id' => $this->attendanceUserId]);
+
+        $this->grantClinicalAccessToDoctor($appointment->fresh(), $this->attendanceUserId, 'Confirmado al registrar asistencia');
 
         /*
      * Solo incrementamos la sesión la primera vez.
@@ -395,6 +419,57 @@ class AgendaManager extends Component
         $this->attendanceUserId = null;
 
         $this->resetErrorBag('attendanceUserId');
+    }
+
+    public function openDoctorAssignment(int $appointmentId): void
+    {
+        $appointment = $this->appointmentQuery()
+            ->whereKey($appointmentId)
+            ->firstOrFail();
+
+        $this->doctorAppointmentId = $appointment->id;
+        $this->doctorUserId = $appointment->attended_by_user_id;
+        $this->resetErrorBag('doctorUserId');
+        $this->showDoctorModal = true;
+    }
+
+    public function confirmDoctorAssignment(): void
+    {
+        $company = $this->company();
+        $userIds = $company->users()->pluck('users.id')->all();
+
+        $this->validate([
+            'doctorAppointmentId' => ['required', 'integer'],
+            'doctorUserId' => ['required', Rule::in($userIds)],
+        ]);
+
+        $appointment = $this->appointmentQuery()
+            ->whereKey($this->doctorAppointmentId)
+            ->with('services')
+            ->firstOrFail();
+
+        $previousDoctorId = $appointment->attended_by_user_id;
+
+        DB::transaction(function () use ($appointment, $previousDoctorId) {
+            $appointment->update(['attended_by_user_id' => $this->doctorUserId]);
+
+            $appointment->services()
+                ->where(function ($query) use ($previousDoctorId) {
+                    $query->whereNull('performed_by_user_id');
+
+                    if ($previousDoctorId) {
+                        $query->orWhere('performed_by_user_id', $previousDoctorId);
+                    }
+                })
+                ->update(['performed_by_user_id' => $this->doctorUserId]);
+
+            $this->grantClinicalAccessToDoctor($appointment->fresh(), $this->doctorUserId, 'Asignado manualmente desde agenda');
+        });
+
+        $this->showDoctorModal = false;
+        $this->doctorAppointmentId = null;
+        $this->doctorUserId = null;
+        $this->resetErrorBag('doctorUserId');
     }
 
     public function markNoShow(int $appointmentId): void
@@ -457,6 +532,7 @@ class AgendaManager extends Component
         }
 
         DB::transaction(function () use ($appointment, $validated) {
+            $previousDoctorId = $appointment->attended_by_user_id;
 
             /*
          * Guardamos la observación en la ficha de la cita.
@@ -490,6 +566,7 @@ class AgendaManager extends Component
                     'company_id' => $appointment->company_id,
                     'branch_id' => $appointment->branch_id,
                     'client_id' => $appointment->client_id,
+                    'attended_by_user_id' => $previousDoctorId,
                     'treatment_plan_id' => $appointment->treatment_plan_id,
                     'rescheduled_from_id' => $appointment->id,
 
@@ -518,8 +595,11 @@ class AgendaManager extends Component
                         'price' => $serviceLine->price,
                         'duration_minutes' => $serviceLine->duration_minutes,
                         'status' => 'pending',
+                        'performed_by_user_id' => $serviceLine->performed_by_user_id ?: $previousDoctorId,
                     ]);
                 }
+
+                $this->grantClinicalAccessToDoctor($newAppointment, $previousDoctorId, 'Asignado al reagendar cita');
             }
         });
 
@@ -1208,6 +1288,13 @@ class AgendaManager extends Component
                 'locked_by_payment' => true,
                 'attended_by_user_id' => $validated['paymentAttendedByUserId'],
             ]);
+
+            $this->grantClinicalAccessToDoctor(
+                $appointment->fresh(),
+                $validated['paymentAttendedByUserId'] ?? null,
+                'Asignado al registrar cobro'
+            );
+
             $appointment->treatmentPlan?->increment('paid_amount', $amount);
 
             return $payment->id;
@@ -1300,6 +1387,7 @@ class AgendaManager extends Component
                 'company_id' => $appointment->company_id,
                 'branch_id' => $appointment->branch_id,
                 'client_id' => $appointment->client_id,
+                'attended_by_user_id' => $appointment->attended_by_user_id,
                 'treatment_plan_id' => $appointment->treatment_plan_id,
                 'rescheduled_from_id' => $appointment->id,
                 'scheduled_at' => Carbon::parse($validated['rescheduleDate'] . ' ' . $validated['rescheduleTime']),
@@ -1317,8 +1405,12 @@ class AgendaManager extends Component
                 ->get();
 
             foreach ($services as $service) {
-                $new->services()->create($this->appointmentServicePayload($service));
+                $new->services()->create($this->appointmentServicePayload($service, [
+                    'performed_by_user_id' => $appointment->attended_by_user_id,
+                ]));
             }
+
+            $this->grantClinicalAccessToDoctor($new, $appointment->attended_by_user_id, 'Asignado al reagendar cita');
 
             $appointment->update([
                 'status' => 'rescheduled',
@@ -2195,6 +2287,28 @@ class AgendaManager extends Component
         return $company->appointments()
             ->with(['company', 'branch', 'client', 'treatmentPlan'])
             ->where('branch_id', $this->activeBranch()->id);
+    }
+
+    private function grantClinicalAccessToDoctor(?Appointment $appointment, ?int $userId, string $reason): void
+    {
+        if (! $appointment || ! $userId) {
+            return;
+        }
+
+        ClinicalPatientAccess::query()->updateOrCreate(
+            [
+                'company_id' => $appointment->company_id,
+                'client_id' => $appointment->client_id,
+                'user_id' => $userId,
+            ],
+            [
+                'granted_by_user_id' => Auth::id(),
+                'can_view' => true,
+                'can_create' => true,
+                'expires_at' => null,
+                'reason' => $reason,
+            ]
+        );
     }
 
     private function authorizeAppointmentDeletion(): void
