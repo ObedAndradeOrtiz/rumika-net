@@ -1322,40 +1322,64 @@
 }
 
 .rm-agenda-day-stats {
-    background: #f8fbfc;
-    border: 1px solid var(--rumika-border);
-    border-radius: 16px;
+    align-items: center;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
     display: grid;
-    gap: 8px;
+    gap: 7px;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    margin: 12px 0 14px;
-    padding: 8px;
+    margin: 6px 0 8px;
+    padding: 0;
 }
 
 .rm-agenda-day-stats div {
     align-items: center;
-    background: #ffffff;
-    border: 1px solid #eef3f7;
-    border-radius: 12px;
-    display: flex;
-    justify-content: space-between;
-    min-height: 44px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    display: grid;
+    gap: 7px;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    min-height: 34px;
     min-width: 0;
-    padding: 8px 12px;
+    padding: 6px 10px;
+}
+
+.rm-agenda-day-stats svg {
+    flex: 0 0 auto;
+}
+
+.rm-agenda-day-stats .is-scheduled {
+    background: #ecfdf5;
+    border-color: #bbf7d0;
+    color: #047857;
+}
+
+.rm-agenda-day-stats .is-attended {
+    background: #eff6ff;
+    border-color: #bfdbfe;
+    color: #1d4ed8;
+}
+
+.rm-agenda-day-stats .is-rescheduled {
+    background: #f5f3ff;
+    border-color: #ddd6fe;
+    color: #6d28d9;
 }
 
 .rm-agenda-day-stats span {
-    color: var(--rumika-muted);
-    font-size: 12px;
+    color: currentColor;
+    font-size: 11px;
     font-weight: 900;
+    opacity: 0.86;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
 .rm-agenda-day-stats strong {
-    color: var(--rumika-teal-dark);
-    font-size: 18px;
+    color: currentColor;
+    font-size: 16px;
     font-weight: 950;
     line-height: 1;
 }
@@ -4303,11 +4327,11 @@
     }
 
     .rm-agenda-day-stats {
-        gap: 6px;
-        grid-template-columns: repeat(3, minmax(92px, 1fr));
-        margin: 10px 0 12px;
+        gap: 5px;
+        grid-template-columns: repeat(3, minmax(104px, 1fr));
+        margin: 5px 0 7px;
         overflow-x: auto;
-        padding: 6px;
+        padding: 0;
         scrollbar-width: none;
         -webkit-overflow-scrolling: touch;
     }
@@ -4318,16 +4342,16 @@
 
     .rm-agenda-day-stats div {
         flex: 0 0 auto;
-        min-height: 40px;
-        padding: 7px 9px;
+        min-height: 32px;
+        padding: 5px 8px;
     }
 
     .rm-agenda-day-stats span {
-        font-size: 11px;
+        font-size: 10px;
     }
 
     .rm-agenda-day-stats strong {
-        font-size: 16px;
+        font-size: 15px;
     }
 
     .rm-payment-product-row,
