@@ -477,6 +477,14 @@
                                             <span>Paga ahora</span>
                                             <input wire:model.live="paymentServiceLinePayments.{{ $serviceLine->id }}" type="number" min="0" step="0.01" placeholder="Abono">
                                         </label>
+                                        <div class="rm-service-payment-actions">
+                                            <button class="rm-button rm-button-outline" type="button" wire:click="setServicePaymentMode({{ $serviceLine->id }}, 'full')">
+                                                Cobrar todo
+                                            </button>
+                                            <button class="rm-button rm-button-outline is-debt-action" type="button" wire:click="setServicePaymentMode({{ $serviceLine->id }}, 'pending')">
+                                                Dejar saldo
+                                            </button>
+                                        </div>
                                     </div>
                                 @endforeach
                             </div>
@@ -601,6 +609,12 @@
                         <div class="rm-payment-total-line"><span>Productos</span><strong>{{ \App\Support\Money::symbol() }} {{ number_format((float) $paymentChargeSummary['products'], 2) }}</strong></div>
                         <div class="rm-payment-total-line"><span>Abonos pendientes</span><strong>{{ \App\Support\Money::symbol() }} {{ number_format((float) $paymentChargeSummary['pending'], 2) }}</strong></div>
                         <div class="rm-payment-total-line is-main"><span>Debe pagar ahora</span><strong>{{ \App\Support\Money::symbol() }} {{ number_format((float) $paymentChargeSummary['pay_now'], 2) }}</strong></div>
+                        @if ((float) $paymentChargeSummary['total'] > (float) $paymentChargeSummary['pay_now'])
+                            <div class="rm-payment-total-line is-warning">
+                                <span>Quedara en deuda</span>
+                                <strong>{{ \App\Support\Money::symbol() }} {{ number_format((float) $paymentChargeSummary['total'] - (float) $paymentChargeSummary['pay_now'], 2) }}</strong>
+                            </div>
+                        @endif
                         <div class="rm-payment-total-line {{ $paymentDifference === 0.0 ? 'is-ok' : ($paymentDifference > 0 ? 'is-warning' : 'is-danger') }}">
                             <span>{{ $paymentDifference === 0.0 ? 'Pago exacto' : ($paymentDifference > 0 ? 'Excedente' : 'Falta cobrar') }}</span>
                             <strong>{{ \App\Support\Money::symbol() }} {{ number_format(abs($paymentDifference), 2) }}</strong>
@@ -611,6 +625,9 @@
                         <label class="rm-field"><span>Efectivo</span><input wire:model.live="paymentCashAmount" type="number" min="0" step="0.01">@error('paymentCashAmount')<small>{{ $message }}</small>@enderror</label>
                         <label class="rm-field"><span>QR</span><input wire:model.live="paymentQrAmount" type="number" min="0" step="0.01">@error('paymentQrAmount')<small>{{ $message }}</small>@enderror</label>
                     </div>
+                    <p class="rm-payment-help">
+                        Si el cliente empieza el tratamiento sin pagar, marca el tratamiento y usa Dejar saldo. No se sumara a caja y aparecera en Saldos pendientes.
+                    </p>
                     <details class="rm-payment-extra-splits" @if (count($extraPaymentSplits) > 0) open @endif>
                         <summary>Pagos adicionales</summary>
                         <div class="rm-payment-product-list">

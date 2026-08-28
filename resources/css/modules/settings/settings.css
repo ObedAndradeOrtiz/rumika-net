@@ -1495,7 +1495,7 @@
     border-radius: 14px;
     display: grid;
     gap: 10px;
-    grid-template-columns: minmax(220px, 1fr) 130px 130px;
+    grid-template-columns: minmax(220px, 1fr) 130px 130px minmax(190px, auto);
     padding: 10px;
 }
 
@@ -1527,6 +1527,37 @@
     font-size: 11px;
     font-weight: 800;
     grid-column: 2;
+}
+
+.rm-service-payment-actions {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.rm-service-payment-actions .rm-button {
+    justify-content: center;
+    min-height: 42px;
+    min-width: 0;
+    padding-inline: 12px;
+}
+
+.rm-service-payment-actions .is-debt-action {
+    background: #fff7ed;
+    border-color: #fed7aa;
+    color: #9a3412;
+}
+
+.rm-payment-help {
+    background: #ecfdf5;
+    border: 1px solid #bbf7d0;
+    border-radius: 14px;
+    color: #0f766e;
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1.45;
+    margin: 0;
+    padding: 10px 12px;
 }
 
 .rm-payment-product-row {
@@ -4238,6 +4269,16 @@
     .rm-payment-workspace,
     .rm-pending-charge-row {
         grid-template-columns: 1fr;
+    }
+
+    .rm-payment-service-row {
+        align-items: stretch;
+        gap: 12px;
+        padding: 12px;
+    }
+
+    .rm-service-payment-actions {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .rm-payment-modal {

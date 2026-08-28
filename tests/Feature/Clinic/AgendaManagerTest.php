@@ -937,6 +937,68 @@ class AgendaManagerTest extends TestCase
         $this->assertSame(0.0, (float) ClientCharge::where('client_id', $client->id)->sum('balance_amount'));
     }
 
+    public function test_selected_service_can_be_left_as_pending_without_initial_payment(): void
+    {
+        [$admin, $company, $branch] = $this->companyContext('rumika-saldo-cero');
+        $client = Client::create([
+            'company_id' => $company->id,
+            'branch_id' => $branch->id,
+            'full_name' => 'Cliente Saldo Cero',
+        ]);
+        $service = Service::create([
+            'company_id' => $company->id,
+            'branch_id' => $branch->id,
+            'name' => 'Tratamiento dental',
+            'price' => 500,
+            'duration_minutes' => 60,
+        ]);
+
+        $this->actingAs($admin);
+        session(['active_branch_id' => $branch->id]);
+
+        Livewire::test(AgendaManager::class)
+            ->set('clientMode', 'existing')
+            ->set('clientId', $client->id)
+            ->set('scheduledDate', '2026-08-15')
+            ->set('scheduledTime', '09:00')
+            ->set('serviceIds', [(string) $service->id])
+            ->call('saveAppointment')
+            ->assertHasNoErrors();
+
+        $appointment = Appointment::with('services')->firstOrFail();
+        $serviceLine = $appointment->services->first();
+
+        Livewire::test(AgendaManager::class)
+            ->call('openPayment', $appointment->id)
+            ->set('paymentCashAmount', '')
+            ->set('paymentQrAmount', '')
+            ->set('paymentServiceLineIds', [(string) $serviceLine->id])
+            ->set('paymentServiceLinePrices', [(string) $serviceLine->id => '500'])
+            ->set('paymentServiceLinePayments', [(string) $serviceLine->id => '0'])
+            ->call('savePayment')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('treatment_payments', [
+            'appointment_id' => $appointment->id,
+            'amount' => '0.00',
+        ]);
+        $this->assertDatabaseHas('client_charges', [
+            'client_id' => $client->id,
+            'appointment_service_id' => $serviceLine->id,
+            'type' => 'service',
+            'total_amount' => '500.00',
+            'paid_amount' => '0.00',
+            'balance_amount' => '500.00',
+            'status' => 'pending',
+        ]);
+        $this->assertDatabaseHas('treatment_payment_items', [
+            'appointment_service_id' => $serviceLine->id,
+            'type' => 'service',
+            'total' => '0.00',
+        ]);
+        $this->assertSame(0, TreatmentPaymentSplit::count());
+    }
+
     public function test_product_debt_stays_visible_when_editing_payment_and_adding_another_product(): void
     {
         [$admin, $company, $branch] = $this->companyContext('rumika-producto-deuda');

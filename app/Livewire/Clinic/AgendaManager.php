@@ -935,6 +935,32 @@ class AgendaManager extends Component
         $this->paymentProductLines = array_values($this->paymentProductLines);
     }
 
+    public function setServicePaymentMode(int $serviceLineId, string $mode): void
+    {
+        $appointment = $this->paymentAppointmentId
+            ? $this->appointmentQuery()->whereKey($this->paymentAppointmentId)->with('services')->first()
+            : null;
+
+        $serviceLine = $appointment?->services->firstWhere('id', $serviceLineId);
+
+        if (! $serviceLine || ! in_array($mode, ['full', 'pending'], true)) {
+            return;
+        }
+
+        $key = (string) $serviceLineId;
+        $price = (string) round((float) (($this->paymentServiceLinePrices[$key] ?? '') !== ''
+            ? $this->paymentServiceLinePrices[$key]
+            : $serviceLine->price), 2);
+
+        if (! in_array($key, $this->paymentServiceLineIds, true)) {
+            $this->paymentServiceLineIds[] = $key;
+        }
+
+        $this->paymentServiceLinePrices[$key] = $price;
+        $this->paymentServiceLinePayments[$key] = $mode === 'full' ? $price : '0';
+        $this->syncMainPaymentAmountsToPayNow();
+    }
+
     public function savePayment(): void
     {
         $this->normalizePaymentAmountInputs();
@@ -983,12 +1009,6 @@ class AgendaManager extends Component
             ->filter(fn($split) => (float) ($split['amount'] ?? 0) > 0)
             ->values();
         $amount = $cash + $qr + $extraSplits->sum(fn($split) => (float) $split['amount']);
-
-        if ($amount <= 0) {
-            $this->addError('paymentCashAmount', 'Ingresa al menos un monto en efectivo o QR.');
-
-            return;
-        }
 
         if (($validated['invoiceRequested'] ?? false) && trim((string) ($validated['invoiceNit'] ?? '')) === '') {
             $this->addError('invoiceNit', 'Ingresa el NIT para facturar.');
@@ -1160,10 +1180,6 @@ class AgendaManager extends Component
                     'charged_at' => $appointment->scheduled_at,
                 ]);
                 $this->applyChargePayment($charge, $payment, $paidAmount);
-
-                if ($paidAmount <= 0) {
-                    continue;
-                }
 
                 $payment->items()->create([
                     'client_charge_id' => $charge->id,
@@ -2222,6 +2238,16 @@ class AgendaManager extends Component
                 2
             ),
         ];
+    }
+
+    private function syncMainPaymentAmountsToPayNow(): void
+    {
+        $summary = $this->paymentChargeSummary($this->company(), $this->activeBranch());
+        $payNow = (string) $summary['pay_now'];
+
+        $this->paymentCashAmount = $payNow === '0' ? '' : $payNow;
+        $this->paymentQrAmount = '';
+        $this->extraPaymentSplits = [];
     }
 
     private function pendingCharges(int $clientId, ?int $exceptPaymentId = null)
