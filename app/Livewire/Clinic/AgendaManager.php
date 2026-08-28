@@ -1648,6 +1648,13 @@ class AgendaManager extends Component
         return view('livewire.clinic.agenda-manager', [
             'branch' => $branch,
             'appointments' => $appointments,
+            'agendaStats' => [
+                'scheduled' => $appointments->count(),
+                'attended' => $appointments->where('attended', true)->count(),
+                'rescheduled' => $appointments
+                    ->filter(fn (Appointment $appointment) => $appointment->status === 'rescheduled' || $appointment->rescheduledAppointments?->isNotEmpty())
+                    ->count(),
+            ],
             'canCreateAppointments' => RumikaAccess::can(Auth::user(), 'agenda', 'create', company: $company),
             'canViewClinicalHistory' => RumikaAccess::can(Auth::user(), 'historia_clinica', 'view', company: $company),
             'canUseWhatsapp' => RumikaAccess::can(Auth::user(), 'crm', 'view', company: $company) && (bool) $this->activeWhatsappChannel(),

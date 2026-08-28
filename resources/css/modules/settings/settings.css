@@ -1321,6 +1321,45 @@
     color: #ffffff;
 }
 
+.rm-agenda-day-stats {
+    background: #f8fbfc;
+    border: 1px solid var(--rumika-border);
+    border-radius: 16px;
+    display: grid;
+    gap: 8px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 12px 0 14px;
+    padding: 8px;
+}
+
+.rm-agenda-day-stats div {
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid #eef3f7;
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    min-height: 44px;
+    min-width: 0;
+    padding: 8px 12px;
+}
+
+.rm-agenda-day-stats span {
+    color: var(--rumika-muted);
+    font-size: 12px;
+    font-weight: 900;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rm-agenda-day-stats strong {
+    color: var(--rumika-teal-dark);
+    font-size: 18px;
+    font-weight: 950;
+    line-height: 1;
+}
+
 .rm-date-inline {
     background: #ffffff;
     border: 1px solid var(--rumika-border);
@@ -4261,6 +4300,34 @@
     .rm-action-row.rm-agenda-actions {
         align-items: center;
         grid-template-columns: 44px minmax(0, 1fr) 44px 48px;
+    }
+
+    .rm-agenda-day-stats {
+        gap: 6px;
+        grid-template-columns: repeat(3, minmax(92px, 1fr));
+        margin: 10px 0 12px;
+        overflow-x: auto;
+        padding: 6px;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .rm-agenda-day-stats::-webkit-scrollbar {
+        display: none;
+    }
+
+    .rm-agenda-day-stats div {
+        flex: 0 0 auto;
+        min-height: 40px;
+        padding: 7px 9px;
+    }
+
+    .rm-agenda-day-stats span {
+        font-size: 11px;
+    }
+
+    .rm-agenda-day-stats strong {
+        font-size: 16px;
     }
 
     .rm-payment-product-row,

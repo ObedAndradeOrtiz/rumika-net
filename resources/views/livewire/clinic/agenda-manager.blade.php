@@ -47,6 +47,21 @@
             </div>
         </div>
 
+        <div class="rm-agenda-day-stats" aria-label="Resumen del dia">
+            <div>
+                <span>Agendados</span>
+                <strong>{{ $agendaStats['scheduled'] }}</strong>
+            </div>
+            <div>
+                <span>Asistidos</span>
+                <strong>{{ $agendaStats['attended'] }}</strong>
+            </div>
+            <div>
+                <span>Reagendados</span>
+                <strong>{{ $agendaStats['rescheduled'] }}</strong>
+            </div>
+        </div>
+
         <div class="rm-commerce-list">
             @forelse ($appointments as $appointment)
                 <article class="rm-commerce-row rm-appointment-row">
