@@ -14,6 +14,7 @@ class StatisticsSummary extends Component
     public string $dateTo = '';
     public string $branchFilter = '';
     public string $year = '';
+    public bool $showNewPatientsModal = false;
 
     public function mount(): void
     {
@@ -61,10 +62,35 @@ class StatisticsSummary extends Component
             ->whereIn('branch_id', $branchIds)
             ->whereBetween('spent_at', [$from->toDateString(), $to->toDateString()])
             ->get();
-        $newPatients = $company->clients()
+        $newPatientRows = $company->clients()
+            ->with([
+                'branch',
+                'primaryPhone',
+                'appointments' => fn ($query) => $query
+                    ->with('services')
+                    ->whereIn('branch_id', $branchIds)
+                    ->whereBetween('scheduled_at', [$from, $to])
+                    ->orderBy('scheduled_at'),
+            ])
             ->whereIn('branch_id', $branchIds)
             ->whereBetween('created_at', [$from, $to])
-            ->count();
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(fn ($client) => [
+                'name' => $client->full_name,
+                'phone' => $client->displayContact(),
+                'branch' => $client->branch?->name ?? 'Sin sucursal',
+                'registered_at' => $client->created_at?->format('d/m/Y H:i') ?? 'Sin fecha',
+                'appointments' => $client->appointments
+                    ->map(fn ($appointment) => [
+                        'date' => $appointment->scheduled_at?->format('d/m/Y H:i') ?? 'Sin fecha',
+                        'status' => $this->appointmentStatusLabel((string) $appointment->status),
+                        'services' => $appointment->services->pluck('name')->filter()->values()->all(),
+                    ])
+                    ->values()
+                    ->all(),
+            ])
+            ->values();
         $annualAppointments = $company->appointments()
             ->whereIn('branch_id', $branchIds)
             ->whereBetween('scheduled_at', [$yearStart, $yearEnd])
@@ -99,8 +125,9 @@ class StatisticsSummary extends Component
                 'rate' => $attendanceRate,
             ],
             'patients' => [
-                'new' => $newPatients,
+                'new' => $newPatientRows->count(),
             ],
+            'newPatientRows' => $newPatientRows,
             'finance' => [
                 'services' => $servicesIncome,
                 'products' => $productsIncome,
@@ -289,6 +316,27 @@ class StatisticsSummary extends Component
                 'net' => $services + $products - $expensesTotal,
             ];
         });
+    }
+
+    public function openNewPatientsModal(): void
+    {
+        $this->showNewPatientsModal = true;
+    }
+
+    public function closeNewPatientsModal(): void
+    {
+        $this->showNewPatientsModal = false;
+    }
+
+    private function appointmentStatusLabel(string $status): string
+    {
+        return match ($status) {
+            'attended' => 'Asistio',
+            'no_show' => 'No asistio',
+            'rescheduled' => 'Reagendada',
+            'cancelled' => 'Cancelada',
+            default => 'Programada',
+        };
     }
 
     private function canView(): bool

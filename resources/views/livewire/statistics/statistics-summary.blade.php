@@ -61,12 +61,12 @@
                 <small>Productos {{ \App\Support\Money::symbol() }} {{ number_format((float) $finance['products'], 2) }}</small>
             </div>
         </article>
-        <article class="rm-stat-money-card">
+        <article class="rm-stat-money-card rm-stat-click-card" role="button" tabindex="0" wire:click="openNewPatientsModal">
             <span>Pacientes nuevos</span>
             <strong>{{ number_format((int) $patients['new']) }}</strong>
             <div>
                 <small>Registrados en el rango</small>
-                <small>{{ $dateLabel }}</small>
+                <small>Click para ver detalle</small>
             </div>
         </article>
         <article class="rm-stat-money-card">
@@ -265,4 +265,59 @@
             </div>
         </section>
     </div>
+
+    @if ($showNewPatientsModal)
+        <div class="rm-modal-backdrop" wire:click="closeNewPatientsModal"></div>
+        <section class="rm-modal-panel rm-stat-patient-modal" role="dialog" aria-modal="true">
+            <div class="rm-modal-title">
+                <div>
+                    <span>Pacientes nuevos</span>
+                    <h2>Registrados del {{ $dateLabel }}</h2>
+                </div>
+                <button type="button" wire:click="closeNewPatientsModal">x</button>
+            </div>
+
+            <div class="rm-stat-patient-list">
+                @forelse ($newPatientRows as $patient)
+                    <article class="rm-stat-patient-card">
+                        <header>
+                            <div>
+                                <strong>{{ $patient['name'] }}</strong>
+                                <span>{{ $patient['phone'] ?: 'Sin telefono' }}</span>
+                            </div>
+                            <small>{{ $patient['registered_at'] }}</small>
+                        </header>
+
+                        <div class="rm-stat-patient-meta">
+                            <span>{{ $patient['branch'] }}</span>
+                            <span>{{ count($patient['appointments']) }} cita(s) en el rango</span>
+                        </div>
+
+                        <div class="rm-stat-patient-treatments">
+                            @forelse ($patient['appointments'] as $appointment)
+                                <div>
+                                    <small>{{ $appointment['date'] }} - {{ $appointment['status'] }}</small>
+                                    @if (count($appointment['services']) > 0)
+                                        <p>{{ implode(', ', $appointment['services']) }}</p>
+                                    @else
+                                        <p>Sin tratamientos registrados.</p>
+                                    @endif
+                                </div>
+                            @empty
+                                <div>
+                                    <small>Sin citas en el rango</small>
+                                    <p>Paciente registrado sin tratamientos realizados todavia.</p>
+                                </div>
+                            @endforelse
+                        </div>
+                    </article>
+                @empty
+                    <div class="rm-empty-state">
+                        <strong>Sin pacientes nuevos</strong>
+                        <span>No hay pacientes registrados en el rango seleccionado.</span>
+                    </div>
+                @endforelse
+            </div>
+        </section>
+    @endif
 </div>
