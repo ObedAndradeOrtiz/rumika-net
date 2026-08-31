@@ -277,6 +277,15 @@
                 <button type="button" wire:click="closeNewPatientsModal">x</button>
             </div>
 
+            <div class="rm-stat-patient-export-actions">
+                <button class="rm-button rm-button-primary" type="button" wire:click="exportNewPatientsExcel">
+                    Exportar Excel
+                </button>
+                <button class="rm-button rm-button-outline" type="button" wire:click="exportNewPatientsPdf">
+                    Exportar PDF
+                </button>
+            </div>
+
             <div class="rm-stat-patient-list">
                 @forelse ($newPatientRows as $patient)
                     <article class="rm-stat-patient-card">

@@ -949,6 +949,19 @@
     padding-right: 4px;
 }
 
+.rm-stat-patient-export-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.rm-stat-patient-export-actions .rm-button {
+    justify-content: center;
+    min-height: 42px;
+    min-width: 150px;
+}
+
 .rm-stat-patient-card {
     background: #ffffff;
     border: 1px solid var(--rumika-border);
@@ -2225,6 +2238,16 @@
     .rm-stat-patient-list {
         max-height: 70vh;
         padding-right: 0;
+    }
+
+    .rm-stat-patient-export-actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .rm-stat-patient-export-actions .rm-button {
+        min-width: 0;
+        padding-inline: 10px;
     }
 
     .rm-stat-patient-card {
