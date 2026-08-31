@@ -61,6 +61,10 @@ class StatisticsSummary extends Component
             ->whereIn('branch_id', $branchIds)
             ->whereBetween('spent_at', [$from->toDateString(), $to->toDateString()])
             ->get();
+        $newPatients = $company->clients()
+            ->whereIn('branch_id', $branchIds)
+            ->whereBetween('created_at', [$from, $to])
+            ->count();
         $annualAppointments = $company->appointments()
             ->whereIn('branch_id', $branchIds)
             ->whereBetween('scheduled_at', [$yearStart, $yearEnd])
@@ -93,6 +97,9 @@ class StatisticsSummary extends Component
                 'no_show' => $noShow,
                 'pending' => $pending,
                 'rate' => $attendanceRate,
+            ],
+            'patients' => [
+                'new' => $newPatients,
             ],
             'finance' => [
                 'services' => $servicesIncome,

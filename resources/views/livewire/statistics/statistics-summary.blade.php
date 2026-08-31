@@ -62,6 +62,14 @@
             </div>
         </article>
         <article class="rm-stat-money-card">
+            <span>Pacientes nuevos</span>
+            <strong>{{ number_format((int) $patients['new']) }}</strong>
+            <div>
+                <small>Registrados en el rango</small>
+                <small>{{ $dateLabel }}</small>
+            </div>
+        </article>
+        <article class="rm-stat-money-card">
             <span>Egresos</span>
             <strong>{{ \App\Support\Money::symbol() }} {{ number_format((float) $finance['expenses'], 2) }}</strong>
             <div>
