@@ -51,7 +51,7 @@ class StatisticsSummary extends Component
         $branchIds = $this->selectedBranchIds($branches);
 
         $appointments = $company->appointments()
-            ->with(['branch', 'client.primaryPhone', 'services', 'attendedBy'])
+            ->with(['branch', 'client.primaryPhone', 'services', 'payments.items', 'attendedBy'])
             ->whereIn('branch_id', $branchIds)
             ->whereBetween('scheduled_at', [$from, $to])
             ->get();
@@ -121,6 +121,9 @@ class StatisticsSummary extends Component
             'professionalRows' => $this->showProfessionalModal
                 ? $this->professionalRows($appointments, $this->selectedProfessionalKey, $this->professionalServiceFilter)
                 : collect(),
+            'professionalIncome' => $this->showProfessionalModal
+                ? $this->professionalIncome($appointments, $this->selectedProfessionalKey, $this->professionalServiceFilter)
+                : 0,
             'professionalTreatmentOptions' => $this->showProfessionalModal
                 ? $this->professionalTreatmentOptions($appointments, $this->selectedProfessionalKey)
                 : collect(),
@@ -298,6 +301,19 @@ class StatisticsSummary extends Component
             })
             ->when($serviceFilter !== '', fn ($rows) => $rows->where('service', $serviceFilter))
             ->values();
+    }
+
+    private function professionalIncome($appointments, string $professionalKey, string $serviceFilter): float
+    {
+        $appointmentIds = $this->professionalAppointments($appointments, $professionalKey)->pluck('id');
+
+        return round((float) $appointments
+            ->whereIn('id', $appointmentIds)
+            ->flatMap->payments
+            ->flatMap->items
+            ->where('type', 'service')
+            ->when($serviceFilter !== '', fn ($items) => $items->where('name', $serviceFilter))
+            ->sum('total'), 2);
     }
 
     private function professionalTreatmentOptions($appointments, string $professionalKey)

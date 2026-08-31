@@ -287,6 +287,10 @@
                         @endforeach
                     </select>
                 </label>
+                <div class="rm-stat-modal-count is-income">
+                    <span>Ingreso total</span>
+                    <strong>{{ \App\Support\Money::symbol() }} {{ number_format((float) $professionalIncome, 2) }}</strong>
+                </div>
                 <div class="rm-stat-modal-count">
                     <span>Resultados</span>
                     <strong>{{ $professionalRows->count() }}</strong>

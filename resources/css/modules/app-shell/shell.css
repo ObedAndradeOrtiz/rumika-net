@@ -1192,7 +1192,7 @@
     align-items: end;
     display: grid;
     gap: 12px;
-    grid-template-columns: minmax(0, 1fr) 132px;
+    grid-template-columns: minmax(0, 1fr) minmax(160px, 210px) 132px;
     margin-bottom: 14px;
 }
 
@@ -1217,6 +1217,11 @@
     font-size: 20px;
     font-weight: 950;
     line-height: 1;
+}
+
+.rm-stat-modal-count.is-income {
+    background: #f0fdfa;
+    border-color: #99f6e4;
 }
 
 .rm-stat-professional-card .rm-stat-patient-treatments div {
