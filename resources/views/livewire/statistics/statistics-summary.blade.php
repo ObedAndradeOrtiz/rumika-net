@@ -130,10 +130,10 @@
         </div>
         <div class="rm-professional-rank-list">
             @forelse ($topProfessionals as $professional)
-                <article>
+                <article class="rm-professional-click-row" role="button" tabindex="0" wire:click="openProfessionalModal('{{ $professional['key'] }}')">
                     <div class="rm-professional-rank-info">
                         <strong>{{ $professional['name'] }}</strong>
-                        <small>{{ $professional['count'] }} consulta(s) atendida(s)</small>
+                        <small>{{ $professional['count'] }} consulta(s) atendida(s) - click para ver detalle</small>
                     </div>
                     <div class="rm-professional-rank-meter">
                         <span>{{ $professional['percentage'] }}%</span>
@@ -265,6 +265,66 @@
             </div>
         </section>
     </div>
+
+    @if ($showProfessionalModal)
+        <div class="rm-modal-backdrop" wire:click="closeProfessionalModal"></div>
+        <section class="rm-modal-panel rm-stat-patient-modal" role="dialog" aria-modal="true">
+            <div class="rm-modal-title">
+                <div>
+                    <span>Consultas atendidas</span>
+                    <h2>{{ $selectedProfessionalName }}</h2>
+                </div>
+                <button type="button" wire:click="closeProfessionalModal">x</button>
+            </div>
+
+            <div class="rm-stat-modal-filter-row">
+                <label class="rm-field">
+                    <span>Filtrar por tratamiento</span>
+                    <select wire:model.live="professionalServiceFilter">
+                        <option value="">Todos los tratamientos</option>
+                        @foreach ($professionalTreatmentOptions as $treatment)
+                            <option value="{{ $treatment }}">{{ $treatment }}</option>
+                        @endforeach
+                    </select>
+                </label>
+                <div class="rm-stat-modal-count">
+                    <span>Resultados</span>
+                    <strong>{{ $professionalRows->count() }}</strong>
+                </div>
+            </div>
+
+            <div class="rm-stat-patient-list">
+                @forelse ($professionalRows as $row)
+                    <article class="rm-stat-patient-card rm-stat-professional-card">
+                        <header>
+                            <div>
+                                <strong>{{ $row['patient'] }}</strong>
+                                <span>{{ $row['phone'] ?: 'Sin telefono' }}</span>
+                            </div>
+                            <small>{{ $row['date'] }}</small>
+                        </header>
+
+                        <div class="rm-stat-patient-meta">
+                            <span>{{ $row['branch'] }}</span>
+                            <span>{{ $row['status'] }}</span>
+                        </div>
+
+                        <div class="rm-stat-patient-treatments">
+                            <div>
+                                <small>Tratamiento</small>
+                                <p>{{ $row['service'] }}</p>
+                            </div>
+                        </div>
+                    </article>
+                @empty
+                    <div class="rm-empty-state">
+                        <strong>Sin resultados</strong>
+                        <span>No hay consultas para este profesional con el tratamiento seleccionado.</span>
+                    </div>
+                @endforelse
+            </div>
+        </section>
+    @endif
 
     @if ($showNewPatientsModal)
         <div class="rm-modal-backdrop" wire:click="closeNewPatientsModal"></div>

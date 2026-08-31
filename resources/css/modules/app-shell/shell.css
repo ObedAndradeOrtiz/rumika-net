@@ -1113,6 +1113,17 @@
     grid-template-columns: minmax(0, 1fr) minmax(170px, 0.42fr);
 }
 
+.rm-professional-click-row {
+    cursor: pointer;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.rm-professional-click-row:hover {
+    border-color: rgba(0, 128, 115, 0.28);
+    box-shadow: 0 14px 30px rgba(0, 128, 115, 0.08);
+    transform: translateY(-1px);
+}
+
 .rm-weekly-branch-list article {
     grid-template-columns: auto minmax(0, 1fr);
 }
@@ -1175,6 +1186,42 @@
     border-radius: inherit;
     display: block;
     height: 100%;
+}
+
+.rm-stat-modal-filter-row {
+    align-items: end;
+    display: grid;
+    gap: 12px;
+    grid-template-columns: minmax(0, 1fr) 132px;
+    margin-bottom: 14px;
+}
+
+.rm-stat-modal-count {
+    background: #ecfdf5;
+    border: 1px solid #bbf7d0;
+    border-radius: 14px;
+    display: grid;
+    gap: 2px;
+    min-height: 54px;
+    padding: 8px 12px;
+}
+
+.rm-stat-modal-count span {
+    color: #0f766e;
+    font-size: 11px;
+    font-weight: 900;
+}
+
+.rm-stat-modal-count strong {
+    color: #047857;
+    font-size: 20px;
+    font-weight: 950;
+    line-height: 1;
+}
+
+.rm-stat-professional-card .rm-stat-patient-treatments div {
+    background: #f0fdfa;
+    border-color: #ccfbf1;
 }
 
 .rm-stat-annual-table .rm-stat-table-head,
@@ -2248,6 +2295,11 @@
     .rm-stat-patient-export-actions .rm-button {
         min-width: 0;
         padding-inline: 10px;
+    }
+
+    .rm-stat-modal-filter-row {
+        align-items: stretch;
+        grid-template-columns: 1fr;
     }
 
     .rm-stat-patient-card {

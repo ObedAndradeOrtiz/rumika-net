@@ -17,6 +17,9 @@ class StatisticsSummary extends Component
     public string $branchFilter = '';
     public string $year = '';
     public bool $showNewPatientsModal = false;
+    public bool $showProfessionalModal = false;
+    public string $selectedProfessionalKey = '';
+    public string $professionalServiceFilter = '';
 
     public function mount(): void
     {
@@ -48,7 +51,7 @@ class StatisticsSummary extends Component
         $branchIds = $this->selectedBranchIds($branches);
 
         $appointments = $company->appointments()
-            ->with(['branch', 'client', 'services', 'attendedBy'])
+            ->with(['branch', 'client.primaryPhone', 'services', 'attendedBy'])
             ->whereIn('branch_id', $branchIds)
             ->whereBetween('scheduled_at', [$from, $to])
             ->get();
@@ -115,6 +118,13 @@ class StatisticsSummary extends Component
             'dailyRows' => $this->dailyRows($appointments, $payments, $expenses, $from, $to),
             'topServices' => $this->topServices($appointments),
             'topProfessionals' => $this->topProfessionals($appointments),
+            'professionalRows' => $this->showProfessionalModal
+                ? $this->professionalRows($appointments, $this->selectedProfessionalKey, $this->professionalServiceFilter)
+                : collect(),
+            'professionalTreatmentOptions' => $this->showProfessionalModal
+                ? $this->professionalTreatmentOptions($appointments, $this->selectedProfessionalKey)
+                : collect(),
+            'selectedProfessionalName' => $this->selectedProfessionalName($appointments, $this->selectedProfessionalKey),
             'topSellers' => $this->topSellers($payments),
             'topProducts' => $this->topProducts($payments),
             'annualRows' => $this->annualRows($annualAppointments, $annualPayments, $annualExpenses, $year),
@@ -258,6 +268,7 @@ class StatisticsSummary extends Component
                 $count = $items->count();
 
                 return [
+                    'key' => (string) ($first->attended_by_user_id ?: 'none'),
                     'name' => $first->attendedBy?->name ?? 'Sin profesional asignado',
                     'count' => $count,
                     'percentage' => round(($count / $totalAttended) * 100),
@@ -265,6 +276,58 @@ class StatisticsSummary extends Component
             })
             ->sortByDesc('count')
             ->take(10)
+            ->values();
+    }
+
+    private function professionalRows($appointments, string $professionalKey, string $serviceFilter)
+    {
+        return $this->professionalAppointments($appointments, $professionalKey)
+            ->flatMap(function ($appointment) {
+                $services = $appointment->services->isNotEmpty()
+                    ? $appointment->services
+                    : collect([(object) ['name' => 'Sin tratamiento registrado']]);
+
+                return $services->map(fn ($service) => [
+                    'patient' => $appointment->client?->full_name ?? 'Sin paciente',
+                    'phone' => $appointment->client?->displayContact(),
+                    'branch' => $appointment->branch?->name ?? 'Sin sucursal',
+                    'date' => $appointment->scheduled_at?->format('d/m/Y H:i') ?? 'Sin fecha',
+                    'service' => $service->name ?? 'Sin tratamiento registrado',
+                    'status' => $this->appointmentStatusLabel((string) $appointment->status),
+                ]);
+            })
+            ->when($serviceFilter !== '', fn ($rows) => $rows->where('service', $serviceFilter))
+            ->values();
+    }
+
+    private function professionalTreatmentOptions($appointments, string $professionalKey)
+    {
+        return $this->professionalAppointments($appointments, $professionalKey)
+            ->flatMap->services
+            ->pluck('name')
+            ->filter()
+            ->unique()
+            ->sort()
+            ->values();
+    }
+
+    private function selectedProfessionalName($appointments, string $professionalKey): string
+    {
+        if ($professionalKey === '') {
+            return 'Profesional';
+        }
+
+        $appointment = $this->professionalAppointments($appointments, $professionalKey)->first();
+
+        return $appointment?->attendedBy?->name ?? 'Sin profesional asignado';
+    }
+
+    private function professionalAppointments($appointments, string $professionalKey)
+    {
+        return $appointments
+            ->where('attended', true)
+            ->filter(fn ($appointment) => (string) ($appointment->attended_by_user_id ?: 'none') === $professionalKey)
+            ->sortBy('scheduled_at')
             ->values();
     }
 
@@ -473,6 +536,20 @@ class StatisticsSummary extends Component
     public function closeNewPatientsModal(): void
     {
         $this->showNewPatientsModal = false;
+    }
+
+    public function openProfessionalModal(string $professionalKey): void
+    {
+        $this->selectedProfessionalKey = $professionalKey;
+        $this->professionalServiceFilter = '';
+        $this->showProfessionalModal = true;
+    }
+
+    public function closeProfessionalModal(): void
+    {
+        $this->showProfessionalModal = false;
+        $this->selectedProfessionalKey = '';
+        $this->professionalServiceFilter = '';
     }
 
     private function appointmentStatusLabel(string $status): string
