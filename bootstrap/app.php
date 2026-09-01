@@ -21,6 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'rumika.saas_admin' => \App\Http\Middleware\EnsureSaasAdmin::class,
             'rumika.subscription' => \App\Http\Middleware\EnsureCompanySubscriptionIsActive::class,
             'rumika.face' => \App\Http\Middleware\EnsureFaceVerification::class,
+            'rumika.attendance' => \App\Http\Middleware\EnsureStaffAttendanceIsRegistered::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

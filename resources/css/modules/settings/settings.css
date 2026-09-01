@@ -427,6 +427,41 @@
     font-size: 12px;
 }
 
+.rm-attendance-lock-panel {
+    border-color: #bfe7df;
+    background: linear-gradient(135deg, #f0fdfa, #ffffff);
+}
+
+.rm-attendance-lock-panel > div {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.rm-attendance-lock-icon {
+    width: 54px;
+    height: 54px;
+    border-radius: 18px;
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    color: #0f766e;
+    background: #ccfbf1;
+}
+
+.rm-attendance-lock-panel h2 {
+    margin: 0;
+    color: #0f172a;
+    font-size: 20px;
+}
+
+.rm-attendance-lock-panel p {
+    margin: 6px 0 0;
+    color: #64748b;
+    font-weight: 750;
+    line-height: 1.45;
+}
+
 @media (max-width: 900px) {
     .rm-staff-punch {
         padding: 8px 34px 0;
@@ -496,6 +531,14 @@
         min-height: 66px;
         border-radius: 18px;
         padding: 12px 14px;
+    }
+
+    .rm-attendance-lock-panel > div {
+        align-items: flex-start;
+    }
+
+    .rm-attendance-lock-panel h2 {
+        font-size: 17px;
     }
 }
 

@@ -13,4 +13,8 @@ document.addEventListener('livewire:init', () => {
     window.Livewire?.on('branch-switched', () => {
         window.location.reload();
     });
+
+    window.Livewire?.on('attendance-saved', () => {
+        window.location.reload();
+    });
 });

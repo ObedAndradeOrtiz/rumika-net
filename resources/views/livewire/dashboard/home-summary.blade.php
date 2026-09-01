@@ -22,6 +22,23 @@
         </div>
     @endif
 
+    @if ($attendanceLocked)
+        <section class="rm-panel rm-attendance-lock-panel">
+            <div>
+                <span class="rm-attendance-lock-icon">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+                        <rect x="4" y="11" width="16" height="9" rx="2" />
+                        <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+                    </svg>
+                </span>
+                <div>
+                    <h2>Registra tu asistencia para usar Rumika</h2>
+                    <p>Tu usuario tiene control de asistencia activo. Valida rostro y ubicacion desde tu sucursal para habilitar los modulos del sistema.</p>
+                </div>
+            </div>
+        </section>
+    @else
+
     <section class="rm-dashboard-kpis" aria-label="Resumen por sucursal">
         <article>
             <span class="rm-kpi-icon is-agenda">
@@ -192,4 +209,5 @@
             </div>
         </section>
     </div>
+    @endif
 </div>

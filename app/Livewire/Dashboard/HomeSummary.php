@@ -4,6 +4,7 @@ namespace App\Livewire\Dashboard;
 
 use App\Models\Branch;
 use App\Models\Company;
+use App\Support\StaffAttendanceGate;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -15,6 +16,7 @@ class HomeSummary extends Component
     {
         $company = $this->company();
         $branch = $this->activeBranch($company);
+        $attendanceLocked = StaffAttendanceGate::requiresOpenAttendance(Auth::user(), $company);
         $today = now();
         $dayRange = [$today->copy()->startOfDay(), $today->copy()->endOfDay()];
         $weekRange = [$today->copy()->startOfWeek(), $today->copy()->endOfWeek()];
@@ -56,6 +58,7 @@ class HomeSummary extends Component
 
         return view('livewire.dashboard.home-summary', [
             'branch' => $branch,
+            'attendanceLocked' => $attendanceLocked,
             'appointmentsToday' => $appointmentsToday,
             'attendedToday' => $attendedToday,
             'attendanceRateToday' => $attendanceRateToday,

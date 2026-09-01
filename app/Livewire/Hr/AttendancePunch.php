@@ -113,6 +113,13 @@ class AttendancePunch extends Component
                     'check_in_distance_meters' => $branchMatch['distance'],
                     'check_in_face_similarity' => $similarity,
                     'check_in_photo_path' => $imagePath,
+                    'check_out_at' => null,
+                    'check_out_branch_id' => null,
+                    'check_out_latitude' => null,
+                    'check_out_longitude' => null,
+                    'check_out_distance_meters' => null,
+                    'check_out_face_similarity' => null,
+                    'check_out_photo_path' => null,
                 ],
             );
 

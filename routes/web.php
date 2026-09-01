@@ -8,7 +8,7 @@ use App\Livewire\Onboarding\CompanySetup;
 use App\Livewire\Security\FaceVerificationManager;
 
 Route::post('/rumika-bot', [RumikaBotController::class, 'ask'])
-    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face'])
+    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.attendance'])
     ->name('rumika.bot');
 
 Route::get('/webhook/whatsapp', [WhatsappWebhookController::class, 'verify'])
@@ -37,95 +37,95 @@ Route::view('saas', 'saas.dashboard')
     ->name('saas.dashboard');
 
 Route::view('configuracion/comercios', 'settings.commerce')
-    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.permission:sucursales'])
+    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.attendance', 'rumika.permission:sucursales'])
     ->name('settings.commerce');
 
 Route::view('configuracion/usuarios', 'settings.users')
-    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.permission:usuarios|roles'])
+    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.attendance', 'rumika.permission:usuarios|roles'])
     ->name('settings.users');
 
 Route::view('configuracion/servicios', 'settings.services')
-    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.permission:servicios'])
+    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.attendance', 'rumika.permission:servicios'])
     ->name('settings.services');
 
 Route::view('configuracion/registros', 'settings.records')
-    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.permission:registros'])
+    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.attendance', 'rumika.permission:registros'])
     ->name('settings.records');
 
 Route::view('configuracion/bitacora', 'settings.audit')
-    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.permission:bitacora'])
+    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.attendance', 'rumika.permission:bitacora'])
     ->name('settings.audit');
 
 Route::view('recursos-humanos/asistencia', 'hr.attendance')
-    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.permission:recursos_humanos'])
+    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.attendance', 'rumika.permission:recursos_humanos'])
     ->name('hr.attendance');
 
 Route::view('configuracion/mi-sistema', 'settings.system')
-    ->middleware(['auth', 'verified', 'rumika.onboarding', 'rumika.face'])
+    ->middleware(['auth', 'verified', 'rumika.onboarding', 'rumika.face', 'rumika.attendance'])
     ->name('settings.system');
 
 Route::view('agenda', 'clinic.agenda')
-    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.permission:agenda'])
+    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.attendance', 'rumika.permission:agenda'])
     ->name('clinic.agenda');
 
 Route::view('clientes', 'clinic.clients')
-    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.permission:clientes'])
+    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.attendance', 'rumika.permission:clientes'])
     ->name('clinic.clients');
 
 Route::view('historia-clinica', 'clinic.clinical-history')
-    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.permission:historia_clinica'])
+    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.attendance', 'rumika.permission:historia_clinica'])
     ->name('clinic.clinical-history');
 
 Route::view('caja', 'clinic.cashbox')
-    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.permission:caja'])
+    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.attendance', 'rumika.permission:caja'])
     ->name('clinic.cashbox');
 
 Route::view('ventas/productos', 'sales.products')
-    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.permission:ventas_productos'])
+    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.attendance', 'rumika.permission:ventas_productos'])
     ->name('sales.products');
 
 Route::view('crm', 'crm.index')
-    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.permission:crm'])
+    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.attendance', 'rumika.permission:crm'])
     ->name('crm.index');
 
 Route::view('inventario', 'inventory.index')
-    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.permission:inventario'])
+    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.attendance', 'rumika.permission:inventario'])
     ->name('inventory.index');
 
 Route::view('inventario/operaciones', 'inventory.operations')
-    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.permission:inventario_operaciones'])
+    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.attendance', 'rumika.permission:inventario_operaciones'])
     ->name('inventory.operations');
 
 Route::view('finanzas/gastos', 'finance.expenses')
-    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.permission:gastos'])
+    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.attendance', 'rumika.permission:gastos'])
     ->name('finance.expenses');
 
 Route::view('finanzas/resumen', 'finance.summary')
-    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.permission:resumen_financiero'])
+    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.attendance', 'rumika.permission:resumen_financiero'])
     ->name('finance.summary');
 
 Route::view('finanzas/facturacion', 'finance.invoicing')
-    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.permission:facturacion'])
+    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.attendance', 'rumika.permission:facturacion'])
     ->name('finance.invoicing');
 
 Route::view('finanzas/deudas', 'finance.debts')
-    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.permission:deudas'])
+    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.attendance', 'rumika.permission:deudas'])
     ->name('finance.debts');
 
 Route::view('finanzas/reportes', 'finance.reports')
-    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.permission:reportes'])
+    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.attendance', 'rumika.permission:reportes'])
     ->name('finance.reports');
 
 Route::view('finanzas/comisiones', 'finance.commissions')
-    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.permission:comisiones'])
+    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.attendance', 'rumika.permission:comisiones'])
     ->name('finance.commissions');
 
 Route::get('finanzas/reportes/pdf', FinanceReportExportController::class)
-    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.permission:reportes'])
+    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.attendance', 'rumika.permission:reportes'])
     ->name('finance.reports.pdf');
 
 Route::view('estadisticas', 'statistics.index')
-    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.permission:estadisticas'])
+    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.attendance', 'rumika.permission:estadisticas'])
     ->name('statistics.index');
 
 Route::get('seguridad/facial', FaceVerificationManager::class)
@@ -141,7 +141,7 @@ Route::view('acceso-pausado', 'billing.blocked')
     ->name('billing.blocked');
 
 Route::view('profile', 'profile')
-    ->middleware(['auth', 'rumika.face'])
+    ->middleware(['auth', 'rumika.face', 'rumika.attendance'])
     ->name('profile');
 
 require __DIR__ . '/auth.php';
