@@ -57,9 +57,9 @@
                     @endif
                 </p>
                 @error('attendance') <small class="rm-field-error">{{ $message }}</small> @enderror
-                @if ($message)
+                @if ($successMessage)
                     <div class="rm-inline-success">
-                        {{ $message }}
+                        {{ $successMessage }}
                         @if ($lastBranchName)
                             <span>{{ $lastBranchName }} - {{ $lastDistance }} m - {{ $lastSimilarity }}%</span>
                         @endif

@@ -18,7 +18,7 @@ class AttendancePunch extends Component
 
     public bool $showModal = false;
 
-    public ?string $message = null;
+    public ?string $successMessage = null;
 
     public ?int $lastSimilarity = null;
 
@@ -33,12 +33,14 @@ class AttendancePunch extends Component
         }
 
         $this->resetErrorBag();
-        $this->message = null;
+        $this->successMessage = null;
         $this->showModal = true;
     }
 
     public function closePunch(): void
     {
+        $this->resetErrorBag();
+        $this->successMessage = null;
         $this->showModal = false;
     }
 
@@ -97,7 +99,7 @@ class AttendancePunch extends Component
                 'check_out_photo_path' => $imagePath,
             ]);
 
-            $this->message = 'Salida registrada correctamente.';
+            $this->successMessage = 'Salida registrada correctamente.';
         } else {
             StaffAttendanceRecord::query()->updateOrCreate(
                 [
@@ -124,7 +126,7 @@ class AttendancePunch extends Component
                 ],
             );
 
-            $this->message = 'Entrada registrada correctamente.';
+            $this->successMessage = 'Entrada registrada correctamente.';
         }
 
         $this->lastDistance = $branchMatch['distance'];
