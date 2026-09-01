@@ -56,7 +56,9 @@
                         Activa la camara y valida tu rostro dentro del radio de una sucursal.
                     @endif
                 </p>
-                @error('attendance') <small class="rm-field-error">{{ $message }}</small> @enderror
+                @if ($errors->has('attendance'))
+                    <small class="rm-field-error">{{ $errors->first('attendance') }}</small>
+                @endif
                 @if ($successMessage)
                     <div class="rm-inline-success">
                         {{ $successMessage }}
