@@ -361,8 +361,13 @@
     border: 0;
     color: inherit;
     cursor: pointer;
+    min-width: 0;
     padding: 0;
     text-align: left;
+}
+
+.rm-branch-switcher-button > div {
+    min-width: 0;
 }
 
 .rm-branch-switcher-button:hover strong {
@@ -396,6 +401,9 @@
     display: block;
     font-size: 17px;
     line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .rm-branch-switcher span {
@@ -403,6 +411,9 @@
     display: block;
     font-size: 13px;
     font-weight: 700;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .rm-top-actions {
@@ -2166,7 +2177,7 @@
 
     .rm-branch-switcher {
         flex: 1 1 auto;
-        max-width: calc(100vw - 92px);
+        max-width: calc(100vw - 78px);
     }
 
     .rm-branch-switcher-main {

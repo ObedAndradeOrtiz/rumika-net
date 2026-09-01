@@ -17,6 +17,15 @@
         <button class="rm-branch-company-edit" type="button" wire:click="editCompanyName" aria-label="Cambiar nombre de empresa">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
         </button>
+        <button class="rm-theme-toggle" type="button" data-theme-toggle aria-label="Cambiar a modo oscuro" aria-pressed="false">
+            <svg class="rm-theme-sun" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <circle cx="12" cy="12" r="4" />
+                <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+            </svg>
+            <svg class="rm-theme-moon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <path d="M20 14.5A8 8 0 0 1 9.5 4a7 7 0 1 0 10.5 10.5Z" />
+            </svg>
+        </button>
     </div>
 
     @if ($showBranchModal)

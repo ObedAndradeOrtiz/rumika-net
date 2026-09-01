@@ -3,10 +3,29 @@
     --rumika-muted: #667085;
     --rumika-soft: #f5f7fb;
     --rumika-border: #d8dee9;
+    --rumika-surface: #ffffff;
+    --rumika-surface-soft: #f8fafc;
+    --rumika-field: #ffffff;
     --rumika-teal: #007f78;
     --rumika-teal-dark: #075f5a;
     --rumika-emerald: #21a67a;
     --rumika-coral: #ef7d67;
     --rumika-gold: #d99a36;
     --rumika-radius: 18px;
+}
+
+html[data-theme="dark"] {
+    color-scheme: dark;
+    --rumika-ink: #f3f6fb;
+    --rumika-muted: #b6c1cf;
+    --rumika-soft: #252b34;
+    --rumika-border: #495465;
+    --rumika-surface: #303743;
+    --rumika-surface-soft: #38414e;
+    --rumika-field: #2b323d;
+    --rumika-teal: #29b7a7;
+    --rumika-teal-dark: #6ee7d8;
+    --rumika-emerald: #51d39f;
+    --rumika-coral: #ff9b84;
+    --rumika-gold: #f0b45a;
 }
