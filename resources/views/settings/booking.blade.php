@@ -10,7 +10,9 @@
                 </div>
             </header>
 
-            <livewire:booking.booking-page-manager />
+            <main class="rm-content">
+                <livewire:booking.booking-page-manager />
+            </main>
         </section>
     </div>
 </x-app-layout>
