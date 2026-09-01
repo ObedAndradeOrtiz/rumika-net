@@ -49,7 +49,7 @@
                 </div>
                 <p data-attendance-status>
                     @if (! $hasFace)
-                        Este usuario primero debe registrar su rostro al ingresar.
+                        Este usuario primero debe registrar su rostro para poder marcar asistencia.
                     @elseif (! $hasGeofence)
                         Configura ubicacion y radio en una sucursal antes de marcar.
                     @else
@@ -68,11 +68,17 @@
             </div>
 
             <div class="rm-form-actions rm-face-actions">
-                <button class="rm-button rm-button-outline" type="button" data-attendance-start>Activar camara</button>
-                <button class="rm-button rm-button-primary" type="button" data-attendance-capture
-                    @disabled(! $hasFace || ! $hasGeofence)>
-                    Validar y guardar
-                </button>
+                @if (! $hasFace)
+                    <a class="rm-button rm-button-primary" href="{{ route('security.face', ['mode' => 'enroll']) }}">
+                        Registrar rostro
+                    </a>
+                @else
+                    <button class="rm-button rm-button-outline" type="button" data-attendance-start>Activar camara</button>
+                    <button class="rm-button rm-button-primary" type="button" data-attendance-capture
+                        @disabled(! $hasGeofence)>
+                        Validar y guardar
+                    </button>
+                @endif
             </div>
         </section>
     @endif

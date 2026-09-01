@@ -3,6 +3,7 @@ const MODEL_PATH = '/vendor/face-api';
 let faceapiModule = null;
 let modelsReady = null;
 let leafletReady = null;
+let lastKnownLocation = null;
 
 const LEAFLET_JS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
 const LEAFLET_CSS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
@@ -45,19 +46,57 @@ const getLocation = () => new Promise((resolve, reject) => {
         return;
     }
 
+    const timeoutId = window.setTimeout(() => {
+        if (lastKnownLocation) {
+            resolve(lastKnownLocation);
+            return;
+        }
+
+        reject(new Error('La ubicacion esta demorando. Revisa que el GPS este activo e intenta de nuevo.'));
+    }, 9000);
+
     navigator.geolocation.getCurrentPosition(
-        (position) => resolve({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-        }),
-        () => reject(new Error('Permite la ubicacion para registrar asistencia.')),
+        (position) => {
+            window.clearTimeout(timeoutId);
+            lastKnownLocation = {
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+            };
+            resolve(lastKnownLocation);
+        },
+        () => {
+            window.clearTimeout(timeoutId);
+            reject(new Error('Permite la ubicacion para registrar asistencia.'));
+        },
         {
             enableHighAccuracy: true,
-            timeout: 15000,
-            maximumAge: 0,
+            timeout: 8000,
+            maximumAge: 30000,
         },
     );
 });
+
+const stopCamera = (root) => {
+    const video = root.querySelector('[data-attendance-video]');
+
+    if (!video?.srcObject) {
+        return;
+    }
+
+    video.srcObject.getTracks().forEach((track) => track.stop());
+    video.srcObject = null;
+};
+
+const errorMessage = (error) => {
+    const validationMessage = error?.response?.data?.errors
+        ? Object.values(error.response.data.errors).flat()[0]
+        : null;
+
+    return validationMessage
+        || error?.response?.data?.message
+        || error?.message
+        || 'No se pudo completar la marcacion.';
+};
 
 const loadLeaflet = () => {
     if (window.L) {
@@ -199,7 +238,8 @@ const startCamera = async (root) => {
 
     video.srcObject = stream;
     await video.play();
-    loadModels();
+    loadModels().catch(() => null);
+    getLocation().catch(() => null);
     setStatus(root, 'Camara lista. Rumi validara rostro y ubicacion.');
 };
 
@@ -237,7 +277,7 @@ const captureAttendance = async (root) => {
     root.classList.add('is-reading');
 
     try {
-        setStatus(root, 'Leyendo ubicacion...');
+        setStatus(root, 'Leyendo ubicacion y preparando validacion...');
         const [faceapi, location] = await Promise.all([loadModels(), getLocation()]);
         const imageData = captureImage(root);
 
@@ -269,6 +309,7 @@ const captureAttendance = async (root) => {
         );
 
         setStatus(root, 'Marcacion guardada correctamente.');
+        stopCamera(root);
     } finally {
         root.classList.remove('is-reading');
         button?.removeAttribute('disabled');
@@ -335,6 +376,6 @@ document.addEventListener('click', async (event) => {
         }
     } catch (error) {
         root.classList.remove('is-reading');
-        setStatus(root, error?.message || 'No se pudo completar la marcacion.');
+        setStatus(root, errorMessage(error));
     }
 });

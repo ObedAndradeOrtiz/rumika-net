@@ -15,6 +15,6 @@ document.addEventListener('livewire:init', () => {
     });
 
     window.Livewire?.on('attendance-saved', () => {
-        window.location.reload();
+        window.setTimeout(() => window.location.reload(), 650);
     });
 });
