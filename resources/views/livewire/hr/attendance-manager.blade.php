@@ -60,20 +60,23 @@
     </section>
 
     <div class="rm-hr-tabs" role="tablist" aria-label="Secciones de asistencia">
-        <button class="{{ $activeTab === 'summary' ? 'is-active' : '' }}" type="button" wire:click="setActiveTab('summary')">
-            Resumen
+        <button class="{{ $activeTab === 'users' ? 'is-active' : '' }}" type="button" wire:click="setActiveTab('users')">
+            Usuarios
         </button>
         <button class="{{ $activeTab === 'schedule' ? 'is-active' : '' }}" type="button" wire:click="setActiveTab('schedule')">
             Horarios
         </button>
+        <button class="{{ $activeTab === 'history' ? 'is-active' : '' }}" type="button" wire:click="setActiveTab('history')">
+            Historial de marcaciones
+        </button>
     </div>
 
-    @if ($activeTab === 'summary')
+    @if ($activeTab === 'users')
         <section class="rm-panel rm-hr-tab-panel">
             <div class="rm-panel-title">
                 <div>
-                    <h2>Resumen por personal</h2>
-                    <p>Los dias sin registro no cuentan domingos. Si no hay horario configurado, Rumika usa lunes a sabado.</p>
+                    <h2>Usuarios con asistencia</h2>
+                    <p>Solo aparecen usuarios que tienen activo el control de asistencia.</p>
                 </div>
             </div>
 
@@ -129,6 +132,7 @@
                 <label class="rm-field">
                     <span>Personal</span>
                     <select wire:model.live="scheduleUserId">
+                        <option value="">Seleccionar personal</option>
                         @foreach ($users as $user)
                             <option value="{{ $user->id }}">{{ $user->name }}</option>
                         @endforeach
@@ -162,53 +166,55 @@
         </section>
     @endif
 
-    <section class="rm-panel">
-        <div class="rm-panel-title">
-            <div>
-                <h2>Ultimas marcaciones</h2>
-                <p>Incluye sucursal, distancia, parecido facial y estado de salida.</p>
-            </div>
-        </div>
-
-        <div class="rm-hr-record-table">
-            <div class="rm-hr-record-head">
-                <span>Fecha</span>
-                <span>Personal</span>
-                <span>Entrada</span>
-                <span>Salida</span>
-                <span>Validacion</span>
-                <span>Accion</span>
-            </div>
-            @forelse ($records as $record)
-                <article class="rm-hr-record-row">
-                    <span>{{ $record->work_date?->format('d/m/Y') }}</span>
-                    <strong>{{ $record->user?->name ?? 'Sin usuario' }}</strong>
-                    <span>
-                        {{ $record->check_in_at?->format('H:i') ?? '-' }}
-                        <small>{{ $record->checkInBranch?->name ?? 'Sin sucursal' }} - {{ $record->check_in_distance_meters ?? 0 }} m</small>
-                    </span>
-                    <span>
-                        {{ $record->check_out_at?->format('H:i') ?? 'Pendiente' }}
-                        <small>{{ $record->checkOutBranch?->name ?? '-' }}</small>
-                    </span>
-                    <span>
-                        Entrada {{ $record->check_in_face_similarity ?? '-' }}%
-                        <small>Salida {{ $record->check_out_face_similarity ?? '-' }}%</small>
-                    </span>
-                    <span>
-                        <button class="rm-button rm-button-danger rm-button-small" type="button"
-                            wire:click="deleteRecord({{ $record->id }})"
-                            wire:confirm="Esta accion eliminara la validacion de asistencia y sus fotos. Deseas continuar?">
-                            Eliminar validacion
-                        </button>
-                    </span>
-                </article>
-            @empty
-                <div class="rm-empty-state">
-                    <strong>Sin marcaciones</strong>
-                    <span>No hay registros en el rango seleccionado.</span>
+    @if ($activeTab === 'history')
+        <section class="rm-panel rm-hr-tab-panel">
+            <div class="rm-panel-title">
+                <div>
+                    <h2>Historial de marcaciones</h2>
+                    <p>Incluye sucursal, distancia, parecido facial y estado de salida.</p>
                 </div>
-            @endforelse
-        </div>
-    </section>
+            </div>
+
+            <div class="rm-hr-record-table">
+                <div class="rm-hr-record-head">
+                    <span>Fecha</span>
+                    <span>Personal</span>
+                    <span>Entrada</span>
+                    <span>Salida</span>
+                    <span>Validacion</span>
+                    <span>Accion</span>
+                </div>
+                @forelse ($records as $record)
+                    <article class="rm-hr-record-row">
+                        <span>{{ $record->work_date?->format('d/m/Y') }}</span>
+                        <strong>{{ $record->user?->name ?? 'Sin usuario' }}</strong>
+                        <span>
+                            {{ $record->check_in_at?->format('H:i') ?? '-' }}
+                            <small>{{ $record->checkInBranch?->name ?? 'Sin sucursal' }} - {{ $record->check_in_distance_meters ?? 0 }} m</small>
+                        </span>
+                        <span>
+                            {{ $record->check_out_at?->format('H:i') ?? 'Pendiente' }}
+                            <small>{{ $record->checkOutBranch?->name ?? '-' }}</small>
+                        </span>
+                        <span>
+                            Entrada {{ $record->check_in_face_similarity ?? '-' }}%
+                            <small>Salida {{ $record->check_out_face_similarity ?? '-' }}%</small>
+                        </span>
+                        <span>
+                            <button class="rm-button rm-button-danger rm-button-small" type="button"
+                                wire:click="deleteRecord({{ $record->id }})"
+                                wire:confirm="Esta accion eliminara la validacion de asistencia y sus fotos. Deseas continuar?">
+                                Eliminar validacion
+                            </button>
+                        </span>
+                    </article>
+                @empty
+                    <div class="rm-empty-state">
+                        <strong>Sin marcaciones</strong>
+                        <span>No hay registros en el rango seleccionado.</span>
+                    </div>
+                @endforelse
+            </div>
+        </section>
+    @endif
 </div>

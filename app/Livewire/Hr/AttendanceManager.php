@@ -23,7 +23,7 @@ class AttendanceManager extends Component
 
     public string $userFilter = '';
 
-    public string $activeTab = 'summary';
+    public string $activeTab = 'users';
 
     public ?int $scheduleUserId = null;
 
@@ -35,7 +35,10 @@ class AttendanceManager extends Component
         $this->toDate = now()->toDateString();
 
         $company = $this->company();
-        $this->scheduleUserId = $company->users()->orderBy('name')->value('users.id');
+        $this->scheduleUserId = $company->users()
+            ->where('tracks_attendance', true)
+            ->orderBy('name')
+            ->value('users.id');
         $this->loadScheduleForm();
     }
 
@@ -46,7 +49,7 @@ class AttendanceManager extends Component
 
     public function setActiveTab(string $tab): void
     {
-        if (! in_array($tab, ['summary', 'schedule'], true)) {
+        if (! in_array($tab, ['users', 'schedule', 'history'], true)) {
             return;
         }
 
@@ -57,7 +60,10 @@ class AttendanceManager extends Component
     {
         $company = $this->company();
 
-        if (! $company->users()->where('users.id', $userId)->exists()) {
+        if (! $company->users()
+            ->where('users.id', $userId)
+            ->where('tracks_attendance', true)
+            ->exists()) {
             return;
         }
 
@@ -69,7 +75,10 @@ class AttendanceManager extends Component
     public function saveSchedule(): void
     {
         $company = $this->company();
-        $userIds = $company->users()->pluck('users.id')->all();
+        $userIds = $company->users()
+            ->where('tracks_attendance', true)
+            ->pluck('users.id')
+            ->all();
         $branchIds = $company->branches()->pluck('id')->all();
 
         $validated = $this->validate([
@@ -130,10 +139,24 @@ class AttendanceManager extends Component
         $from = Carbon::parse($this->fromDate)->startOfDay();
         $to = Carbon::parse($this->toDate)->endOfDay();
 
-        $users = $company->users()->orderBy('name')->get();
+        $users = $company->users()
+            ->where('tracks_attendance', true)
+            ->orderBy('name')
+            ->get();
+
+        if ($this->userFilter !== '' && ! $users->contains('id', (int) $this->userFilter)) {
+            $this->userFilter = '';
+        }
+
+        if ($this->scheduleUserId && ! $users->contains('id', $this->scheduleUserId)) {
+            $this->scheduleUserId = $users->first()?->id;
+            $this->loadScheduleForm();
+        }
+
         $records = StaffAttendanceRecord::query()
             ->with(['user', 'checkInBranch', 'checkOutBranch'])
             ->where('company_id', $company->id)
+            ->whereIn('user_id', $users->pluck('id'))
             ->whereBetween('work_date', [$from->toDateString(), $to->toDateString()])
             ->when($this->userFilter !== '', fn ($query) => $query->where('user_id', (int) $this->userFilter))
             ->latest('work_date')
