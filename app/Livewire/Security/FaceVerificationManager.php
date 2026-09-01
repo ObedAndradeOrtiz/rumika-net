@@ -11,7 +11,7 @@ use Livewire\Component;
 
 class FaceVerificationManager extends Component
 {
-    private const MIN_SIMILARITY = 65;
+    private const MIN_SIMILARITY = 60;
 
     public string $mode = 'verify';
 

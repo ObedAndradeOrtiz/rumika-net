@@ -14,7 +14,7 @@ use Livewire\Component;
 
 class AttendancePunch extends Component
 {
-    private const MIN_SIMILARITY = 65;
+    private const MIN_SIMILARITY = 60;
 
     public bool $showModal = false;
 

@@ -17,7 +17,7 @@
         <p>
             {{ $mode === 'enroll'
                 ? 'Este usuario tiene verificacion visual activada. La primera vez se registra una huella facial para validar futuros accesos.'
-                : 'Detectamos una nueva sesion o IP. Mira a la camara para confirmar que eres el usuario autorizado con un parecido minimo de 65%.' }}
+                : 'Detectamos una nueva sesion o IP. Mira a la camara para confirmar que eres el usuario autorizado con un parecido minimo de 60%.' }}
         </p>
     </div>
 
