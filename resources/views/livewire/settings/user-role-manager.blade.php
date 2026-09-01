@@ -244,7 +244,7 @@
                 <label class="rm-check-option">
                     <input wire:model.live="userTracksAttendance" type="checkbox">
                     <span>Debe registrar asistencia</span>
-                    <small>Activa el boton de entrada y salida en Inicio. Usara rostro, ubicacion y radio de sucursal. Tambien activa verificacion facial al ingresar.</small>
+                    <small>Activa el boton de entrada y salida en Inicio. Usara rostro, ubicacion y radio de sucursal, sin obligar verificacion facial al iniciar sesion.</small>
                 </label>
 
                 @if ($userTracksAttendance)

@@ -165,7 +165,7 @@ class UserRoleManager extends Component
             'name' => $validated['userName'],
             'email' => $validated['userEmail'],
             'status' => $validated['userStatus'],
-            'requires_face_verification' => $validated['userRequiresFaceVerification'] || $validated['userTracksAttendance'],
+            'requires_face_verification' => $validated['userRequiresFaceVerification'],
             'tracks_attendance' => $validated['userTracksAttendance'],
             'can_use_system_outside_schedule' => $validated['userTracksAttendance']
                 ? $validated['userCanUseSystemOutsideSchedule']
