@@ -10,6 +10,8 @@ use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
 
@@ -98,6 +100,28 @@ class AttendanceManager extends Component
         }
 
         $this->dispatch('schedule-saved');
+    }
+
+    public function resetDateFilter(): void
+    {
+        $this->fromDate = now()->startOfMonth()->toDateString();
+        $this->toDate = now()->toDateString();
+    }
+
+    public function deleteRecord(int $recordId): void
+    {
+        $company = $this->company();
+        $record = StaffAttendanceRecord::query()
+            ->where('company_id', $company->id)
+            ->whereKey($recordId)
+            ->firstOrFail();
+
+        collect([$record->check_in_photo_path, $record->check_out_photo_path])
+            ->filter()
+            ->each(fn (string $path) => Storage::disk('public')->delete($path));
+
+        $record->delete();
+        $this->dispatch('attendance-record-deleted');
     }
 
     public function render()
@@ -199,8 +223,28 @@ class AttendanceManager extends Component
                 'missing_count' => $missingDates->count(),
                 'missing_dates' => $missingDates->map(fn (string $date) => Carbon::parse($date)->format('d/m'))->take(8)->implode(', '),
                 'last_record' => $userRecords->sortByDesc('work_date')->first(),
+                'avatar_url' => $this->attendanceAvatarUrl($user, $userRecords),
             ];
         });
+    }
+
+    private function attendanceAvatarUrl(User $user, Collection $records): ?string
+    {
+        $record = $records
+            ->sortByDesc(fn (StaffAttendanceRecord $record) => $record->check_out_at ?? $record->check_in_at ?? $record->created_at)
+            ->first();
+
+        $path = $record?->check_out_photo_path
+            ?: $record?->check_in_photo_path
+            ?: $user->profile_photo_path;
+
+        if (! $path) {
+            return null;
+        }
+
+        return Str::startsWith($path, ['http://', 'https://'])
+            ? $path
+            : Storage::url($path);
     }
 
     private function isExpectedWorkday(Carbon $date, Collection $schedules): bool

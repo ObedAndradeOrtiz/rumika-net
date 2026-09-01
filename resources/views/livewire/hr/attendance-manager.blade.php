@@ -11,6 +11,14 @@
     </div>
 
     <section class="rm-panel rm-hr-filters">
+        <div class="rm-panel-title rm-panel-title-compact">
+            <div>
+                <h2>Filtro de asistencia</h2>
+                <p>Revisa marcaciones por rango de fechas y por trabajador.</p>
+            </div>
+            <button class="rm-button rm-button-outline" type="button" wire:click="resetDateFilter">Este mes</button>
+        </div>
+
         <div class="rm-form-row">
             <label class="rm-field">
                 <span>Desde</span>
@@ -72,12 +80,21 @@
             <div class="rm-hr-staff-list">
                 @forelse ($rows as $row)
                     <article class="rm-hr-staff-row">
-                        <div>
-                            <strong>{{ $row['user']->name }}</strong>
-                            <span>{{ $row['user']->email }}</span>
-                            @if ($row['missing_count'] > 0)
-                                <small>Sin registro: {{ $row['missing_dates'] }}</small>
-                            @endif
+                        <div class="rm-hr-staff-person">
+                            <span class="rm-hr-staff-face">
+                                @if ($row['avatar_url'])
+                                    <img src="{{ $row['avatar_url'] }}" alt="{{ $row['user']->name }}">
+                                @else
+                                    {{ strtoupper(mb_substr($row['user']->name, 0, 1)) }}
+                                @endif
+                            </span>
+                            <div>
+                                <strong>{{ $row['user']->name }}</strong>
+                                <span>{{ $row['user']->email }}</span>
+                                @if ($row['missing_count'] > 0)
+                                    <small>Sin registro: {{ $row['missing_dates'] }}</small>
+                                @endif
+                            </div>
                         </div>
                         <div class="rm-hr-staff-metrics">
                             <span><b>{{ $row['present_count'] }}</b> entradas</span>
@@ -160,6 +177,7 @@
                 <span>Entrada</span>
                 <span>Salida</span>
                 <span>Validacion</span>
+                <span>Accion</span>
             </div>
             @forelse ($records as $record)
                 <article class="rm-hr-record-row">
@@ -176,6 +194,13 @@
                     <span>
                         Entrada {{ $record->check_in_face_similarity ?? '-' }}%
                         <small>Salida {{ $record->check_out_face_similarity ?? '-' }}%</small>
+                    </span>
+                    <span>
+                        <button class="rm-button rm-button-danger rm-button-small" type="button"
+                            wire:click="deleteRecord({{ $record->id }})"
+                            wire:confirm="Esta accion eliminara la validacion de asistencia y sus fotos. Deseas continuar?">
+                            Eliminar validacion
+                        </button>
                     </span>
                 </article>
             @empty
