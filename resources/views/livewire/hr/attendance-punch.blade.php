@@ -1,5 +1,5 @@
-@if ($enabled)
 <div class="rm-staff-punch">
+    @if ($enabled)
     <button class="rm-staff-punch-button {{ $openRecord ? 'is-open' : '' }}" type="button" wire:click="openPunch">
         <span class="rm-staff-punch-icon">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
@@ -82,5 +82,5 @@
             </div>
         </section>
     @endif
+    @endif
 </div>
-@endif
