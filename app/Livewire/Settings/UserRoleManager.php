@@ -10,6 +10,7 @@ use App\Support\RumikaAccess;
 use App\Support\RumikaPermissions;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
@@ -49,6 +50,8 @@ class UserRoleManager extends Component
     public ?string $currentUserPhotoPath = null;
 
     public ?TemporaryUploadedFile $userPhoto = null;
+
+    public string $userPhotoCrop = '';
 
     public ?int $userRoleId = null;
 
@@ -136,6 +139,7 @@ class UserRoleManager extends Component
             ],
             'userPassword' => [$this->editingUserId ? 'nullable' : 'required', 'string', 'min:8'],
             'userPhoto' => ['nullable', 'image', 'max:2048'],
+            'userPhotoCrop' => ['nullable', 'string'],
             'userStatus' => ['required', 'in:active,inactive'],
             'userRequiresFaceVerification' => ['boolean'],
             'userTracksAttendance' => ['boolean'],
@@ -173,7 +177,7 @@ class UserRoleManager extends Component
         }
 
         if ($this->userPhoto) {
-            $user->profile_photo_path = $this->userPhoto->store('user-photos', 'public');
+            $user->profile_photo_path = $this->storeUserPhoto();
         }
 
         $user->save();
@@ -415,7 +419,7 @@ class UserRoleManager extends Component
     {
         $company ??= $this->company();
 
-        $this->reset(['editingUserId', 'userName', 'userEmail', 'userPassword', 'currentUserPhotoPath', 'userPhoto', 'userWhatsappChannelIds', 'userTransferBranchIds']);
+        $this->reset(['editingUserId', 'userName', 'userEmail', 'userPassword', 'currentUserPhotoPath', 'userPhoto', 'userPhotoCrop', 'userWhatsappChannelIds', 'userTransferBranchIds']);
         $this->userStatus = 'active';
         $this->userRequiresFaceVerification = false;
         $this->userTracksAttendance = false;
@@ -529,6 +533,23 @@ class UserRoleManager extends Component
                 'permissions' => array_replace($role['permissions'], $existingRole->permissions ?? []),
             ]);
         });
+    }
+
+    private function storeUserPhoto(): string
+    {
+        if (str_starts_with($this->userPhotoCrop, 'data:image/') && str_contains($this->userPhotoCrop, ',')) {
+            [, $payload] = explode(',', $this->userPhotoCrop, 2);
+            $binary = base64_decode($payload, true);
+
+            if ($binary !== false && strlen($binary) > 1000) {
+                $path = 'user-photos/'.Str::uuid().'.jpg';
+                Storage::disk('public')->put($path, $binary);
+
+                return $path;
+            }
+        }
+
+        return $this->userPhoto->store('user-photos', 'public');
     }
 
     private function uniqueRoleSlug(Company $company, string $name): string

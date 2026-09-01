@@ -167,7 +167,7 @@
             </div>
 
             <form wire:submit="saveUser" class="rm-form-stack">
-                <div class="rm-upload-preview-row">
+                <div class="rm-upload-preview-row" data-avatar-cropper>
                     <div class="rm-media-preview">
                         @if ($userPhoto)
                             <img src="{{ $userPhoto->temporaryUrl() }}" alt="Foto temporal">
@@ -179,10 +179,21 @@
                     </div>
                     <label class="rm-field">
                         <span>Imagen de usuario</span>
-                        <input wire:model="userPhoto" type="file" accept="image/*">
+                        <input wire:model="userPhoto" data-avatar-crop-input type="file" accept="image/*">
                         @error('userPhoto') <small>{{ $message }}</small> @enderror
                     </label>
                 </div>
+                <div class="rm-avatar-crop-tool" data-avatar-crop-tool wire:ignore hidden>
+                    <div class="rm-avatar-crop-stage" data-avatar-crop-stage>
+                        <img data-avatar-crop-image alt="Recorte de foto">
+                    </div>
+                    <label class="rm-field">
+                        <span>Acercar o alejar</span>
+                        <input data-avatar-crop-zoom type="range" min="1" max="3" step="0.01" value="1">
+                    </label>
+                    <small>Mueve la imagen dentro del cuadro para elegir que parte se vera como foto del usuario.</small>
+                </div>
+                <textarea wire:model="userPhotoCrop" data-avatar-crop-output hidden></textarea>
 
                 <label class="rm-field">
                     <span>Nombre</span>
