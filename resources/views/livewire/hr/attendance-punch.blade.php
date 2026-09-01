@@ -23,7 +23,7 @@
     </button>
 
     @if ($showModal)
-        <div class="rm-modal-backdrop" wire:click="closePunch"></div>
+        <div class="rm-modal-backdrop" wire:click="closePunch" data-attendance-close></div>
         <section class="rm-modal-panel rm-modal-panel-small rm-attendance-modal" role="dialog" aria-modal="true"
             data-attendance-face data-livewire-id="{{ $this->getId() }}">
             <div class="rm-modal-title">
@@ -31,7 +31,7 @@
                     <span>Recursos humanos</span>
                     <h2>{{ $openRecord ? 'Registrar salida' : 'Registrar asistencia' }}</h2>
                 </div>
-                <button type="button" wire:click="closePunch" aria-label="Cerrar modal">
+                <button type="button" wire:click="closePunch" data-attendance-close aria-label="Cerrar modal">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
                         <path d="M18 6 6 18M6 6l12 12" />
                     </svg>

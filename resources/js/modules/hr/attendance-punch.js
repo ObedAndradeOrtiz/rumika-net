@@ -110,6 +110,27 @@ const stopCamera = (root) => {
     video.srcObject = null;
 };
 
+const closeAttendanceModal = (target) => {
+    const modal = target.closest('[data-attendance-face]');
+    const root = modal || document.querySelector('[data-attendance-face]');
+
+    if (!root) {
+        return;
+    }
+
+    stopCamera(root);
+    root.classList.remove('is-reading');
+
+    const panel = root.closest('.rm-modal-panel');
+    const backdrop = document.querySelector('.rm-modal-backdrop[data-attendance-close]');
+
+    panel?.remove();
+    backdrop?.remove();
+
+    const component = window.Livewire?.find(root.dataset.livewireId);
+    component?.call('closePunch').catch(() => null);
+};
+
 const errorMessage = (error) => {
     const validationMessage = error?.response?.data?.errors
         ? Object.values(error.response.data.errors).flat()[0]
@@ -163,6 +184,13 @@ const syncInput = (input, value) => {
     input.value = value;
     input.dispatchEvent(new Event('input', { bubbles: true }));
 };
+
+const withTimeout = (promise, milliseconds, message) => Promise.race([
+    promise,
+    new Promise((_, reject) => {
+        window.setTimeout(() => reject(new Error(message)), milliseconds);
+    }),
+]);
 
 const initBranchMaps = async () => {
     const mapRoots = Array.from(document.querySelectorAll('[data-branch-map]:not([data-map-ready])'));
@@ -250,14 +278,19 @@ const initBranchMaps = async () => {
 const startCamera = async (root) => {
     const video = root.querySelector('[data-attendance-video]');
 
-    const stream = await navigator.mediaDevices.getUserMedia({
+    if (!navigator.mediaDevices?.getUserMedia) {
+        throw new Error('Este navegador no permite abrir la camara.');
+    }
+
+    setStatus(root, 'Abriendo camara...');
+    const stream = await withTimeout(navigator.mediaDevices.getUserMedia({
         video: {
             facingMode: 'user',
             width: { ideal: 480 },
             height: { ideal: 360 },
         },
         audio: false,
-    });
+    }), 12000, 'La camara esta demorando. Revisa permisos e intenta otra vez.');
 
     video.srcObject = stream;
     await video.play();
@@ -296,16 +329,20 @@ const captureAttendance = async (root) => {
         return;
     }
 
-    if (!video?.srcObject) {
-        await startCamera(root);
-    }
-
     setButtonBusy(button, true, 'Validando...');
     root.classList.add('is-reading');
 
     try {
+        if (!video?.srcObject) {
+            await startCamera(root);
+        }
+
         setStatus(root, 'Leyendo ubicacion y preparando validacion...');
-        const [faceapi, location] = await Promise.all([loadModels(), getLocation()]);
+        const [faceapi, location] = await withTimeout(
+            Promise.all([loadModels(), getLocation()]),
+            15000,
+            'La validacion esta demorando. Revisa internet, camara y ubicacion, luego intenta otra vez.',
+        );
 
         if (!faceapi) {
             throw new Error('No se pudo cargar la validacion facial. Recarga la pagina e intenta de nuevo.');
@@ -337,12 +374,16 @@ const captureAttendance = async (root) => {
 
         setStatus(root, 'Validando asistencia...');
         setButtonBusy(button, true, 'Guardando...');
-        await component.call(
-            'submitPunch',
-            JSON.stringify(Array.from(detection.descriptor)),
-            imageData,
-            location.latitude,
-            location.longitude,
+        await withTimeout(
+            component.call(
+                'submitPunch',
+                JSON.stringify(Array.from(detection.descriptor)),
+                imageData,
+                location.latitude,
+                location.longitude,
+            ),
+            18000,
+            'Rumika esta demorando en guardar la marcacion. Intenta nuevamente.',
         );
 
         setStatus(root, 'Marcacion guardada correctamente.');
@@ -367,6 +408,18 @@ document.addEventListener('livewire:init', () => {
         window.setTimeout(initBranchMaps, 80);
     });
 });
+
+document.addEventListener('click', (event) => {
+    const closeButton = event.target.closest('[data-attendance-close]');
+
+    if (!closeButton) {
+        return;
+    }
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    closeAttendanceModal(closeButton);
+}, true);
 
 document.addEventListener('click', async (event) => {
     const locationButton = event.target.closest('[data-branch-location-button]');
