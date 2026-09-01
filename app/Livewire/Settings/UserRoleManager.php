@@ -44,6 +44,8 @@ class UserRoleManager extends Component
 
     public bool $userTracksAttendance = false;
 
+    public bool $userCanUseSystemOutsideSchedule = false;
+
     public ?string $currentUserPhotoPath = null;
 
     public ?TemporaryUploadedFile $userPhoto = null;
@@ -112,6 +114,13 @@ class UserRoleManager extends Component
         $this->showUserModal = true;
     }
 
+    public function updatedUserTracksAttendance(bool $value): void
+    {
+        if (! $value) {
+            $this->userCanUseSystemOutsideSchedule = false;
+        }
+    }
+
     public function saveUser(): void
     {
         $this->authorizePermission('usuarios', $this->editingUserId ? 'edit' : 'create');
@@ -130,6 +139,7 @@ class UserRoleManager extends Component
             'userStatus' => ['required', 'in:active,inactive'],
             'userRequiresFaceVerification' => ['boolean'],
             'userTracksAttendance' => ['boolean'],
+            'userCanUseSystemOutsideSchedule' => ['boolean'],
             'userRoleId' => ['required', Rule::exists('roles', 'id')->where('company_id', $company->id)],
             'userBranchIds' => ['required', 'array', 'min:1'],
             'userBranchIds.*' => [Rule::exists('branches', 'id')->where('company_id', $company->id)],
@@ -153,6 +163,9 @@ class UserRoleManager extends Component
             'status' => $validated['userStatus'],
             'requires_face_verification' => $validated['userRequiresFaceVerification'] || $validated['userTracksAttendance'],
             'tracks_attendance' => $validated['userTracksAttendance'],
+            'can_use_system_outside_schedule' => $validated['userTracksAttendance']
+                ? $validated['userCanUseSystemOutsideSchedule']
+                : false,
         ]);
 
         if ($validated['userPassword']) {
@@ -242,6 +255,7 @@ class UserRoleManager extends Component
         $this->userStatus = $user->status ?? 'active';
         $this->userRequiresFaceVerification = (bool) $user->requires_face_verification;
         $this->userTracksAttendance = (bool) $user->tracks_attendance;
+        $this->userCanUseSystemOutsideSchedule = (bool) $user->can_use_system_outside_schedule;
         $this->currentUserPhotoPath = $user->profile_photo_path;
         $this->userBranchIds = $user->branches->pluck('id')->map(fn ($id) => (string) $id)->all();
         $this->userTransferBranchIds = DB::table('branch_transfer_permissions')
@@ -405,6 +419,7 @@ class UserRoleManager extends Component
         $this->userStatus = 'active';
         $this->userRequiresFaceVerification = false;
         $this->userTracksAttendance = false;
+        $this->userCanUseSystemOutsideSchedule = false;
         $this->userRoleId = $company->roles()->where('slug', 'recepcion')->value('id')
             ?? $company->roles()->oldest()->value('id');
         $this->userBranchIds = $company->branches()->pluck('id')->map(fn ($id) => (string) $id)->all();

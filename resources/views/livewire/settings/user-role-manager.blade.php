@@ -95,6 +95,9 @@
                                 <span>{{ ($user->status ?? 'active') === 'active' ? 'Activo' : 'Inactivo' }}</span>
                                 <span>{{ $firstRole?->name ?? 'Sin rol' }}</span>
                                 <span>{{ $userBranches->count() }} sucursal(es)</span>
+                                @if ($user->tracks_attendance)
+                                    <span>{{ $user->can_use_system_outside_schedule ? 'Fuera de horario permitido' : 'Solo horario laboral' }}</span>
+                                @endif
                             </div>
                         </div>
                         <div class="rm-commerce-actions">
@@ -232,6 +235,14 @@
                     <span>Debe registrar asistencia</span>
                     <small>Activa el boton de entrada y salida en Inicio. Usara rostro, ubicacion y radio de sucursal. Tambien activa verificacion facial al ingresar.</small>
                 </label>
+
+                @if ($userTracksAttendance)
+                    <label class="rm-check-option">
+                        <input wire:model="userCanUseSystemOutsideSchedule" type="checkbox">
+                        <span>Puede usar Rumika fuera de su horario</span>
+                        <small>Usalo solo para personal autorizado. Si esta apagado, fuera de su horario laboral solo vera el aviso de bloqueo en Inicio.</small>
+                    </label>
+                @endif
 
                 <div class="rm-field">
                     <span>Sucursales o comercios</span>

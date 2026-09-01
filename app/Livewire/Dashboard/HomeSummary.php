@@ -16,6 +16,7 @@ class HomeSummary extends Component
     {
         $company = $this->company();
         $branch = $this->activeBranch($company);
+        $outsideScheduleLocked = StaffAttendanceGate::blocksOutsideSchedule(Auth::user(), $company);
         $attendanceLocked = StaffAttendanceGate::requiresOpenAttendance(Auth::user(), $company);
         $today = now();
         $dayRange = [$today->copy()->startOfDay(), $today->copy()->endOfDay()];
@@ -58,6 +59,7 @@ class HomeSummary extends Component
 
         return view('livewire.dashboard.home-summary', [
             'branch' => $branch,
+            'outsideScheduleLocked' => $outsideScheduleLocked,
             'attendanceLocked' => $attendanceLocked,
             'appointmentsToday' => $appointmentsToday,
             'attendedToday' => $attendedToday,

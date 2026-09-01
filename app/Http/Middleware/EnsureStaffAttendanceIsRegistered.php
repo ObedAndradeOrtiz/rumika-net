@@ -24,6 +24,12 @@ class EnsureStaffAttendanceIsRegistered
 
         $company = $user->companies()->first();
 
+        if (StaffAttendanceGate::blocksOutsideSchedule($user, $company)) {
+            return redirect()
+                ->route('dashboard')
+                ->with('attendance_required', 'Tu usuario solo puede usar Rumika dentro de su horario laboral.');
+        }
+
         if (! StaffAttendanceGate::requiresOpenAttendance($user, $company)) {
             return $next($request);
         }

@@ -22,7 +22,22 @@
         </div>
     @endif
 
-    @if ($attendanceLocked)
+    @if ($outsideScheduleLocked)
+        <section class="rm-panel rm-attendance-lock-panel">
+            <div>
+                <span class="rm-attendance-lock-icon">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+                        <circle cx="12" cy="12" r="9" />
+                        <path d="M12 7v5l3 2" />
+                    </svg>
+                </span>
+                <div>
+                    <h2>Fuera de horario laboral</h2>
+                    <p>Tu usuario no tiene permiso para usar Rumika fuera de su horario configurado. Solicita a administracion activar la excepcion si necesitas ingresar.</p>
+                </div>
+            </div>
+        </section>
+    @elseif ($attendanceLocked)
         <section class="rm-panel rm-attendance-lock-panel">
             <div>
                 <span class="rm-attendance-lock-icon">

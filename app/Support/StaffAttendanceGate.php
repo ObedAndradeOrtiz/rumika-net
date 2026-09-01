@@ -19,11 +19,33 @@ class StaffAttendanceGate
         $company ??= $user->companies()->first();
         $now ??= now();
 
-        if (! $company || self::isAdminUser($user, $company) || ! self::hasConfiguredGeofence($company) || ! self::isExpectedWorkday($user, $company, $now)) {
+        if (
+            ! $company
+            || self::isAdminUser($user, $company)
+            || ! self::hasConfiguredGeofence($company)
+            || self::blocksOutsideSchedule($user, $company, $now)
+            || ! self::isExpectedWorkday($user, $company, $now)
+        ) {
             return false;
         }
 
         return ! self::hasOpenAttendance($user, $company, $now);
+    }
+
+    public static function blocksOutsideSchedule(User $user, ?Company $company = null, ?Carbon $now = null): bool
+    {
+        if (! $user->tracks_attendance || $user->can_use_system_outside_schedule) {
+            return false;
+        }
+
+        $company ??= $user->companies()->first();
+        $now ??= now();
+
+        if (! $company || self::isAdminUser($user, $company) || ! self::hasConfiguredGeofence($company)) {
+            return false;
+        }
+
+        return ! self::isExpectedWorkday($user, $company, $now);
     }
 
     public static function hasOpenAttendance(User $user, Company $company, ?Carbon $now = null): bool
