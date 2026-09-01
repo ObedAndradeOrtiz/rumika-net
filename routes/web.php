@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\FinanceReportExportController;
 use App\Http\Controllers\RumikaBotController;
 use App\Http\Controllers\WhatsappWebhookController;
+use App\Livewire\Booking\PublicBookingPage;
 use App\Livewire\Onboarding\CompanySetup;
 use App\Livewire\Security\FaceVerificationManager;
 
@@ -27,6 +28,9 @@ Route::view('terminos-y-condiciones', 'legal.terms')
 
 Route::view('politica-de-privacidad', 'legal.privacy')
     ->name('legal.privacy');
+
+Route::get('reservar/{slug}', PublicBookingPage::class)
+    ->name('booking.public');
 
 Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.permission:inicio'])

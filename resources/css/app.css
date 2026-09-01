@@ -9,6 +9,7 @@
 @import './modules/settings/settings.css';
 @import './modules/saas/saas.css';
 @import './modules/crm/crm.css';
+@import './modules/booking/booking.css';
 @import './core/theme.css';
 
 @tailwind base;

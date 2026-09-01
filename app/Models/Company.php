@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Model;
 
 class Company extends Model
@@ -245,6 +246,11 @@ class Company extends Model
     public function staffAttendanceRecords(): HasMany
     {
         return $this->hasMany(StaffAttendanceRecord::class);
+    }
+
+    public function bookingPage(): HasOne
+    {
+        return $this->hasOne(BookingPage::class);
     }
 
     public function users(): BelongsToMany

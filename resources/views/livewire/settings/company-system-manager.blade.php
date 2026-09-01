@@ -90,6 +90,170 @@
         </form>
     </section>
 
+    <section class="rm-panel rm-booking-admin-panel">
+        <div class="rm-panel-title">
+            <div>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <rect x="3" y="5" width="18" height="16" rx="3" />
+                    <path d="M8 3v4M16 3v4M3 10h18" />
+                </svg>
+                <h2>Reservas online</h2>
+            </div>
+            <p>Crea un enlace publico para que tus clientes vean horarios disponibles y agenden desde el celular.</p>
+        </div>
+
+        <form wire:submit="saveBookingPage" class="rm-booking-admin-grid">
+            <div class="rm-booking-admin-form">
+                <div class="rm-booking-template-list">
+                    @foreach ($bookingTemplates as $key => $template)
+                        <label class="{{ $bookingTemplate === $key ? 'is-selected' : '' }}">
+                            <input type="radio" wire:model="bookingTemplate" value="{{ $key }}">
+                            <strong>{{ $template['name'] }}</strong>
+                            <span>{{ $template['description'] }}</span>
+                        </label>
+                    @endforeach
+                </div>
+
+                <div class="rm-form-row">
+                    <label class="rm-field">
+                        <span>Enlace unico</span>
+                        <input type="text" wire:model.live.debounce.500ms="bookingSlug" placeholder="central-bethel">
+                        @if ($bookingSlugAvailable === true)
+                            <small class="rm-field-success">Disponible: {{ $bookingGeneralUrl }}</small>
+                        @elseif ($bookingSlugAvailable === false)
+                            <small>Ese enlace no esta disponible.</small>
+                        @endif
+                        @error('bookingSlug') <small>{{ $message }}</small> @enderror
+                    </label>
+                    <label class="rm-field">
+                        <span>Modo de enlace</span>
+                        <select wire:model="bookingMode">
+                            <option value="general">Un solo enlace para todo</option>
+                            <option value="branch">Enlaces por sucursal</option>
+                        </select>
+                        @error('bookingMode') <small>{{ $message }}</small> @enderror
+                    </label>
+                </div>
+
+                <div class="rm-form-row">
+                    <label class="rm-field">
+                        <span>Titulo</span>
+                        <input type="text" wire:model="bookingTitle" placeholder="Agenda tu cita">
+                        @error('bookingTitle') <small>{{ $message }}</small> @enderror
+                    </label>
+                    <label class="rm-field">
+                        <span>Texto corto</span>
+                        <input type="text" wire:model="bookingSubtitle" placeholder="Elige tratamiento y horario disponible">
+                        @error('bookingSubtitle') <small>{{ $message }}</small> @enderror
+                    </label>
+                </div>
+
+                <div class="rm-booking-style-grid">
+                    <label class="rm-field">
+                        <span>Color principal</span>
+                        <input type="color" wire:model="bookingPrimaryColor">
+                    </label>
+                    <label class="rm-field">
+                        <span>Color suave</span>
+                        <input type="color" wire:model="bookingAccentColor">
+                    </label>
+                    <label class="rm-field">
+                        <span>Fondo</span>
+                        <input type="color" wire:model="bookingBackgroundColor">
+                    </label>
+                    <label class="rm-field">
+                        <span>Letra</span>
+                        <select wire:model="bookingFontFamily">
+                            <option value="Figtree">Figtree</option>
+                            <option value="Inter">Inter</option>
+                            <option value="Nunito">Nunito</option>
+                            <option value="Poppins">Poppins</option>
+                        </select>
+                    </label>
+                    <label class="rm-field">
+                        <span>Icono</span>
+                        <select wire:model="bookingIconShape">
+                            <option value="rounded">Redondeado</option>
+                            <option value="circle">Circular</option>
+                            <option value="soft">Suave</option>
+                        </select>
+                    </label>
+                    <label class="rm-field">
+                        <span>Imagen de fondo</span>
+                        <input type="file" wire:model="bookingBackgroundImage" accept="image/*">
+                        @error('bookingBackgroundImage') <small>{{ $message }}</small> @enderror
+                    </label>
+                </div>
+
+                <div class="rm-booking-style-grid">
+                    <label class="rm-field">
+                        <span>Desde</span>
+                        <input type="time" wire:model="bookingAvailableFrom">
+                    </label>
+                    <label class="rm-field">
+                        <span>Hasta</span>
+                        <input type="time" wire:model="bookingAvailableTo">
+                    </label>
+                    <label class="rm-field">
+                        <span>Intervalo</span>
+                        <input type="number" min="10" max="120" wire:model="bookingSlotIntervalMinutes">
+                    </label>
+                    <label class="rm-field">
+                        <span>Duracion base</span>
+                        <input type="number" min="10" max="480" wire:model="bookingDefaultDurationMinutes">
+                    </label>
+                    <label class="rm-checkline">
+                        <input type="checkbox" wire:model="bookingShowPrices">
+                        <span>Mostrar precios</span>
+                    </label>
+                    <label class="rm-checkline">
+                        <input type="checkbox" wire:model="bookingIsActive">
+                        <span>Enlace activo</span>
+                    </label>
+                </div>
+
+                <button class="rm-button rm-button-primary" type="submit">Guardar reservas online</button>
+            </div>
+
+            <aside class="rm-booking-admin-preview">
+                <div class="rm-booking-phone-preview"
+                    style="--booking-primary: {{ $bookingPrimaryColor }}; --booking-accent: {{ $bookingAccentColor }}; --booking-bg: {{ $bookingBackgroundColor }}; --booking-font: {{ $bookingFontFamily }}, Figtree, sans-serif;">
+                    <span>{{ $company->name }}</span>
+                    <h3>{{ $bookingTitle ?: 'Agenda tu cita' }}</h3>
+                    <p>{{ $bookingSubtitle ?: 'Elige tratamiento y horario disponible.' }}</p>
+                    <div>
+                        <small>Sucursal</small>
+                        <strong>{{ $company->branches->first()?->name ?? 'Sucursal principal' }}</strong>
+                    </div>
+                    <div class="rm-booking-preview-slots">
+                        <b>09:00</b><b>09:30</b><b>10:00</b>
+                    </div>
+                </div>
+
+                @if ($bookingGeneralUrl)
+                    <div class="rm-booking-qr-card" data-booking-qr data-qr-url="{{ $bookingGeneralUrl }}" data-qr-name="{{ $company->name }}" data-qr-logo="{{ $company->logo_path ? asset('storage/'.$company->logo_path) : asset('rumika-favicon.svg') }}">
+                        <canvas width="220" height="220"></canvas>
+                        <strong>QR general</strong>
+                        <a href="{{ $bookingGeneralUrl }}" target="_blank" rel="noopener">{{ $bookingGeneralUrl }}</a>
+                        <button class="rm-button rm-button-outline" type="button" data-qr-download>Descargar QR</button>
+                    </div>
+                @endif
+
+                @if ($bookingMode === 'branch')
+                    <div class="rm-booking-branch-links">
+                        @foreach ($bookingBranchLinks as $link)
+                            <div data-booking-qr data-qr-url="{{ $link['url'] }}" data-qr-name="{{ $link['name'] }}" data-qr-logo="{{ $company->logo_path ? asset('storage/'.$company->logo_path) : asset('rumika-favicon.svg') }}">
+                                <canvas width="160" height="160"></canvas>
+                                <span>{{ $link['name'] }}</span>
+                                <button class="rm-button rm-button-outline" type="button" data-qr-download>QR</button>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+            </aside>
+        </form>
+    </section>
+
     <section class="rm-panel">
         <div class="rm-panel-title">
             <div>

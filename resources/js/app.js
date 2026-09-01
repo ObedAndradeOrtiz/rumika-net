@@ -5,6 +5,7 @@ import './modules/auth/face-security';
 import './modules/app-shell/sidebar-toggle';
 import './modules/app-shell/mobile-more';
 import './modules/app-shell/theme-toggle';
+import './modules/app-shell/booking-qr';
 import './modules/app-shell/rumi-assistant';
 import './modules/crm/chat-scroll';
 import './modules/hr/attendance-punch';
