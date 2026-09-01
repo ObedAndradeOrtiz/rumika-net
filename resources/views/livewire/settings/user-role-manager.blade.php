@@ -231,7 +231,7 @@
                 </label>
 
                 <label class="rm-check-option">
-                    <input wire:model="userTracksAttendance" type="checkbox">
+                    <input wire:model.live="userTracksAttendance" type="checkbox">
                     <span>Debe registrar asistencia</span>
                     <small>Activa el boton de entrada y salida en Inicio. Usara rostro, ubicacion y radio de sucursal. Tambien activa verificacion facial al ingresar.</small>
                 </label>
