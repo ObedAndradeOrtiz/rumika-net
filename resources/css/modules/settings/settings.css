@@ -170,6 +170,37 @@
     margin-top: 3px;
 }
 
+.rm-geofence-map-wrap {
+    display: grid;
+    gap: 8px;
+    margin: 0 0 12px;
+}
+
+.rm-geofence-map {
+    min-height: 280px;
+    border: 1px solid #d8e3ef;
+    border-radius: 18px;
+    overflow: hidden;
+    background: #e2e8f0;
+    position: relative;
+    z-index: 1;
+}
+
+.rm-geofence-map-wrap > span {
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 750;
+}
+
+.rm-geofence-map .leaflet-control-container {
+    font-family: inherit;
+}
+
+.rm-geofence-map .leaflet-control-zoom a {
+    color: #0f766e;
+    font-weight: 900;
+}
+
 .rm-hr-page {
     display: grid;
     gap: 18px;
@@ -443,6 +474,11 @@
     .rm-hr-record-head,
     .rm-hr-record-row {
         min-width: 760px;
+    }
+
+    .rm-geofence-map {
+        min-height: 230px;
+        border-radius: 16px;
     }
 
     .rm-dashboard-punch-strip {

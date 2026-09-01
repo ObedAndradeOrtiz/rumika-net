@@ -2,6 +2,10 @@ const MODEL_PATH = '/vendor/face-api';
 
 let faceapiModule = null;
 let modelsReady = null;
+let leafletReady = null;
+
+const LEAFLET_JS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+const LEAFLET_CSS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
 
 const hasAttendanceRoot = () => Boolean(document.querySelector('[data-attendance-face]'));
 
@@ -54,6 +58,132 @@ const getLocation = () => new Promise((resolve, reject) => {
         },
     );
 });
+
+const loadLeaflet = () => {
+    if (window.L) {
+        return Promise.resolve(window.L);
+    }
+
+    if (leafletReady) {
+        return leafletReady;
+    }
+
+    leafletReady = new Promise((resolve, reject) => {
+        if (!document.querySelector(`link[href="${LEAFLET_CSS}"]`)) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = LEAFLET_CSS;
+            document.head.appendChild(link);
+        }
+
+        const script = document.createElement('script');
+        script.src = LEAFLET_JS;
+        script.async = true;
+        script.onload = () => window.L ? resolve(window.L) : reject(new Error('No se pudo cargar el mapa.'));
+        script.onerror = () => reject(new Error('No se pudo cargar el mapa.'));
+        document.head.appendChild(script);
+    });
+
+    return leafletReady;
+};
+
+const numericValue = (input, fallback) => {
+    const value = Number.parseFloat(String(input?.value || '').replace(',', '.'));
+
+    return Number.isFinite(value) ? value : fallback;
+};
+
+const syncInput = (input, value) => {
+    if (!input) {
+        return;
+    }
+
+    input.value = value;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+};
+
+const initBranchMaps = async () => {
+    const mapRoots = Array.from(document.querySelectorAll('[data-branch-map]:not([data-map-ready])'));
+
+    if (mapRoots.length === 0) {
+        return;
+    }
+
+    const L = await loadLeaflet();
+
+    mapRoots.forEach((mapRoot) => {
+        const root = mapRoot.closest('[data-branch-geofence]');
+        const latitudeInput = root?.querySelector('[data-branch-latitude]');
+        const longitudeInput = root?.querySelector('[data-branch-longitude]');
+        const radiusInput = root?.querySelector('[data-branch-radius]');
+        const defaultLat = Number.parseFloat(mapRoot.dataset.defaultLat || '-17.783327');
+        const defaultLng = Number.parseFloat(mapRoot.dataset.defaultLng || '-63.182140');
+        const lat = numericValue(latitudeInput, defaultLat);
+        const lng = numericValue(longitudeInput, defaultLng);
+        const radius = Math.max(20, numericValue(radiusInput, 120));
+
+        mapRoot.dataset.mapReady = '1';
+
+        const map = L.map(mapRoot, {
+            zoomControl: true,
+            attributionControl: false,
+        }).setView([lat, lng], 16);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+        }).addTo(map);
+
+        const marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+        const circle = L.circle([lat, lng], {
+            radius,
+            color: '#0f766e',
+            fillColor: '#99f6e4',
+            fillOpacity: 0.22,
+            weight: 2,
+        }).addTo(map);
+
+        const setPoint = (point) => {
+            const nextLat = Number(point.lat).toFixed(7);
+            const nextLng = Number(point.lng).toFixed(7);
+
+            marker.setLatLng(point);
+            circle.setLatLng(point);
+            syncInput(latitudeInput, nextLat);
+            syncInput(longitudeInput, nextLng);
+        };
+
+        map.on('click', (event) => setPoint(event.latlng));
+        marker.on('dragend', () => setPoint(marker.getLatLng()));
+
+        radiusInput?.addEventListener('input', () => {
+            circle.setRadius(Math.max(20, numericValue(radiusInput, 120)));
+        });
+
+        latitudeInput?.addEventListener('input', () => {
+            const nextLat = numericValue(latitudeInput, null);
+            const nextLng = numericValue(longitudeInput, null);
+
+            if (nextLat !== null && nextLng !== null) {
+                marker.setLatLng([nextLat, nextLng]);
+                circle.setLatLng([nextLat, nextLng]);
+                map.panTo([nextLat, nextLng]);
+            }
+        });
+
+        longitudeInput?.addEventListener('input', () => {
+            const nextLat = numericValue(latitudeInput, null);
+            const nextLng = numericValue(longitudeInput, null);
+
+            if (nextLat !== null && nextLng !== null) {
+                marker.setLatLng([nextLat, nextLng]);
+                circle.setLatLng([nextLat, nextLng]);
+                map.panTo([nextLat, nextLng]);
+            }
+        });
+
+        setTimeout(() => map.invalidateSize(), 180);
+    });
+};
 
 const startCamera = async (root) => {
     const video = root.querySelector('[data-attendance-video]');
@@ -149,6 +279,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (hasAttendanceRoot()) {
         loadModels();
     }
+
+    initBranchMaps();
+});
+
+document.addEventListener('livewire:navigated', initBranchMaps);
+document.addEventListener('livewire:init', () => {
+    window.Livewire?.hook('morph.updated', () => {
+        window.setTimeout(initBranchMaps, 80);
+    });
 });
 
 document.addEventListener('click', async (event) => {

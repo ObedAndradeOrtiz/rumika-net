@@ -178,6 +178,14 @@
                             Usar mi ubicacion
                         </button>
                     </div>
+                    <div class="rm-geofence-map-wrap">
+                        <div class="rm-geofence-map"
+                            data-branch-map
+                            data-default-lat="-17.783327"
+                            data-default-lng="-63.182140">
+                        </div>
+                        <span>Haz clic o toca el mapa para mover el punto de asistencia. El circulo muestra el radio permitido.</span>
+                    </div>
                     <div class="rm-form-row">
                         <label class="rm-field">
                             <span>Latitud</span>
@@ -191,7 +199,7 @@
                         </label>
                         <label class="rm-field">
                             <span>Radio en metros</span>
-                            <input wire:model="attendanceRadiusMeters" type="number" min="20" max="5000" step="10">
+                            <input wire:model="attendanceRadiusMeters" data-branch-radius type="number" min="20" max="5000" step="10">
                             @error('attendanceRadiusMeters') <small>{{ $message }}</small> @enderror
                         </label>
                     </div>
