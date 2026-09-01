@@ -223,7 +223,7 @@
 
 .rm-hr-summary {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 12px;
     margin-top: 14px;
 }
@@ -255,6 +255,11 @@
 .rm-hr-summary .is-warning {
     background: #fff7ed;
     border-color: #fed7aa;
+}
+
+.rm-hr-summary .is-late {
+    background: #fefce8;
+    border-color: #fde68a;
 }
 
 .rm-hr-grid {
@@ -373,6 +378,18 @@
     color: #be123c;
 }
 
+.rm-hr-staff-metrics .is-late {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.rm-hr-staff-metrics small {
+    flex-basis: 100%;
+    color: #92400e;
+    font-weight: 800;
+    margin: 0;
+}
+
 .rm-hr-week-row {
     display: grid;
     grid-template-columns: 160px minmax(220px, .7fr) minmax(260px, 1fr);
@@ -401,10 +418,53 @@
     color: #0f172a;
 }
 
+.rm-hr-exemption-panel {
+    display: grid;
+    gap: 14px;
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.rm-hr-exemption-form {
+    display: grid;
+    grid-template-columns: 150px 150px minmax(190px, 1fr) minmax(190px, 1fr) minmax(220px, 1.2fr) auto;
+    gap: 10px;
+    align-items: end;
+}
+
+.rm-hr-exemption-list {
+    display: grid;
+    gap: 10px;
+}
+
+.rm-hr-exemption-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    background: #fff;
+    padding: 12px;
+}
+
+.rm-hr-exemption-row strong,
+.rm-hr-exemption-row span,
+.rm-hr-exemption-row small {
+    display: block;
+}
+
+.rm-hr-exemption-row span,
+.rm-hr-exemption-row small {
+    color: #64748b;
+    margin-top: 4px;
+}
+
 .rm-hr-record-head,
 .rm-hr-record-row {
     display: grid;
-    grid-template-columns: 100px minmax(160px, 1fr) minmax(145px, 1fr) minmax(145px, 1fr) minmax(120px, .7fr) minmax(150px, auto);
+    grid-template-columns: 100px minmax(160px, 1fr) minmax(140px, 1fr) minmax(140px, 1fr) 100px minmax(120px, .7fr) minmax(150px, auto);
     gap: 12px;
     align-items: center;
 }
@@ -428,6 +488,11 @@
     display: block;
     color: #64748b;
     margin-top: 3px;
+}
+
+.rm-hr-record-row .is-late {
+    color: #b45309;
+    font-weight: 900;
 }
 
 .rm-hr-record-row .rm-button-small {
@@ -533,7 +598,16 @@
 
     .rm-hr-staff-metrics {
         display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .rm-hr-exemption-form {
+        grid-template-columns: 1fr;
+    }
+
+    .rm-hr-exemption-row {
+        align-items: stretch;
+        flex-direction: column;
     }
 
     .rm-hr-week-row {
@@ -548,7 +622,7 @@
 
     .rm-hr-record-head,
     .rm-hr-record-row {
-        min-width: 920px;
+        min-width: 1040px;
     }
 
     .rm-geofence-map {

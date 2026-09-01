@@ -39,6 +39,8 @@ class CommerceManager extends Component
 
     public string $attendanceRadiusMeters = '120';
 
+    public string $attendanceGraceMinutes = '10';
+
     public string $status = 'active';
 
     public bool $usesTicketPrinter = false;
@@ -88,6 +90,7 @@ class CommerceManager extends Component
         $this->attendanceLatitude = str_replace(',', '.', trim($this->attendanceLatitude));
         $this->attendanceLongitude = str_replace(',', '.', trim($this->attendanceLongitude));
         $this->attendanceRadiusMeters = trim($this->attendanceRadiusMeters);
+        $this->attendanceGraceMinutes = trim($this->attendanceGraceMinutes);
 
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:120'],
@@ -98,6 +101,7 @@ class CommerceManager extends Component
             'attendanceLatitude' => ['nullable', 'numeric', 'between:-90,90'],
             'attendanceLongitude' => ['nullable', 'numeric', 'between:-180,180'],
             'attendanceRadiusMeters' => ['required', 'integer', 'min:20', 'max:5000'],
+            'attendanceGraceMinutes' => ['required', 'integer', 'min:0', 'max:180'],
             'status' => ['required', 'in:active,inactive'],
             'usesTicketPrinter' => ['boolean'],
             'printerName' => ['nullable', 'string', 'max:120'],
@@ -142,6 +146,7 @@ class CommerceManager extends Component
             'attendance_latitude' => $validated['attendanceLatitude'] !== '' ? $validated['attendanceLatitude'] : null,
             'attendance_longitude' => $validated['attendanceLongitude'] !== '' ? $validated['attendanceLongitude'] : null,
             'attendance_radius_meters' => (int) $validated['attendanceRadiusMeters'],
+            'attendance_grace_minutes' => (int) $validated['attendanceGraceMinutes'],
             'status' => $validated['status'],
             'uses_ticket_printer' => $validated['usesTicketPrinter'],
             'printer_name' => $validated['usesTicketPrinter'] ? ($validated['printerName'] ?: null) : null,
@@ -188,6 +193,7 @@ class CommerceManager extends Component
         $this->attendanceLatitude = $branch->attendance_latitude !== null ? (string) $branch->attendance_latitude : '';
         $this->attendanceLongitude = $branch->attendance_longitude !== null ? (string) $branch->attendance_longitude : '';
         $this->attendanceRadiusMeters = (string) ($branch->attendance_radius_meters ?: 120);
+        $this->attendanceGraceMinutes = (string) ($branch->attendance_grace_minutes ?? 10);
         $this->status = $branch->status;
         $this->usesTicketPrinter = (bool) $branch->uses_ticket_printer;
         $this->printerName = $branch->printer_name ?? '';
@@ -255,6 +261,7 @@ class CommerceManager extends Component
         $this->countryCode = 'BO';
         $this->status = 'active';
         $this->attendanceRadiusMeters = '120';
+        $this->attendanceGraceMinutes = '10';
         $this->productCommissionPercent = '0';
         $this->productCommissionMinSale = '0';
         $this->serviceCommissionPercent = '0';

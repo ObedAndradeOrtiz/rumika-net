@@ -22,6 +22,7 @@ class Branch extends Model
         'attendance_latitude',
         'attendance_longitude',
         'attendance_radius_meters',
+        'attendance_grace_minutes',
         'logo_path',
         'uses_ticket_printer',
         'printer_name',
@@ -44,6 +45,7 @@ class Branch extends Model
             'attendance_latitude' => 'decimal:7',
             'attendance_longitude' => 'decimal:7',
             'attendance_radius_meters' => 'integer',
+            'attendance_grace_minutes' => 'integer',
         ];
     }
 

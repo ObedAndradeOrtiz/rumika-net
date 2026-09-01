@@ -202,6 +202,11 @@
                             <input wire:model="attendanceRadiusMeters" data-branch-radius type="number" min="20" max="5000" step="10">
                             @error('attendanceRadiusMeters') <small>{{ $message }}</small> @enderror
                         </label>
+                        <label class="rm-field">
+                            <span>Tolerancia de ingreso</span>
+                            <input wire:model="attendanceGraceMinutes" type="number" min="0" max="180" step="1" placeholder="10">
+                            @error('attendanceGraceMinutes') <small>{{ $message }}</small> @enderror
+                        </label>
                     </div>
                 </section>
 

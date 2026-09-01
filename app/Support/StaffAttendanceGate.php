@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\Company;
+use App\Models\StaffAttendanceExemption;
 use App\Models\StaffAttendanceRecord;
 use App\Models\StaffSchedule;
 use App\Models\User;
@@ -101,10 +102,14 @@ class StaffAttendanceGate
             ->first();
 
         if (! $schedule) {
-            return true;
+            return ! self::hasExemption($user, $company, $now, null);
         }
 
         if (! $schedule->is_working_day) {
+            return false;
+        }
+
+        if (self::hasExemption($user, $company, $now, $schedule)) {
             return false;
         }
 
@@ -116,5 +121,26 @@ class StaffAttendanceGate
         $endsAt = Carbon::parse($now->toDateString().' '.substr((string) $schedule->ends_at, 0, 5))->addMinutes(45);
 
         return $now->between($startsAt, $endsAt);
+    }
+
+    private static function hasExemption(User $user, Company $company, Carbon $date, ?StaffSchedule $schedule): bool
+    {
+        $userBranchIds = $user->branches()
+            ->where('branches.company_id', $company->id)
+            ->pluck('branches.id');
+
+        return StaffAttendanceExemption::query()
+            ->where('company_id', $company->id)
+            ->whereDate('work_date', $date->toDateString())
+            ->where(function ($query) use ($user) {
+                $query->whereNull('user_id')
+                    ->orWhere('user_id', $user->id);
+            })
+            ->where(function ($query) use ($schedule, $userBranchIds) {
+                $query->whereNull('branch_id')
+                    ->when($schedule?->branch_id, fn ($inner) => $inner->orWhere('branch_id', $schedule->branch_id))
+                    ->when($userBranchIds->isNotEmpty(), fn ($inner) => $inner->orWhereIn('branch_id', $userBranchIds));
+            })
+            ->exists();
     }
 }

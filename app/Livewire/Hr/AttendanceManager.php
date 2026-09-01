@@ -3,6 +3,7 @@
 namespace App\Livewire\Hr;
 
 use App\Models\Company;
+use App\Models\StaffAttendanceExemption;
 use App\Models\StaffAttendanceRecord;
 use App\Models\StaffSchedule;
 use App\Models\User;
@@ -29,10 +30,21 @@ class AttendanceManager extends Component
 
     public array $scheduleForm = [];
 
+    public string $exemptionDate = '';
+
+    public string $exemptionType = 'holiday';
+
+    public string $exemptionBranchId = '';
+
+    public string $exemptionUserId = '';
+
+    public string $exemptionReason = '';
+
     public function mount(): void
     {
         $this->fromDate = now()->startOfMonth()->toDateString();
         $this->toDate = now()->toDateString();
+        $this->exemptionDate = now()->toDateString();
 
         $company = $this->company();
         $this->scheduleUserId = $company->users()
@@ -133,6 +145,50 @@ class AttendanceManager extends Component
         $this->dispatch('attendance-record-deleted');
     }
 
+    public function saveExemption(): void
+    {
+        $company = $this->company();
+        $branchIds = $company->branches()->pluck('id')->all();
+        $userIds = $company->users()
+            ->where('tracks_attendance', true)
+            ->pluck('users.id')
+            ->all();
+
+        $validated = $this->validate([
+            'exemptionDate' => ['required', 'date'],
+            'exemptionType' => ['required', Rule::in(['holiday', 'excused'])],
+            'exemptionBranchId' => ['nullable', Rule::in($branchIds)],
+            'exemptionUserId' => ['nullable', Rule::in($userIds)],
+            'exemptionReason' => ['nullable', 'string', 'max:180'],
+        ]);
+
+        StaffAttendanceExemption::query()->updateOrCreate(
+            [
+                'company_id' => $company->id,
+                'branch_id' => $validated['exemptionBranchId'] ? (int) $validated['exemptionBranchId'] : null,
+                'user_id' => $validated['exemptionUserId'] ? (int) $validated['exemptionUserId'] : null,
+                'work_date' => $validated['exemptionDate'],
+            ],
+            [
+                'type' => $validated['exemptionType'],
+                'reason' => $validated['exemptionReason'] ?: null,
+            ],
+        );
+
+        $this->exemptionReason = '';
+        $this->dispatch('attendance-exemption-saved');
+    }
+
+    public function deleteExemption(int $exemptionId): void
+    {
+        StaffAttendanceExemption::query()
+            ->where('company_id', $this->company()->id)
+            ->whereKey($exemptionId)
+            ->delete();
+
+        $this->dispatch('attendance-exemption-deleted');
+    }
+
     public function render()
     {
         $company = $this->company();
@@ -140,6 +196,7 @@ class AttendanceManager extends Component
         $to = Carbon::parse($this->toDate)->endOfDay();
 
         $users = $company->users()
+            ->with('branches')
             ->where('tracks_attendance', true)
             ->orderBy('name')
             ->get();
@@ -168,22 +225,42 @@ class AttendanceManager extends Component
             : $users;
 
         $schedules = StaffSchedule::query()
+            ->with('branch')
             ->where('company_id', $company->id)
             ->whereIn('user_id', $filteredUsers->pluck('id'))
             ->get()
             ->groupBy('user_id');
 
-        $rows = $this->attendanceRows($filteredUsers, $records, $schedules, $from, $to);
+        $exemptions = StaffAttendanceExemption::query()
+            ->with(['branch', 'user'])
+            ->where('company_id', $company->id)
+            ->whereBetween('work_date', [$from->toDateString(), $to->toDateString()])
+            ->latest('work_date')
+            ->get();
+
+        $records = $records
+            ->map(function (StaffAttendanceRecord $record) use ($users, $schedules, $exemptions) {
+                $user = $users->firstWhere('id', $record->user_id);
+                $userSchedules = $schedules->get($record->user_id, collect())->keyBy('weekday');
+                $schedule = $record->work_date ? $userSchedules->get((int) $record->work_date->isoWeekday()) : null;
+                $record->late_minutes = $user ? $this->lateMinutes($record, $user, $schedule, $exemptions) : 0;
+
+                return $record;
+            });
+
+        $rows = $this->attendanceRows($filteredUsers, $records, $schedules, $exemptions, $from, $to);
 
         return view('livewire.hr.attendance-manager', [
             'users' => $users,
             'branches' => $company->branches()->where('status', 'active')->orderBy('name')->get(),
             'records' => $records,
             'rows' => $rows,
+            'exemptions' => $exemptions,
             'summary' => [
                 'present' => $records->whereNotNull('check_in_at')->count(),
                 'completed' => $records->where('status', 'completed')->count(),
                 'open' => $records->where('status', 'open')->count(),
+                'late' => $rows->sum('late_count'),
                 'missing' => $rows->sum('missing_count'),
             ],
             'weekdays' => $this->weekdays(),
@@ -223,26 +300,35 @@ class AttendanceManager extends Component
             ->all();
     }
 
-    private function attendanceRows(Collection $users, Collection $records, Collection $schedules, Carbon $from, Carbon $to): Collection
+    private function attendanceRows(Collection $users, Collection $records, Collection $schedules, Collection $exemptions, Carbon $from, Carbon $to): Collection
     {
         $today = now()->startOfDay();
 
-        return $users->map(function (User $user) use ($records, $schedules, $from, $to, $today) {
+        return $users->map(function (User $user) use ($records, $schedules, $exemptions, $from, $to, $today) {
             $userRecords = $records->where('user_id', $user->id);
             $userSchedules = $schedules->get($user->id, collect())->keyBy('weekday');
-            $expectedDates = collect(CarbonPeriod::create($from, $to->min($today)))
-                ->filter(fn (Carbon $date) => $this->isExpectedWorkday($date, $userSchedules));
+            $expectedDates = collect(CarbonPeriod::create($from, $to->copy()->min($today)))
+                ->filter(function (Carbon $date) use ($user, $userSchedules, $exemptions) {
+                    $schedule = $userSchedules->get((int) $date->isoWeekday());
+
+                    return $this->isExpectedWorkday($date, $userSchedules)
+                        && ! $this->hasExemption($date, $user, $schedule, $exemptions);
+                });
             $recordedDates = $userRecords->pluck('work_date')->map(fn ($date) => $date->format('Y-m-d'))->unique();
             $missingDates = $expectedDates
                 ->map(fn (Carbon $date) => $date->format('Y-m-d'))
                 ->reject(fn (string $date) => $recordedDates->contains($date))
                 ->values();
 
+            $lateRecords = $userRecords->filter(fn (StaffAttendanceRecord $record) => (int) ($record->late_minutes ?? 0) > 0);
+
             return [
                 'user' => $user,
                 'present_count' => $userRecords->whereNotNull('check_in_at')->count(),
                 'completed_count' => $userRecords->where('status', 'completed')->count(),
                 'open_count' => $userRecords->where('status', 'open')->count(),
+                'late_count' => $lateRecords->count(),
+                'late_minutes' => $lateRecords->sum(fn (StaffAttendanceRecord $record) => (int) ($record->late_minutes ?? 0)),
                 'missing_count' => $missingDates->count(),
                 'missing_dates' => $missingDates->map(fn (string $date) => Carbon::parse($date)->format('d/m'))->take(8)->implode(', '),
                 'last_record' => $userRecords->sortByDesc('work_date')->first(),
@@ -268,6 +354,50 @@ class AttendanceManager extends Component
         return Str::startsWith($path, ['http://', 'https://'])
             ? $path
             : Storage::url($path);
+    }
+
+    private function lateMinutes(StaffAttendanceRecord $record, User $user, ?StaffSchedule $schedule, Collection $exemptions): int
+    {
+        if (! $record->check_in_at || ! $record->work_date || ! $schedule?->starts_at) {
+            return 0;
+        }
+
+        if ($this->hasExemption($record->work_date->copy(), $user, $schedule, $exemptions)) {
+            return 0;
+        }
+
+        $branch = $schedule->branch ?: $record->checkInBranch;
+        $graceMinutes = (int) ($branch?->attendance_grace_minutes ?? 10);
+        $expectedAt = Carbon::parse($record->work_date->format('Y-m-d').' '.substr((string) $schedule->starts_at, 0, 5))
+            ->addMinutes($graceMinutes);
+
+        return $record->check_in_at->greaterThan($expectedAt)
+            ? (int) $expectedAt->diffInMinutes($record->check_in_at)
+            : 0;
+    }
+
+    private function hasExemption(Carbon $date, User $user, ?StaffSchedule $schedule, Collection $exemptions): bool
+    {
+        $dateString = $date->toDateString();
+        $userBranchIds = $user->branches->pluck('id');
+        $scheduleBranchId = $schedule?->branch_id;
+
+        return $exemptions->contains(function (StaffAttendanceExemption $exemption) use ($dateString, $user, $userBranchIds, $scheduleBranchId) {
+            if ($exemption->work_date?->toDateString() !== $dateString) {
+                return false;
+            }
+
+            if ($exemption->user_id !== null && (int) $exemption->user_id !== (int) $user->id) {
+                return false;
+            }
+
+            if ($exemption->branch_id === null) {
+                return true;
+            }
+
+            return (int) $exemption->branch_id === (int) $scheduleBranchId
+                || $userBranchIds->contains((int) $exemption->branch_id);
+        });
     }
 
     private function isExpectedWorkday(Carbon $date, Collection $schedules): bool

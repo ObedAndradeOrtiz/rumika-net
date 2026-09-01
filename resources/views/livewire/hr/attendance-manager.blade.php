@@ -52,6 +52,10 @@
                 <span>Salida pendiente</span>
                 <strong>{{ $summary['open'] }}</strong>
             </article>
+            <article class="is-late">
+                <span>Retrasos</span>
+                <strong>{{ $summary['late'] }}</strong>
+            </article>
             <article class="is-warning">
                 <span>Faltas sin registro</span>
                 <strong>{{ $summary['missing'] }}</strong>
@@ -102,7 +106,11 @@
                         <div class="rm-hr-staff-metrics">
                             <span><b>{{ $row['present_count'] }}</b> entradas</span>
                             <span><b>{{ $row['completed_count'] }}</b> completas</span>
+                            <span class="{{ $row['late_count'] > 0 ? 'is-late' : '' }}"><b>{{ $row['late_count'] }}</b> retrasos</span>
                             <span class="{{ $row['missing_count'] > 0 ? 'is-danger' : '' }}"><b>{{ $row['missing_count'] }}</b> faltas</span>
+                            @if ($row['late_minutes'] > 0)
+                                <small>Retraso acumulado: {{ $row['late_minutes'] }} min</small>
+                            @endif
                         </div>
                         <button class="rm-button rm-button-outline" type="button"
                             wire:click="editScheduleFor({{ $row['user']->id }})">
@@ -163,6 +171,84 @@
 
                 <button class="rm-button rm-button-primary" type="submit">Guardar horario</button>
             </form>
+
+            <section class="rm-hr-exemption-panel">
+                <div class="rm-panel-title rm-panel-title-compact">
+                    <div>
+                        <h2>Feriados y exoneraciones</h2>
+                        <p>Un feriado o dia exonerado no cuenta como falta ni como retraso.</p>
+                    </div>
+                </div>
+
+                <form wire:submit="saveExemption" class="rm-hr-exemption-form">
+                    <label class="rm-field">
+                        <span>Fecha</span>
+                        <input type="date" wire:model="exemptionDate">
+                        @error('exemptionDate') <small>{{ $message }}</small> @enderror
+                    </label>
+                    <label class="rm-field">
+                        <span>Tipo</span>
+                        <select wire:model="exemptionType">
+                            <option value="holiday">Feriado</option>
+                            <option value="excused">Exonerado</option>
+                        </select>
+                        @error('exemptionType') <small>{{ $message }}</small> @enderror
+                    </label>
+                    <label class="rm-field">
+                        <span>Sucursal</span>
+                        <select wire:model="exemptionBranchId">
+                            <option value="">Todas las sucursales</option>
+                            @foreach ($branches as $branch)
+                                <option value="{{ $branch->id }}">{{ $branch->name }}</option>
+                            @endforeach
+                        </select>
+                        @error('exemptionBranchId') <small>{{ $message }}</small> @enderror
+                    </label>
+                    <label class="rm-field">
+                        <span>Personal</span>
+                        <select wire:model="exemptionUserId">
+                            <option value="">Todo el personal</option>
+                            @foreach ($users as $user)
+                                <option value="{{ $user->id }}">{{ $user->name }}</option>
+                            @endforeach
+                        </select>
+                        @error('exemptionUserId') <small>{{ $message }}</small> @enderror
+                    </label>
+                    <label class="rm-field">
+                        <span>Motivo</span>
+                        <input type="text" wire:model="exemptionReason" placeholder="Feriado local, permiso, viaje...">
+                        @error('exemptionReason') <small>{{ $message }}</small> @enderror
+                    </label>
+                    <button class="rm-button rm-button-primary" type="submit">Guardar exoneracion</button>
+                </form>
+
+                <div class="rm-hr-exemption-list">
+                    @forelse ($exemptions as $exemption)
+                        <article class="rm-hr-exemption-row">
+                            <div>
+                                <strong>{{ $exemption->work_date?->format('d/m/Y') }} - {{ $exemption->type === 'holiday' ? 'Feriado' : 'Exonerado' }}</strong>
+                                <span>
+                                    {{ $exemption->branch?->name ?? 'Todas las sucursales' }}
+                                    - {{ $exemption->user?->name ?? 'Todo el personal' }}
+                                </span>
+                                @if ($exemption->reason)
+                                    <small>{{ $exemption->reason }}</small>
+                                @endif
+                            </div>
+                            <button class="rm-button rm-button-danger rm-button-small" type="button"
+                                wire:click="deleteExemption({{ $exemption->id }})"
+                                wire:confirm="Deseas eliminar esta exoneracion?">
+                                Eliminar
+                            </button>
+                        </article>
+                    @empty
+                        <div class="rm-empty-state">
+                            <strong>Sin feriados registrados</strong>
+                            <span>Agrega feriados o permisos para que no cuenten como faltas.</span>
+                        </div>
+                    @endforelse
+                </div>
+            </section>
         </section>
     @endif
 
@@ -181,6 +267,7 @@
                     <span>Personal</span>
                     <span>Entrada</span>
                     <span>Salida</span>
+                    <span>Retraso</span>
                     <span>Validacion</span>
                     <span>Accion</span>
                 </div>
@@ -195,6 +282,9 @@
                         <span>
                             {{ $record->check_out_at?->format('H:i') ?? 'Pendiente' }}
                             <small>{{ $record->checkOutBranch?->name ?? '-' }}</small>
+                        </span>
+                        <span class="{{ ($record->late_minutes ?? 0) > 0 ? 'is-late' : '' }}">
+                            {{ ($record->late_minutes ?? 0) > 0 ? ($record->late_minutes.' min') : '-' }}
                         </span>
                         <span>
                             Entrada {{ $record->check_in_face_similarity ?? '-' }}%
