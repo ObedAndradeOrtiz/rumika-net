@@ -51,8 +51,17 @@
         </div>
     </section>
 
-    <div class="rm-hr-grid">
-        <section class="rm-panel">
+    <div class="rm-hr-tabs" role="tablist" aria-label="Secciones de asistencia">
+        <button class="{{ $activeTab === 'summary' ? 'is-active' : '' }}" type="button" wire:click="setActiveTab('summary')">
+            Resumen
+        </button>
+        <button class="{{ $activeTab === 'schedule' ? 'is-active' : '' }}" type="button" wire:click="setActiveTab('schedule')">
+            Horarios
+        </button>
+    </div>
+
+    @if ($activeTab === 'summary')
+        <section class="rm-panel rm-hr-tab-panel">
             <div class="rm-panel-title">
                 <div>
                     <h2>Resumen por personal</h2>
@@ -76,7 +85,7 @@
                             <span class="{{ $row['missing_count'] > 0 ? 'is-danger' : '' }}"><b>{{ $row['missing_count'] }}</b> faltas</span>
                         </div>
                         <button class="rm-button rm-button-outline" type="button"
-                            wire:click="$set('scheduleUserId', {{ $row['user']->id }})">
+                            wire:click="editScheduleFor({{ $row['user']->id }})">
                             Horario
                         </button>
                     </article>
@@ -88,8 +97,10 @@
                 @endforelse
             </div>
         </section>
+    @endif
 
-        <section class="rm-panel">
+    @if ($activeTab === 'schedule')
+        <section class="rm-panel rm-hr-tab-panel">
             <div class="rm-panel-title">
                 <div>
                     <h2>Horario laboral</h2>
@@ -132,7 +143,7 @@
                 <button class="rm-button rm-button-primary" type="submit">Guardar horario</button>
             </form>
         </section>
-    </div>
+    @endif
 
     <section class="rm-panel">
         <div class="rm-panel-title">

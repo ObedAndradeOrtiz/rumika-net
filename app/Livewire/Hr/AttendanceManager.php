@@ -21,6 +21,8 @@ class AttendanceManager extends Component
 
     public string $userFilter = '';
 
+    public string $activeTab = 'summary';
+
     public ?int $scheduleUserId = null;
 
     public array $scheduleForm = [];
@@ -37,6 +39,28 @@ class AttendanceManager extends Component
 
     public function updatedScheduleUserId(): void
     {
+        $this->loadScheduleForm();
+    }
+
+    public function setActiveTab(string $tab): void
+    {
+        if (! in_array($tab, ['summary', 'schedule'], true)) {
+            return;
+        }
+
+        $this->activeTab = $tab;
+    }
+
+    public function editScheduleFor(int $userId): void
+    {
+        $company = $this->company();
+
+        if (! $company->users()->where('users.id', $userId)->exists()) {
+            return;
+        }
+
+        $this->scheduleUserId = $userId;
+        $this->activeTab = 'schedule';
         $this->loadScheduleForm();
     }
 
