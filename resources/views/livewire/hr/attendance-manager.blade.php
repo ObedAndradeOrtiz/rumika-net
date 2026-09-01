@@ -273,24 +273,24 @@
                 </div>
                 @forelse ($records as $record)
                     <article class="rm-hr-record-row">
-                        <span>{{ $record->work_date?->format('d/m/Y') }}</span>
-                        <strong>{{ $record->user?->name ?? 'Sin usuario' }}</strong>
-                        <span>
+                        <span data-label="Fecha">{{ $record->work_date?->format('d/m/Y') }}</span>
+                        <strong data-label="Personal">{{ $record->user?->name ?? 'Sin usuario' }}</strong>
+                        <span data-label="Entrada">
                             {{ $record->check_in_at?->format('H:i') ?? '-' }}
                             <small>{{ $record->checkInBranch?->name ?? 'Sin sucursal' }} - {{ $record->check_in_distance_meters ?? 0 }} m</small>
                         </span>
-                        <span>
+                        <span data-label="Salida">
                             {{ $record->check_out_at?->format('H:i') ?? 'Pendiente' }}
                             <small>{{ $record->checkOutBranch?->name ?? '-' }}</small>
                         </span>
-                        <span class="{{ ($record->late_minutes ?? 0) > 0 ? 'is-late' : '' }}">
+                        <span data-label="Retraso" class="{{ ($record->late_minutes ?? 0) > 0 ? 'is-late' : '' }}">
                             {{ ($record->late_minutes ?? 0) > 0 ? ($record->late_minutes.' min') : '-' }}
                         </span>
-                        <span>
+                        <span data-label="Validacion">
                             Entrada {{ $record->check_in_face_similarity ?? '-' }}%
                             <small>Salida {{ $record->check_out_face_similarity ?? '-' }}%</small>
                         </span>
-                        <span>
+                        <span data-label="Accion">
                             <button class="rm-button rm-button-danger rm-button-small" type="button"
                                 wire:click="deleteRecord({{ $record->id }})"
                                 wire:confirm="Esta accion eliminara la validacion de asistencia y sus fotos. Deseas continuar?">
