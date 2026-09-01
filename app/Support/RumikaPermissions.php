@@ -112,6 +112,11 @@ class RumikaPermissions
                 'group' => 'Gestion administrativa',
                 'actions' => ['view'],
             ],
+            'recursos_humanos' => [
+                'label' => 'Recursos humanos',
+                'group' => 'Gestion administrativa',
+                'actions' => ['view', 'create', 'edit', 'delete'],
+            ],
         ];
     }
 

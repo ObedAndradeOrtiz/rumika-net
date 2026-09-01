@@ -33,6 +33,12 @@ class CommerceManager extends Component
 
     public string $address = '';
 
+    public string $attendanceLatitude = '';
+
+    public string $attendanceLongitude = '';
+
+    public string $attendanceRadiusMeters = '120';
+
     public string $status = 'active';
 
     public bool $usesTicketPrinter = false;
@@ -86,6 +92,9 @@ class CommerceManager extends Component
             'countryCode' => ['required', 'in:'.implode(',', array_keys(PhoneNumber::countries()))],
             'phone' => ['nullable', 'string', 'max:60'],
             'address' => ['nullable', 'string', 'max:180'],
+            'attendanceLatitude' => ['nullable', 'numeric', 'between:-90,90'],
+            'attendanceLongitude' => ['nullable', 'numeric', 'between:-180,180'],
+            'attendanceRadiusMeters' => ['required', 'integer', 'min:20', 'max:5000'],
             'status' => ['required', 'in:active,inactive'],
             'usesTicketPrinter' => ['boolean'],
             'printerName' => ['nullable', 'string', 'max:120'],
@@ -127,6 +136,9 @@ class CommerceManager extends Component
             'currency_symbol' => $currency['currency_symbol'],
             'phone' => $phone,
             'address' => $validated['address'] ?: null,
+            'attendance_latitude' => $validated['attendanceLatitude'] !== '' ? $validated['attendanceLatitude'] : null,
+            'attendance_longitude' => $validated['attendanceLongitude'] !== '' ? $validated['attendanceLongitude'] : null,
+            'attendance_radius_meters' => (int) $validated['attendanceRadiusMeters'],
             'status' => $validated['status'],
             'uses_ticket_printer' => $validated['usesTicketPrinter'],
             'printer_name' => $validated['usesTicketPrinter'] ? ($validated['printerName'] ?: null) : null,
@@ -170,6 +182,9 @@ class CommerceManager extends Component
         $this->countryCode = $branch->country_code ?? 'BO';
         $this->phone = $branch->phone ?? '';
         $this->address = $branch->address ?? '';
+        $this->attendanceLatitude = $branch->attendance_latitude !== null ? (string) $branch->attendance_latitude : '';
+        $this->attendanceLongitude = $branch->attendance_longitude !== null ? (string) $branch->attendance_longitude : '';
+        $this->attendanceRadiusMeters = (string) ($branch->attendance_radius_meters ?: 120);
         $this->status = $branch->status;
         $this->usesTicketPrinter = (bool) $branch->uses_ticket_printer;
         $this->printerName = $branch->printer_name ?? '';
@@ -233,9 +248,10 @@ class CommerceManager extends Component
 
     public function resetForm(): void
     {
-        $this->reset(['editingId', 'name', 'businessTypeId', 'countryCode', 'phone', 'address', 'usesTicketPrinter', 'printerName', 'printerBridgeUrl', 'productCommissionPercent', 'productCommissionMinSale', 'serviceCommissionPercent', 'serviceCommissionMinSale', 'currentLogoPath', 'logo']);
+        $this->reset(['editingId', 'name', 'businessTypeId', 'countryCode', 'phone', 'address', 'attendanceLatitude', 'attendanceLongitude', 'usesTicketPrinter', 'printerName', 'printerBridgeUrl', 'productCommissionPercent', 'productCommissionMinSale', 'serviceCommissionPercent', 'serviceCommissionMinSale', 'currentLogoPath', 'logo']);
         $this->countryCode = 'BO';
         $this->status = 'active';
+        $this->attendanceRadiusMeters = '120';
         $this->productCommissionPercent = '0';
         $this->productCommissionMinSale = '0';
         $this->serviceCommissionPercent = '0';

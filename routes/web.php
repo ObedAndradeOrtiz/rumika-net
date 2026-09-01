@@ -56,6 +56,10 @@ Route::view('configuracion/bitacora', 'settings.audit')
     ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.permission:bitacora'])
     ->name('settings.audit');
 
+Route::view('recursos-humanos/asistencia', 'hr.attendance')
+    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.permission:recursos_humanos'])
+    ->name('hr.attendance');
+
 Route::view('configuracion/mi-sistema', 'settings.system')
     ->middleware(['auth', 'verified', 'rumika.onboarding', 'rumika.face'])
     ->name('settings.system');

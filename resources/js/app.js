@@ -6,6 +6,7 @@ import './modules/app-shell/sidebar-toggle';
 import './modules/app-shell/mobile-more';
 import './modules/app-shell/rumi-assistant';
 import './modules/crm/chat-scroll';
+import './modules/hr/attendance-punch';
 import './modules/printing/qz-tray';
 
 document.addEventListener('livewire:init', () => {

@@ -27,6 +27,7 @@
     $sidebarCanSeeServices = $canAccess('servicios');
     $sidebarCanSeeRecords = $canAccess('registros');
     $sidebarCanSeeAudit = $canAccess('bitacora');
+    $sidebarCanSeeHr = $canAccess('recursos_humanos');
     $sidebarCanSeeUsers = $canAccess('usuarios');
     $sidebarCanSeeRoles = $canAccess('roles');
     $sidebarCompanyRole = $sidebarNavCompany
@@ -255,9 +256,9 @@
         </details>
         @endif
 
-        @if ($sidebarCanSeeSystem || $sidebarCanSeeCommerce || $sidebarCanSeeServices || $sidebarCanSeeRecords || $sidebarCanSeeAudit || $sidebarCanSeeUsers || $sidebarCanSeeRoles)
+        @if ($sidebarCanSeeSystem || $sidebarCanSeeCommerce || $sidebarCanSeeServices || $sidebarCanSeeRecords || $sidebarCanSeeAudit || $sidebarCanSeeHr || $sidebarCanSeeUsers || $sidebarCanSeeRoles)
         <details class="rm-menu-group"
-            {{ in_array($active, ['system', 'settings', 'services', 'users', 'roles', 'records', 'audit'], true) ? 'open' : '' }}>
+            {{ in_array($active, ['system', 'settings', 'services', 'users', 'roles', 'records', 'audit', 'hr-attendance'], true) ? 'open' : '' }}>
             <summary>
                 <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     stroke-width="2.2">
@@ -303,6 +304,13 @@
                     href="{{ route('settings.audit') }}">
                     <i aria-hidden="true"></i>
                     <span data-sidebar-label>Bitacora</span>
+                </a>
+                @endif
+                @if ($sidebarCanSeeHr)
+                <a class="rm-side-link rm-side-sub-link {{ $active === 'hr-attendance' ? 'is-active' : '' }}"
+                    href="{{ route('hr.attendance') }}">
+                    <i aria-hidden="true"></i>
+                    <span data-sidebar-label>Recursos humanos</span>
                 </a>
                 @endif
                 @if ($sidebarCanSeeUsers || $sidebarCanSeeRoles)
@@ -368,6 +376,8 @@
             <small>{{ $sidebarRoleLabel }}</small>
         </span>
     </a>
+
+    <livewire:hr.attendance-punch />
 
     <form class="rm-side-logout" method="POST" action="{{ route('logout') }}">
         @csrf
@@ -542,9 +552,9 @@
             </details>
             @endif
 
-            @if ($sidebarCanSeeSystem || $sidebarCanSeeCommerce || $sidebarCanSeeServices || $sidebarCanSeeRecords || $sidebarCanSeeAudit || $sidebarCanSeeUsers || $sidebarCanSeeRoles)
+            @if ($sidebarCanSeeSystem || $sidebarCanSeeCommerce || $sidebarCanSeeServices || $sidebarCanSeeRecords || $sidebarCanSeeAudit || $sidebarCanSeeHr || $sidebarCanSeeUsers || $sidebarCanSeeRoles)
             <details class="rm-mobile-menu-group"
-                {{ in_array($active, ['system', 'settings', 'services', 'users', 'roles', 'records', 'audit'], true) ? 'open' : '' }}>
+                {{ in_array($active, ['system', 'settings', 'services', 'users', 'roles', 'records', 'audit', 'hr-attendance'], true) ? 'open' : '' }}>
                 <summary>
                     <span>Gestion administrativa</span>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -567,6 +577,9 @@
                     @endif
                     @if ($sidebarCanSeeAudit)
                     <a href="{{ route('settings.audit') }}">Bitacora</a>
+                    @endif
+                    @if ($sidebarCanSeeHr)
+                    <a href="{{ route('hr.attendance') }}">Recursos humanos</a>
                     @endif
                     @if ($sidebarCanSeeUsers || $sidebarCanSeeRoles)
                     <a href="{{ route('settings.users') }}">Usuarios y roles</a>

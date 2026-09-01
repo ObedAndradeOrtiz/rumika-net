@@ -6,7 +6,7 @@
     "isDynamicEntry": true
   },
   "resources/css/app.css": {
-    "file": "assets/app-BkdOx4PK.css",
+    "file": "assets/app-C56qZ-7B.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -15,11 +15,12 @@
     ]
   },
   "resources/js/app.js": {
-    "file": "assets/app-BEIAtUpS.js",
+    "file": "assets/app-BwhPSR6e.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
     "dynamicImports": [
+      "node_modules/@vladmandic/face-api/dist/face-api.esm.js",
       "node_modules/@vladmandic/face-api/dist/face-api.esm.js"
     ]
   }

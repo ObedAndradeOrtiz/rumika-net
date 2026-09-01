@@ -19,6 +19,9 @@ class Branch extends Model
         'currency_symbol',
         'phone',
         'address',
+        'attendance_latitude',
+        'attendance_longitude',
+        'attendance_radius_meters',
         'logo_path',
         'uses_ticket_printer',
         'printer_name',
@@ -38,6 +41,9 @@ class Branch extends Model
             'product_commission_min_sale' => 'decimal:2',
             'service_commission_percent' => 'decimal:2',
             'service_commission_min_sale' => 'decimal:2',
+            'attendance_latitude' => 'decimal:7',
+            'attendance_longitude' => 'decimal:7',
+            'attendance_radius_meters' => 'integer',
         ];
     }
 
@@ -121,5 +127,20 @@ class Branch extends Model
     public function inventoryAssets(): HasMany
     {
         return $this->hasMany(InventoryAsset::class);
+    }
+
+    public function staffSchedules(): HasMany
+    {
+        return $this->hasMany(StaffSchedule::class);
+    }
+
+    public function staffCheckIns(): HasMany
+    {
+        return $this->hasMany(StaffAttendanceRecord::class, 'check_in_branch_id');
+    }
+
+    public function staffCheckOuts(): HasMany
+    {
+        return $this->hasMany(StaffAttendanceRecord::class, 'check_out_branch_id');
     }
 }

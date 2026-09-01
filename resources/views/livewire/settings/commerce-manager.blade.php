@@ -156,6 +156,47 @@
                     @error('address') <small>{{ $message }}</small> @enderror
                 </label>
 
+                <section class="rm-printer-settings rm-branch-geofence" data-branch-geofence>
+                    <div class="rm-panel-title rm-panel-title-compact">
+                        <div>
+                            <h3>Radio para asistencia</h3>
+                            <p>Define el punto de la sucursal y cuantos metros alrededor permiten registrar entrada o salida.</p>
+                        </div>
+                        @if ($attendanceLatitude !== '' && $attendanceLongitude !== '')
+                            <a class="rm-button rm-button-outline" target="_blank" rel="noopener"
+                                href="https://www.google.com/maps?q={{ $attendanceLatitude }},{{ $attendanceLongitude }}">
+                                Ver mapa
+                            </a>
+                        @endif
+                    </div>
+                    <div class="rm-geofence-preview">
+                        <div>
+                            <strong>{{ $attendanceLatitude !== '' && $attendanceLongitude !== '' ? 'Ubicacion configurada' : 'Sin ubicacion de asistencia' }}</strong>
+                            <span>{{ $attendanceLatitude !== '' && $attendanceLongitude !== '' ? $attendanceLatitude.', '.$attendanceLongitude : 'Usa la ubicacion actual estando en la sucursal.' }}</span>
+                        </div>
+                        <button class="rm-button rm-button-primary" type="button" data-branch-location-button>
+                            Usar mi ubicacion
+                        </button>
+                    </div>
+                    <div class="rm-form-row">
+                        <label class="rm-field">
+                            <span>Latitud</span>
+                            <input wire:model="attendanceLatitude" data-branch-latitude type="number" step="0.0000001" placeholder="-17.783327">
+                            @error('attendanceLatitude') <small>{{ $message }}</small> @enderror
+                        </label>
+                        <label class="rm-field">
+                            <span>Longitud</span>
+                            <input wire:model="attendanceLongitude" data-branch-longitude type="number" step="0.0000001" placeholder="-63.182140">
+                            @error('attendanceLongitude') <small>{{ $message }}</small> @enderror
+                        </label>
+                        <label class="rm-field">
+                            <span>Radio en metros</span>
+                            <input wire:model="attendanceRadiusMeters" type="number" min="20" max="5000" step="10">
+                            @error('attendanceRadiusMeters') <small>{{ $message }}</small> @enderror
+                        </label>
+                    </div>
+                </section>
+
                 <section class="rm-printer-settings">
                     <label class="rm-checkline">
                         <input wire:model.live="usesTicketPrinter" type="checkbox">

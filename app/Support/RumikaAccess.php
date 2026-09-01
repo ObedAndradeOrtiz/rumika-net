@@ -70,7 +70,7 @@ class RumikaAccess
 
     public static function businessTypeAllows(User $user, Company $company, string $module, ?int $branchId = null): bool
     {
-        $alwaysAllowed = ['inicio', 'sucursales', 'usuarios', 'roles', 'registros', 'bitacora'];
+        $alwaysAllowed = ['inicio', 'sucursales', 'usuarios', 'roles', 'registros', 'bitacora', 'recursos_humanos'];
 
         if (in_array($module, $alwaysAllowed, true)) {
             return true;
@@ -156,6 +156,7 @@ class RumikaAccess
             'settings.records' => 'registros',
             'settings.audit' => 'bitacora',
             'settings.users' => 'usuarios',
+            'hr.attendance' => 'recursos_humanos',
         ];
     }
 

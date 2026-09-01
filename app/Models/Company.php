@@ -237,6 +237,16 @@ class Company extends Model
         return $this->hasMany(ClinicalPatientAccess::class);
     }
 
+    public function staffSchedules(): HasMany
+    {
+        return $this->hasMany(StaffSchedule::class);
+    }
+
+    public function staffAttendanceRecords(): HasMany
+    {
+        return $this->hasMany(StaffAttendanceRecord::class);
+    }
+
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class)

@@ -105,4 +105,14 @@ class User extends Authenticatable
             ->withPivot(['assigned_at'])
             ->withTimestamps();
     }
+
+    public function staffSchedules(): HasMany
+    {
+        return $this->hasMany(StaffSchedule::class);
+    }
+
+    public function staffAttendanceRecords(): HasMany
+    {
+        return $this->hasMany(StaffAttendanceRecord::class);
+    }
 }
