@@ -377,8 +377,6 @@
         </span>
     </a>
 
-    <livewire:hr.attendance-punch />
-
     <form class="rm-side-logout" method="POST" action="{{ route('logout') }}">
         @csrf
         <button class="rm-side-link" type="submit">

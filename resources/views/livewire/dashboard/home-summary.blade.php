@@ -16,6 +16,10 @@
         </div>
     </div>
 
+    <div class="rm-dashboard-punch-strip">
+        <livewire:hr.attendance-punch />
+    </div>
+
     <section class="rm-dashboard-kpis" aria-label="Resumen por sucursal">
         <article>
             <span class="rm-kpi-icon is-agenda">

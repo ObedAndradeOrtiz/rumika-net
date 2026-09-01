@@ -340,6 +340,32 @@
     margin-top: 3px;
 }
 
+.rm-dashboard-punch-strip {
+    margin-top: -6px;
+    margin-bottom: 4px;
+    display: flex;
+    justify-content: flex-start;
+}
+
+.rm-dashboard-punch-strip .rm-staff-punch {
+    width: min(100%, 420px);
+    padding: 0;
+}
+
+.rm-dashboard-punch-strip .rm-staff-punch-button {
+    min-height: 72px;
+    border-color: #bfe7df;
+    background: linear-gradient(135deg, #ecfdf8 0%, #ffffff 72%);
+}
+
+.rm-dashboard-punch-strip .rm-staff-punch-button strong {
+    font-size: 15px;
+}
+
+.rm-dashboard-punch-strip .rm-staff-punch-button small {
+    font-size: 12px;
+}
+
 @media (max-width: 900px) {
     .rm-staff-punch {
         padding: 8px 34px 0;
@@ -381,6 +407,21 @@
     .rm-hr-record-head,
     .rm-hr-record-row {
         min-width: 760px;
+    }
+
+    .rm-dashboard-punch-strip {
+        margin-top: -8px;
+        padding: 0 2px;
+    }
+
+    .rm-dashboard-punch-strip .rm-staff-punch {
+        width: 100%;
+        padding: 0;
+    }
+
+    .rm-dashboard-punch-strip .rm-staff-punch-button {
+        min-height: 66px;
+        border-radius: 18px;
     }
 }
 
