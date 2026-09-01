@@ -227,6 +227,12 @@
                     <small>Si cambia de IP o inicia una nueva sesion, Rumika pedira validar el rostro con camara. La primera vez registrara la huella facial del usuario.</small>
                 </label>
 
+                <label class="rm-check-option">
+                    <input wire:model="userTracksAttendance" type="checkbox">
+                    <span>Debe registrar asistencia</span>
+                    <small>Activa el boton de entrada y salida en Inicio. Usara rostro, ubicacion y radio de sucursal.</small>
+                </label>
+
                 <div class="rm-field">
                     <span>Sucursales o comercios</span>
                     <div class="rm-check-grid">

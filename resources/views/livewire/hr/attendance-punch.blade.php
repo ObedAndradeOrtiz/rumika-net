@@ -1,3 +1,4 @@
+@if ($enabled)
 <div class="rm-staff-punch">
     <button class="rm-staff-punch-button {{ $openRecord ? 'is-open' : '' }}" type="button" wire:click="openPunch">
         <span class="rm-staff-punch-icon">
@@ -76,3 +77,4 @@
         </section>
     @endif
 </div>
+@endif

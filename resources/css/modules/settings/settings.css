@@ -403,19 +403,20 @@
 .rm-dashboard-punch-strip {
     margin-top: -6px;
     margin-bottom: 4px;
-    display: flex;
-    justify-content: flex-start;
+    display: block;
 }
 
 .rm-dashboard-punch-strip .rm-staff-punch {
-    width: min(100%, 420px);
+    width: 100%;
     padding: 0;
 }
 
 .rm-dashboard-punch-strip .rm-staff-punch-button {
-    min-height: 72px;
+    min-height: 76px;
     border-color: #bfe7df;
     background: linear-gradient(135deg, #ecfdf8 0%, #ffffff 72%);
+    justify-content: flex-start;
+    padding: 14px 18px;
 }
 
 .rm-dashboard-punch-strip .rm-staff-punch-button strong {
@@ -494,6 +495,7 @@
     .rm-dashboard-punch-strip .rm-staff-punch-button {
         min-height: 66px;
         border-radius: 18px;
+        padding: 12px 14px;
     }
 }
 

@@ -16,9 +16,11 @@
         </div>
     </div>
 
-    <div class="rm-dashboard-punch-strip">
-        <livewire:hr.attendance-punch />
-    </div>
+    @if (auth()->user()?->tracks_attendance)
+        <div class="rm-dashboard-punch-strip">
+            <livewire:hr.attendance-punch />
+        </div>
+    @endif
 
     <section class="rm-dashboard-kpis" aria-label="Resumen por sucursal">
         <article>

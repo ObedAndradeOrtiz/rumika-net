@@ -42,6 +42,8 @@ class UserRoleManager extends Component
 
     public bool $userRequiresFaceVerification = false;
 
+    public bool $userTracksAttendance = false;
+
     public ?string $currentUserPhotoPath = null;
 
     public ?TemporaryUploadedFile $userPhoto = null;
@@ -127,6 +129,7 @@ class UserRoleManager extends Component
             'userPhoto' => ['nullable', 'image', 'max:2048'],
             'userStatus' => ['required', 'in:active,inactive'],
             'userRequiresFaceVerification' => ['boolean'],
+            'userTracksAttendance' => ['boolean'],
             'userRoleId' => ['required', Rule::exists('roles', 'id')->where('company_id', $company->id)],
             'userBranchIds' => ['required', 'array', 'min:1'],
             'userBranchIds.*' => [Rule::exists('branches', 'id')->where('company_id', $company->id)],
@@ -149,6 +152,7 @@ class UserRoleManager extends Component
             'email' => $validated['userEmail'],
             'status' => $validated['userStatus'],
             'requires_face_verification' => $validated['userRequiresFaceVerification'],
+            'tracks_attendance' => $validated['userTracksAttendance'],
         ]);
 
         if ($validated['userPassword']) {
@@ -237,6 +241,7 @@ class UserRoleManager extends Component
         $this->userPassword = '';
         $this->userStatus = $user->status ?? 'active';
         $this->userRequiresFaceVerification = (bool) $user->requires_face_verification;
+        $this->userTracksAttendance = (bool) $user->tracks_attendance;
         $this->currentUserPhotoPath = $user->profile_photo_path;
         $this->userBranchIds = $user->branches->pluck('id')->map(fn ($id) => (string) $id)->all();
         $this->userTransferBranchIds = DB::table('branch_transfer_permissions')
@@ -399,6 +404,7 @@ class UserRoleManager extends Component
         $this->reset(['editingUserId', 'userName', 'userEmail', 'userPassword', 'currentUserPhotoPath', 'userPhoto', 'userWhatsappChannelIds', 'userTransferBranchIds']);
         $this->userStatus = 'active';
         $this->userRequiresFaceVerification = false;
+        $this->userTracksAttendance = false;
         $this->userRoleId = $company->roles()->where('slug', 'recepcion')->value('id')
             ?? $company->roles()->oldest()->value('id');
         $this->userBranchIds = $company->branches()->pluck('id')->map(fn ($id) => (string) $id)->all();

@@ -27,6 +27,10 @@ class AttendancePunch extends Component
 
     public function openPunch(): void
     {
+        if (! $this->shouldTrackAttendance()) {
+            return;
+        }
+
         $this->resetErrorBag();
         $this->message = null;
         $this->showModal = true;
@@ -47,6 +51,12 @@ class AttendancePunch extends Component
 
         $user = Auth::user();
         $company = $this->company();
+
+        if (! $this->shouldTrackAttendance()) {
+            throw ValidationException::withMessages([
+                'attendance' => 'Este usuario no tiene activado el control de asistencia.',
+            ]);
+        }
 
         if (! $user?->face_descriptor) {
             throw ValidationException::withMessages([
@@ -132,6 +142,7 @@ class AttendancePunch extends Component
             ->first();
 
         return view('livewire.hr.attendance-punch', [
+            'enabled' => $this->shouldTrackAttendance(),
             'todayRecord' => $todayRecord,
             'openRecord' => $openRecord,
             'hasFace' => filled(Auth::user()?->face_descriptor),
@@ -141,6 +152,11 @@ class AttendancePunch extends Component
                 ->whereNotNull('attendance_longitude')
                 ->exists(),
         ]);
+    }
+
+    private function shouldTrackAttendance(): bool
+    {
+        return (bool) Auth::user()?->tracks_attendance;
     }
 
     private function company(): Company
