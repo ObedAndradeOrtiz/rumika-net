@@ -151,6 +151,7 @@ class RumikaAccess
             'finance.expenses' => 'gastos',
             'finance.summary' => 'resumen_financiero',
             'statistics.index' => 'estadisticas',
+            'settings.booking' => 'agenda',
             'settings.commerce' => 'sucursales',
             'settings.services' => 'servicios',
             'settings.records' => 'registros',

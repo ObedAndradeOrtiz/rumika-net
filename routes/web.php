@@ -68,6 +68,10 @@ Route::view('configuracion/mi-sistema', 'settings.system')
     ->middleware(['auth', 'verified', 'rumika.onboarding', 'rumika.face', 'rumika.attendance'])
     ->name('settings.system');
 
+Route::view('configuracion/reservas-online', 'settings.booking')
+    ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.attendance', 'rumika.permission:agenda'])
+    ->name('settings.booking');
+
 Route::view('agenda', 'clinic.agenda')
     ->middleware(['auth', 'verified', 'rumika.subscription', 'rumika.onboarding', 'rumika.face', 'rumika.attendance', 'rumika.permission:agenda'])
     ->name('clinic.agenda');

@@ -77,7 +77,7 @@
         @endif
 
         @if ($sidebarCanSeeAgenda || $sidebarCanSeeClients || $sidebarCanSeeClinicalHistory || $sidebarCanSeeProductSales)
-        <details class="rm-menu-group" {{ in_array($active, ['agenda', 'clients', 'clinical-history', 'product-sales'], true) ? 'open' : '' }}>
+        <details class="rm-menu-group" {{ in_array($active, ['agenda', 'booking', 'clients', 'clinical-history', 'product-sales'], true) ? 'open' : '' }}>
             <summary>
                 <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     stroke-width="2.2">
@@ -97,6 +97,11 @@
                     href="{{ route('clinic.agenda') }}">
                     <i aria-hidden="true"></i>
                     <span data-sidebar-label>Agenda</span>
+                </a>
+                <a class="rm-side-link rm-side-sub-link {{ $active === 'booking' ? 'is-active' : '' }}"
+                    href="{{ route('settings.booking') }}">
+                    <i aria-hidden="true"></i>
+                    <span data-sidebar-label>Reservas online</span>
                 </a>
                 @endif
                 @if ($sidebarCanSeeClients)
@@ -452,8 +457,8 @@
             </button>
         </div>
         <div class="rm-mobile-more-scroll">
-            @if ($sidebarCanSeeClinicalHistory || $sidebarCanSeeProductSales)
-            <details class="rm-mobile-menu-group" {{ in_array($active, ['clinical-history', 'product-sales'], true) ? 'open' : '' }}>
+            @if ($sidebarCanSeeAgenda || $sidebarCanSeeClinicalHistory || $sidebarCanSeeProductSales)
+            <details class="rm-mobile-menu-group" {{ in_array($active, ['booking', 'clinical-history', 'product-sales'], true) ? 'open' : '' }}>
                 <summary>
                     <span>Gestion de clientes</span>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -462,6 +467,9 @@
                     </svg>
                 </summary>
                 <div>
+                    @if ($sidebarCanSeeAgenda)
+                    <a href="{{ route('settings.booking') }}">Reservas online</a>
+                    @endif
                     @if ($sidebarCanSeeProductSales)
                     <a href="{{ route('sales.products') }}">Ventas</a>
                     @endif

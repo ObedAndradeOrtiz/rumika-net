@@ -63,7 +63,7 @@ class PublicBookingPage extends Component
         $this->selectedBranchId = $branch?->id
             ? (string) $branch->id
             : (string) ($company->branches()->where('status', 'active')->orderBy('name')->value('id') ?? '');
-        $this->selectedDate = now()->addDay()->toDateString();
+        $this->selectedDate = now()->addDays(max(0, (int) $this->page->min_days_ahead))->toDateString();
         $this->phoneCountry = $company->branches()->whereKey($this->selectedBranchId)->value('country_code') ?? 'BO';
     }
 
@@ -124,16 +124,19 @@ class PublicBookingPage extends Component
         $branchIds = $company->branches()->where('status', 'active')->pluck('id')->all();
         $serviceIds = $company->services()->where('status', 'active')->pluck('id')->all();
 
+        $minDate = now()->addDays(max(0, (int) $this->page->min_days_ahead))->toDateString();
+        $maxDate = now()->addDays(max(1, (int) $this->page->max_days_ahead))->toDateString();
+
         $validated = $this->validate([
             'selectedBranchId' => ['required', Rule::in($branchIds)],
             'selectedServiceId' => ['required', Rule::in($serviceIds)],
-            'selectedDate' => ['required', 'date', 'after_or_equal:today'],
+            'selectedDate' => ['required', 'date', 'after_or_equal:'.$minDate, 'before_or_equal:'.$maxDate],
             'selectedTime' => ['required', 'date_format:H:i'],
             'phone' => ['required', 'string', 'max:30'],
             'clientName' => [$this->clientId ? 'nullable' : 'required', 'string', 'max:160'],
             'clientAge' => ['nullable', 'integer', 'min:1', 'max:120'],
-            'clientIdentity' => ['nullable', 'string', 'max:40'],
-            'clientEmail' => ['nullable', 'email', 'max:120'],
+            'clientIdentity' => [$this->page->require_identity ? 'required' : 'nullable', 'string', 'max:40'],
+            'clientEmail' => [$this->page->require_email ? 'required' : 'nullable', 'email', 'max:120'],
         ]);
 
         $normalizedPhone = PhoneNumber::normalize($validated['phone'], $this->phoneCountry);
@@ -252,6 +255,8 @@ class PublicBookingPage extends Component
             'branches' => $branches,
             'services' => $services,
             'slots' => $this->availableSlots(),
+            'minDate' => now()->addDays(max(0, (int) $this->page->min_days_ahead))->toDateString(),
+            'maxDate' => now()->addDays(max(1, (int) $this->page->max_days_ahead))->toDateString(),
         ])->layout('layouts.public-booking');
     }
 }

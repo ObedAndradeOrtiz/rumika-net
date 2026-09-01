@@ -7,11 +7,13 @@
     style="--booking-primary: {{ $page->primary_color }}; --booking-accent: {{ $page->accent_color }}; --booking-bg: {{ $page->background_color }}; --booking-font: {{ $page->font_family }}, Figtree, sans-serif; {{ $backgroundImage ? '--booking-image: url('.$backgroundImage.');' : '' }}">
     <section class="rm-booking-card">
         <header class="rm-booking-hero">
+            @if ($page->show_company_logo)
             <span class="rm-booking-logo">
                 <img src="{{ $logo }}" alt="{{ $company->name }}">
             </span>
+            @endif
             <div>
-                <small>{{ $company->name }}</small>
+                <small>{{ $page->hero_label ?: $company->name }}</small>
                 <h1>{{ $page->title ?: 'Agenda tu cita' }}</h1>
                 <p>{{ $page->subtitle ?: 'Elige tratamiento y horario disponible.' }}</p>
             </div>
@@ -21,6 +23,7 @@
             <div class="rm-booking-success">
                 <span>Listo</span>
                 <h2>Tu cita fue agendada</h2>
+                <p>{{ $page->success_message ?: 'Tu cita fue agendada correctamente.' }}</p>
                 <p>Te esperamos el {{ \Carbon\Carbon::parse($selectedDate.' '.$selectedTime)->format('d/m/Y H:i') }}. Si necesitas cambiarla, comunicate con la sucursal.</p>
                 <strong>{{ $clientName ?: 'Cliente registrado' }}</strong>
             </div>
@@ -70,13 +73,13 @@
                             @error('clientAge') <small>{{ $message }}</small> @enderror
                         </label>
                         <label>
-                            <span>CI / NIT</span>
-                            <input type="text" wire:model="clientIdentity" placeholder="Opcional">
+                            <span>CI / NIT{{ $page->require_identity ? '' : ' opcional' }}</span>
+                            <input type="text" wire:model="clientIdentity" placeholder="{{ $page->require_identity ? 'Requerido' : 'Opcional' }}">
                             @error('clientIdentity') <small>{{ $message }}</small> @enderror
                         </label>
                         <label>
-                            <span>Email</span>
-                            <input type="email" wire:model="clientEmail" placeholder="Opcional">
+                            <span>Email{{ $page->require_email ? '' : ' opcional' }}</span>
+                            <input type="email" wire:model="clientEmail" placeholder="{{ $page->require_email ? 'Requerido' : 'Opcional' }}">
                             @error('clientEmail') <small>{{ $message }}</small> @enderror
                         </label>
                     </div>
@@ -100,13 +103,23 @@
                         </select>
                         @error('selectedBranchId') <small>{{ $message }}</small> @enderror
                     </label>
+                    @if ($page->show_branch_cards && $branches->count() > 1)
+                        <div class="rm-booking-branch-picker">
+                            @foreach ($branches as $branch)
+                                <button type="button" wire:click="$set('selectedBranchId', '{{ $branch->id }}')" class="{{ (string) $selectedBranchId === (string) $branch->id ? 'is-selected' : '' }}">
+                                    <strong>{{ $branch->name }}</strong>
+                                    <span>{{ $branch->address ?: 'Sucursal disponible' }}</span>
+                                </button>
+                            @endforeach
+                        </div>
+                    @endif
                     <label>
                         <span>Tratamiento</span>
                         <select wire:model.live="selectedServiceId">
                             <option value="">Seleccionar</option>
                             @foreach ($services as $service)
                                 <option value="{{ $service->id }}">
-                                    {{ $service->name }}{{ $page->show_prices ? ' - Bs '.number_format((float) $service->price, 2) : '' }}
+                                    {{ $service->name }}{{ $page->show_service_duration && $service->duration_minutes ? ' - '.$service->duration_minutes.' min' : '' }}{{ $page->show_prices ? ' - Bs '.number_format((float) $service->price, 2) : '' }}
                                 </option>
                             @endforeach
                         </select>
@@ -114,7 +127,7 @@
                     </label>
                     <label>
                         <span>Fecha</span>
-                        <input type="date" wire:model.live="selectedDate" min="{{ now()->toDateString() }}">
+                        <input type="date" wire:model.live="selectedDate" min="{{ $minDate }}" max="{{ $maxDate }}">
                         @error('selectedDate') <small>{{ $message }}</small> @enderror
                     </label>
                 </div>
@@ -139,7 +152,7 @@
                 </div>
                 @error('selectedTime') <small class="rm-booking-error">{{ $message }}</small> @enderror
 
-                <button class="rm-booking-submit" type="submit" @disabled(! $clientChecked)>Agendar cita</button>
+                <button class="rm-booking-submit" type="submit" @disabled(! $clientChecked)>{{ $page->button_label ?: 'Agendar cita' }}</button>
             </form>
         @endif
     </section>
