@@ -916,6 +916,89 @@
     min-height: 84px;
 }
 
+.rm-system-brand-panel {
+    display: grid;
+    gap: 16px;
+}
+
+.rm-system-brand-panel .rm-panel-title {
+    align-items: flex-start;
+}
+
+.rm-system-brand-panel .rm-panel-title p {
+    color: var(--rumika-muted);
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.4;
+    margin: 0;
+    max-width: 420px;
+}
+
+.rm-system-brand-form {
+    align-items: end;
+    display: grid;
+    grid-template-columns: minmax(230px, .8fr) minmax(360px, 1fr) auto;
+    gap: 14px;
+}
+
+.rm-system-brand-preview {
+    align-items: center;
+    background: #f8fafc;
+    border: 1px solid #dbe7f3;
+    border-radius: 18px;
+    display: flex;
+    gap: 12px;
+    min-width: 0;
+    padding: 12px;
+}
+
+.rm-system-brand-logo {
+    align-items: center;
+    background: linear-gradient(135deg, var(--rumika-teal), var(--rumika-teal-dark));
+    border-radius: 16px;
+    color: #fff;
+    display: inline-flex;
+    flex: 0 0 auto;
+    height: 54px;
+    justify-content: center;
+    overflow: hidden;
+    width: 54px;
+}
+
+.rm-system-brand-logo img {
+    height: 100%;
+    object-fit: cover;
+    width: 100%;
+}
+
+.rm-system-brand-preview strong,
+.rm-system-brand-preview small {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rm-system-brand-preview strong {
+    color: var(--rumika-ink);
+    font-size: 17px;
+    font-weight: 950;
+}
+
+.rm-system-brand-preview small {
+    color: var(--rumika-muted);
+    font-size: 12px;
+    font-weight: 800;
+    margin-top: 3px;
+}
+
+.rm-system-brand-fields {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .rm-system-usage-grid,
 .rm-system-plan-grid {
     display: grid;
@@ -1061,6 +1144,14 @@
     .rm-system-plan-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+
+    .rm-system-brand-form {
+        grid-template-columns: 1fr;
+    }
+
+    .rm-system-brand-fields {
+        grid-template-columns: 1fr;
+    }
 }
 
 @media (max-width: 700px) {
@@ -1082,6 +1173,21 @@
     .rm-system-payment-list article {
         align-items: start;
         display: grid;
+    }
+
+    .rm-system-brand-panel .rm-panel-title {
+        display: grid;
+    }
+
+    .rm-system-brand-preview {
+        border-radius: 16px;
+        padding: 10px;
+    }
+
+    .rm-system-brand-logo {
+        border-radius: 14px;
+        height: 48px;
+        width: 48px;
     }
 }
 

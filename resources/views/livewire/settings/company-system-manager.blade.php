@@ -39,6 +39,57 @@
         </article>
     </section>
 
+    <section class="rm-panel rm-system-brand-panel">
+        <div class="rm-panel-title">
+            <div>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <path d="M12 3 4 7v10l8 4 8-4V7l-8-4Z" />
+                    <path d="M12 12 4 7M12 12l8-5M12 12v9" />
+                </svg>
+                <h2>Marca del cliente</h2>
+            </div>
+            <p>Personaliza el nombre y logo que vera tu equipo dentro del sistema.</p>
+        </div>
+
+        <form wire:submit="saveBrand" class="rm-system-brand-form">
+            <div class="rm-system-brand-preview">
+                <span class="rm-system-brand-logo">
+                    @if ($companyLogo)
+                        <img src="{{ $companyLogo->temporaryUrl() }}" alt="Logo temporal">
+                    @elseif ($currentCompanyLogoPath)
+                        <img src="{{ asset('storage/'.$currentCompanyLogoPath) }}" alt="{{ $companyName }}">
+                    @else
+                        <x-application-logo class="h-7 w-7 text-white" />
+                    @endif
+                </span>
+                <div>
+                    <strong>{{ $companyName ?: 'Nombre de la empresa' }}</strong>
+                    <small>{{ $companyLegalName ?: 'Logo y nombre para el panel interno' }}</small>
+                </div>
+            </div>
+
+            <div class="rm-system-brand-fields">
+                <label class="rm-field">
+                    <span>Nombre comercial</span>
+                    <input type="text" wire:model="companyName" placeholder="Nombre visible en Rumika">
+                    @error('companyName') <small>{{ $message }}</small> @enderror
+                </label>
+                <label class="rm-field">
+                    <span>Razon social</span>
+                    <input type="text" wire:model="companyLegalName" placeholder="Opcional">
+                    @error('companyLegalName') <small>{{ $message }}</small> @enderror
+                </label>
+                <label class="rm-field">
+                    <span>Logo</span>
+                    <input type="file" wire:model="companyLogo" accept="image/*">
+                    @error('companyLogo') <small>{{ $message }}</small> @enderror
+                </label>
+            </div>
+
+            <button class="rm-button rm-button-primary" type="submit">Guardar marca</button>
+        </form>
+    </section>
+
     <section class="rm-panel">
         <div class="rm-panel-title">
             <div>

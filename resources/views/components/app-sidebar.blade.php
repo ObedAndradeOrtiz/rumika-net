@@ -42,14 +42,19 @@
         : false;
     $sidebarCanSeeSystem = in_array($sidebarCompanyRole, \App\Support\RumikaAccess::ADMIN_ROLES, true)
         || $sidebarHasAdminBranchRole;
+    $sidebarBrandName = $sidebarNavCompany?->name ?: 'Rumika';
 @endphp
 
 <aside class="rm-side">
     <div class="rm-side-brand">
         <span class="rm-brand-mark">
-            <x-application-logo class="h-7 w-7 text-white" />
+            @if ($sidebarNavCompany?->logo_path)
+                <img src="{{ asset('storage/'.$sidebarNavCompany->logo_path) }}" alt="{{ $sidebarBrandName }}">
+            @else
+                <x-application-logo class="h-7 w-7 text-white" />
+            @endif
         </span>
-        <strong data-sidebar-label>Rumika</strong>
+        <strong data-sidebar-label>{{ $sidebarBrandName }}</strong>
         <button class="rm-side-toggle" type="button" data-sidebar-toggle aria-label="Contraer menu" aria-expanded="true">
             <svg class="rm-side-toggle-icon" width="18" height="18" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="2.4">

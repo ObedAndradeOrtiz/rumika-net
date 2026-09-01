@@ -40,7 +40,21 @@
 .rm-side-brand strong {
     font-size: 25px;
     font-weight: 950;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.rm-side-brand .rm-brand-mark {
+    flex: 0 0 auto;
+    overflow: hidden;
+}
+
+.rm-side-brand .rm-brand-mark img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .rm-side-toggle {

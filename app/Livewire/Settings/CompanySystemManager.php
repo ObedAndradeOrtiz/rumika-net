@@ -7,16 +7,30 @@ use App\Models\CompanyPlan;
 use App\Support\CompanyPlanLimits;
 use App\Support\RumikaAccess;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 class CompanySystemManager extends Component
 {
+    use WithFileUploads;
+
     public ?string $requestedPlanSlug = null;
+
+    public string $companyName = '';
+
+    public string $companyLegalName = '';
+
+    public string $currentCompanyLogoPath = '';
+
+    public $companyLogo = null;
 
     public function mount(): void
     {
         abort_unless($this->isCompanyAdmin(), 403);
+
+        $this->loadBrandForm();
     }
 
     public function requestPlan(string $slug): void
@@ -33,6 +47,34 @@ class CompanySystemManager extends Component
     public function closeRequest(): void
     {
         $this->requestedPlanSlug = null;
+    }
+
+    public function saveBrand(): void
+    {
+        $company = $this->company();
+
+        $validated = $this->validate([
+            'companyName' => ['required', 'string', 'max:120'],
+            'companyLegalName' => ['nullable', 'string', 'max:160'],
+            'companyLogo' => ['nullable', 'image', 'max:2048'],
+        ]);
+
+        $company->name = trim($validated['companyName']);
+        $company->legal_name = trim((string) $validated['companyLegalName']) ?: null;
+
+        if ($this->companyLogo) {
+            if ($company->logo_path) {
+                Storage::disk('public')->delete($company->logo_path);
+            }
+
+            $company->logo_path = $this->companyLogo->store('company-logos', 'public');
+        }
+
+        $company->save();
+
+        $this->reset('companyLogo');
+        $this->loadBrandForm();
+        $this->dispatch('company-brand-saved');
     }
 
     public function render()
@@ -61,6 +103,15 @@ class CompanySystemManager extends Component
     private function company(): Company
     {
         return Auth::user()->companies()->with('plan')->firstOrFail();
+    }
+
+    private function loadBrandForm(): void
+    {
+        $company = $this->company();
+
+        $this->companyName = $company->name;
+        $this->companyLegalName = $company->legal_name ?? '';
+        $this->currentCompanyLogoPath = $company->logo_path ?? '';
     }
 
     private function isCompanyAdmin(): bool
