@@ -85,6 +85,9 @@ class CommerceManager extends Component
     public function save(): void
     {
         $company = $this->company();
+        $this->attendanceLatitude = str_replace(',', '.', trim($this->attendanceLatitude));
+        $this->attendanceLongitude = str_replace(',', '.', trim($this->attendanceLongitude));
+        $this->attendanceRadiusMeters = trim($this->attendanceRadiusMeters);
 
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:120'],

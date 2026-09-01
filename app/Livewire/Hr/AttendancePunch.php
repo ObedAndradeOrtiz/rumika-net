@@ -5,6 +5,7 @@ namespace App\Livewire\Hr;
 use App\Models\Branch;
 use App\Models\Company;
 use App\Models\StaffAttendanceRecord;
+use App\Support\StaffAttendanceGate;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -153,11 +154,7 @@ class AttendancePunch extends Component
             'todayRecord' => $todayRecord,
             'openRecord' => $openRecord,
             'hasFace' => filled(Auth::user()?->face_descriptor),
-            'hasGeofence' => $company->branches()
-                ->where('status', 'active')
-                ->whereNotNull('attendance_latitude')
-                ->whereNotNull('attendance_longitude')
-                ->exists(),
+            'hasGeofence' => StaffAttendanceGate::hasConfiguredGeofence($company),
         ]);
     }
 

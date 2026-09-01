@@ -189,12 +189,12 @@
                     <div class="rm-form-row">
                         <label class="rm-field">
                             <span>Latitud</span>
-                            <input wire:model="attendanceLatitude" data-branch-latitude type="number" step="0.0000001" placeholder="-17.783327">
+                            <input wire:model="attendanceLatitude" data-branch-latitude type="text" inputmode="decimal" placeholder="-17.783327">
                             @error('attendanceLatitude') <small>{{ $message }}</small> @enderror
                         </label>
                         <label class="rm-field">
                             <span>Longitud</span>
-                            <input wire:model="attendanceLongitude" data-branch-longitude type="number" step="0.0000001" placeholder="-63.182140">
+                            <input wire:model="attendanceLongitude" data-branch-longitude type="text" inputmode="decimal" placeholder="-63.182140">
                             @error('attendanceLongitude') <small>{{ $message }}</small> @enderror
                         </label>
                         <label class="rm-field">

@@ -19,7 +19,7 @@ class StaffAttendanceGate
         $company ??= $user->companies()->first();
         $now ??= now();
 
-        if (! $company || ! self::isExpectedWorkday($user, $company, $now)) {
+        if (! $company || self::isAdminUser($user, $company) || ! self::hasConfiguredGeofence($company) || ! self::isExpectedWorkday($user, $company, $now)) {
             return false;
         }
 
@@ -35,6 +35,32 @@ class StaffAttendanceGate
             ->where('user_id', $user->id)
             ->whereDate('work_date', $now->toDateString())
             ->where('status', 'open')
+            ->exists();
+    }
+
+    public static function hasConfiguredGeofence(Company $company): bool
+    {
+        return $company->branches()
+            ->where('status', 'active')
+            ->whereNotNull('attendance_latitude')
+            ->whereNotNull('attendance_longitude')
+            ->exists();
+    }
+
+    public static function isAdminUser(User $user, Company $company): bool
+    {
+        $companyRole = $user->companies()
+            ->where('companies.id', $company->id)
+            ->value('company_user.role');
+
+        if (in_array($companyRole, RumikaAccess::ADMIN_ROLES, true)) {
+            return true;
+        }
+
+        return $user->branches()
+            ->where('branches.company_id', $company->id)
+            ->leftJoin('roles', 'roles.id', '=', 'branch_user.role_id')
+            ->whereIn('roles.slug', RumikaAccess::ADMIN_ROLES)
             ->exists();
     }
 

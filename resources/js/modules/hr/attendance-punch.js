@@ -40,6 +40,29 @@ const setStatus = (root, message) => {
     }
 };
 
+const setButtonBusy = (button, busy, label = 'Validando...') => {
+    if (!button) {
+        return;
+    }
+
+    if (busy) {
+        if (!button.dataset.originalText) {
+            button.dataset.originalText = button.textContent.trim();
+        }
+
+        button.textContent = label;
+        button.setAttribute('disabled', 'disabled');
+        return;
+    }
+
+    if (button.dataset.originalText) {
+        button.textContent = button.dataset.originalText;
+        delete button.dataset.originalText;
+    }
+
+    button.removeAttribute('disabled');
+};
+
 const getLocation = () => new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
         reject(new Error('Este navegador no permite leer ubicacion.'));
@@ -269,17 +292,30 @@ const captureAttendance = async (root) => {
     const video = root.querySelector('[data-attendance-video]');
     const button = root.querySelector('[data-attendance-capture]');
 
+    if (root.classList.contains('is-reading')) {
+        return;
+    }
+
     if (!video?.srcObject) {
         await startCamera(root);
     }
 
-    button?.setAttribute('disabled', 'disabled');
+    setButtonBusy(button, true, 'Validando...');
     root.classList.add('is-reading');
 
     try {
         setStatus(root, 'Leyendo ubicacion y preparando validacion...');
         const [faceapi, location] = await Promise.all([loadModels(), getLocation()]);
+
+        if (!faceapi) {
+            throw new Error('No se pudo cargar la validacion facial. Recarga la pagina e intenta de nuevo.');
+        }
+
         const imageData = captureImage(root);
+
+        if (!imageData) {
+            throw new Error('La camara aun no esta lista. Espera unos segundos e intenta de nuevo.');
+        }
 
         setStatus(root, 'Rumi esta revisando tu rostro...');
         const detection = await faceapi
@@ -300,6 +336,7 @@ const captureAttendance = async (root) => {
         }
 
         setStatus(root, 'Validando asistencia...');
+        setButtonBusy(button, true, 'Guardando...');
         await component.call(
             'submitPunch',
             JSON.stringify(Array.from(detection.descriptor)),
@@ -312,7 +349,7 @@ const captureAttendance = async (root) => {
         stopCamera(root);
     } finally {
         root.classList.remove('is-reading');
-        button?.removeAttribute('disabled');
+        setButtonBusy(button, false);
     }
 };
 
