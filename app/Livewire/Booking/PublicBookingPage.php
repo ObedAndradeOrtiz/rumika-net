@@ -123,6 +123,11 @@ class PublicBookingPage extends Component
 
     public function book(): void
     {
+        if (! $this->canBook()) {
+            $this->addError('selectedTime', 'Completa tus datos, tratamiento, fecha y horario para agendar.');
+            return;
+        }
+
         if (! $this->clientChecked) {
             $this->addError('phone', 'Primero valida tu numero para continuar.');
             return;
@@ -246,6 +251,31 @@ class PublicBookingPage extends Component
         return $slots;
     }
 
+    public function canBook(): bool
+    {
+        if (! $this->clientChecked || ! $this->selectedBranchId || ! $this->selectedServiceId || ! $this->selectedDate || ! $this->selectedTime) {
+            return false;
+        }
+
+        if (! in_array($this->selectedTime, $this->availableSlots(), true)) {
+            return false;
+        }
+
+        if (! $this->clientId && trim($this->clientName) === '') {
+            return false;
+        }
+
+        if ($this->page->require_identity && trim($this->clientIdentity) === '') {
+            return false;
+        }
+
+        if ($this->page->require_email && trim($this->clientEmail) === '') {
+            return false;
+        }
+
+        return true;
+    }
+
     public function render()
     {
         $company = $this->page->company;
@@ -269,6 +299,7 @@ class PublicBookingPage extends Component
             'promotedServices' => $this->promotedServices(),
             'publicPromotionalPrices' => $this->publicPromotionalPrices(),
             'slots' => $this->availableSlots(),
+            'canBook' => $this->canBook(),
             'minDate' => now()->addDays(max(0, (int) $this->page->min_days_ahead))->toDateString(),
             'maxDate' => now()->addDays(max(1, (int) $this->page->max_days_ahead))->toDateString(),
         ])->layout('layouts.public-booking');

@@ -157,8 +157,8 @@
 
                 <div class="rm-booking-slots">
                     @forelse ($slots as $slot)
-                        <label class="{{ $selectedTime === $slot ? 'is-selected' : '' }}">
-                            <input type="radio" wire:model="selectedTime" value="{{ $slot }}">
+                        <label wire:key="booking-slot-{{ $slot }}" class="{{ $selectedTime === $slot ? 'is-selected' : '' }}">
+                            <input type="radio" wire:model.live="selectedTime" value="{{ $slot }}">
                             <span>{{ $slot }}</span>
                         </label>
                     @empty
@@ -167,7 +167,7 @@
                 </div>
                 @error('selectedTime') <small class="rm-booking-error">{{ $message }}</small> @enderror
 
-                <button class="rm-booking-submit" type="submit" @disabled(! $clientChecked)>{{ $page->button_label ?: 'Agendar cita' }}</button>
+                <button class="rm-booking-submit" type="submit" @disabled(! $canBook)>{{ $page->button_label ?: 'Agendar cita' }}</button>
             </form>
         @endif
     </section>
