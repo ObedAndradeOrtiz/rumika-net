@@ -222,14 +222,14 @@ class PublicBookingPage extends Component
         $slots = [];
         for ($cursor = $start->copy(); $cursor->copy()->addMinutes($duration)->lte($end); $cursor->addMinutes($interval)) {
             $slotEnd = $cursor->copy()->addMinutes($duration);
-            $overlaps = $existing->contains(function (Appointment $appointment) use ($cursor, $slotEnd) {
+            $overlaps = $existing->filter(function (Appointment $appointment) use ($cursor, $slotEnd) {
                 $appointmentStart = $appointment->scheduled_at;
                 $appointmentEnd = $appointmentStart->copy()->addMinutes($appointment->duration_minutes ?: 60);
 
                 return $cursor->lt($appointmentEnd) && $slotEnd->gt($appointmentStart);
-            });
+            })->count();
 
-            if (! $overlaps && $cursor->isFuture()) {
+            if ($overlaps < max(1, (int) $this->page->max_appointments_per_slot) && $cursor->isFuture()) {
                 $slots[] = $cursor->format('H:i');
             }
         }
@@ -243,10 +243,6 @@ class PublicBookingPage extends Component
         $branches = $company->branches()->where('status', 'active')->orderBy('name')->get();
         $services = $company->services()
             ->where('status', 'active')
-            ->where(function ($query) {
-                $query->whereNull('branch_id')
-                    ->orWhere('branch_id', (int) $this->selectedBranchId);
-            })
             ->orderBy('name')
             ->get();
 

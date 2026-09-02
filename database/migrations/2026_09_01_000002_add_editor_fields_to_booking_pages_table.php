@@ -25,6 +25,10 @@ return new class extends Migration
                 $table->unsignedSmallInteger('min_days_ahead')->default(0)->after('default_duration_minutes');
             }
 
+            if (! Schema::hasColumn('booking_pages', 'max_appointments_per_slot')) {
+                $table->unsignedSmallInteger('max_appointments_per_slot')->default(1)->after('slot_interval_minutes');
+            }
+
             if (! Schema::hasColumn('booking_pages', 'max_days_ahead')) {
                 $table->unsignedSmallInteger('max_days_ahead')->default(30)->after('min_days_ahead');
             }
@@ -61,6 +65,7 @@ return new class extends Migration
             'show_branch_cards',
             'max_days_ahead',
             'min_days_ahead',
+            'max_appointments_per_slot',
             'success_message',
             'button_label',
             'hero_label',

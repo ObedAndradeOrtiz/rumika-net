@@ -32,6 +32,7 @@ class BookingPageManager extends Component
     public string $bookingAvailableFrom = '09:00';
     public string $bookingAvailableTo = '18:00';
     public string $bookingSlotIntervalMinutes = '30';
+    public string $bookingMaxAppointmentsPerSlot = '1';
     public string $bookingDefaultDurationMinutes = '60';
     public string $bookingMinDaysAhead = '0';
     public string $bookingMaxDaysAhead = '30';
@@ -97,6 +98,7 @@ class BookingPageManager extends Component
             'bookingAvailableFrom' => ['required', 'date_format:H:i'],
             'bookingAvailableTo' => ['required', 'date_format:H:i', 'after:bookingAvailableFrom'],
             'bookingSlotIntervalMinutes' => ['required', 'integer', 'min:10', 'max:120'],
+            'bookingMaxAppointmentsPerSlot' => ['required', 'integer', 'min:1', 'max:50'],
             'bookingDefaultDurationMinutes' => ['required', 'integer', 'min:10', 'max:480'],
             'bookingMinDaysAhead' => ['required', 'integer', 'min:0', 'max:365'],
             'bookingMaxDaysAhead' => ['required', 'integer', 'min:1', 'max:365'],
@@ -133,6 +135,7 @@ class BookingPageManager extends Component
             'available_from' => $validated['bookingAvailableFrom'],
             'available_to' => $validated['bookingAvailableTo'],
             'slot_interval_minutes' => (int) $validated['bookingSlotIntervalMinutes'],
+            'max_appointments_per_slot' => (int) $validated['bookingMaxAppointmentsPerSlot'],
             'default_duration_minutes' => (int) $validated['bookingDefaultDurationMinutes'],
             'min_days_ahead' => (int) $validated['bookingMinDaysAhead'],
             'max_days_ahead' => (int) $validated['bookingMaxDaysAhead'],
@@ -196,6 +199,7 @@ class BookingPageManager extends Component
         $this->bookingAvailableFrom = $page?->available_from ? substr((string) $page->available_from, 0, 5) : '09:00';
         $this->bookingAvailableTo = $page?->available_to ? substr((string) $page->available_to, 0, 5) : '18:00';
         $this->bookingSlotIntervalMinutes = (string) ($page?->slot_interval_minutes ?? 30);
+        $this->bookingMaxAppointmentsPerSlot = (string) ($page?->max_appointments_per_slot ?? 1);
         $this->bookingDefaultDurationMinutes = (string) ($page?->default_duration_minutes ?? 60);
         $this->bookingMinDaysAhead = (string) ($page?->min_days_ahead ?? 0);
         $this->bookingMaxDaysAhead = (string) ($page?->max_days_ahead ?? 30);

@@ -26,6 +26,7 @@ class BookingPage extends Model
         'available_from',
         'available_to',
         'slot_interval_minutes',
+        'max_appointments_per_slot',
         'default_duration_minutes',
         'min_days_ahead',
         'max_days_ahead',
@@ -42,6 +43,7 @@ class BookingPage extends Model
     {
         return [
             'slot_interval_minutes' => 'integer',
+            'max_appointments_per_slot' => 'integer',
             'default_duration_minutes' => 'integer',
             'min_days_ahead' => 'integer',
             'max_days_ahead' => 'integer',

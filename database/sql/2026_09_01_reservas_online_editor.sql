@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS booking_pages (
     available_from TIME NOT NULL DEFAULT '09:00:00',
     available_to TIME NOT NULL DEFAULT '18:00:00',
     slot_interval_minutes SMALLINT UNSIGNED NOT NULL DEFAULT 30,
+    max_appointments_per_slot SMALLINT UNSIGNED NOT NULL DEFAULT 1,
     default_duration_minutes SMALLINT UNSIGNED NOT NULL DEFAULT 60,
     min_days_ahead SMALLINT UNSIGNED NOT NULL DEFAULT 0,
     max_days_ahead SMALLINT UNSIGNED NOT NULL DEFAULT 30,
@@ -60,6 +61,7 @@ DELIMITER ;
 CALL rumika_add_booking_column('hero_label', 'hero_label VARCHAR(80) NULL AFTER subtitle');
 CALL rumika_add_booking_column('button_label', 'button_label VARCHAR(60) NULL AFTER hero_label');
 CALL rumika_add_booking_column('success_message', 'success_message VARCHAR(240) NULL AFTER button_label');
+CALL rumika_add_booking_column('max_appointments_per_slot', 'max_appointments_per_slot SMALLINT UNSIGNED NOT NULL DEFAULT 1 AFTER slot_interval_minutes');
 CALL rumika_add_booking_column('min_days_ahead', 'min_days_ahead SMALLINT UNSIGNED NOT NULL DEFAULT 0 AFTER default_duration_minutes');
 CALL rumika_add_booking_column('max_days_ahead', 'max_days_ahead SMALLINT UNSIGNED NOT NULL DEFAULT 30 AFTER min_days_ahead');
 CALL rumika_add_booking_column('show_branch_cards', 'show_branch_cards TINYINT(1) NOT NULL DEFAULT 1 AFTER show_prices');

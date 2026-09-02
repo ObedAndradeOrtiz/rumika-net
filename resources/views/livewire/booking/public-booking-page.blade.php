@@ -103,16 +103,6 @@
                         </select>
                         @error('selectedBranchId') <small>{{ $message }}</small> @enderror
                     </label>
-                    @if ($page->show_branch_cards && $branches->count() > 1)
-                        <div class="rm-booking-branch-picker">
-                            @foreach ($branches as $branch)
-                                <button type="button" wire:click="$set('selectedBranchId', '{{ $branch->id }}')" class="{{ (string) $selectedBranchId === (string) $branch->id ? 'is-selected' : '' }}">
-                                    <strong>{{ $branch->name }}</strong>
-                                    <span>{{ $branch->address ?: 'Sucursal disponible' }}</span>
-                                </button>
-                            @endforeach
-                        </div>
-                    @endif
                     <label>
                         <span>Tratamiento</span>
                         <select wire:model.live="selectedServiceId">

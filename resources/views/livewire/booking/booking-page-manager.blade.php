@@ -148,7 +148,15 @@
                     </label>
                     <label class="rm-field">
                         <span>Intervalo</span>
-                        <input type="number" min="10" max="120" wire:model="bookingSlotIntervalMinutes">
+                        <select wire:model="bookingSlotIntervalMinutes">
+                            <option value="30">Cada 30 minutos</option>
+                            <option value="60">Cada 1 hora</option>
+                        </select>
+                    </label>
+                    <label class="rm-field">
+                        <span>Maximo por horario</span>
+                        <input type="number" min="1" max="50" wire:model="bookingMaxAppointmentsPerSlot">
+                        @error('bookingMaxAppointmentsPerSlot') <small>{{ $message }}</small> @enderror
                     </label>
                     <label class="rm-field">
                         <span>Duracion base</span>
@@ -168,7 +176,6 @@
                 <div class="rm-booking-switch-grid">
                     <label class="rm-checkline"><input type="checkbox" wire:model="bookingShowPrices"><span>Mostrar precios</span></label>
                     <label class="rm-checkline"><input type="checkbox" wire:model="bookingShowServiceDuration"><span>Mostrar duracion</span></label>
-                    <label class="rm-checkline"><input type="checkbox" wire:model="bookingShowBranchCards"><span>Mostrar tarjetas de sucursal</span></label>
                     <label class="rm-checkline"><input type="checkbox" wire:model="bookingShowCompanyLogo"><span>Mostrar logo</span></label>
                     <label class="rm-checkline"><input type="checkbox" wire:model="bookingRequireIdentity"><span>CI/NIT obligatorio</span></label>
                     <label class="rm-checkline"><input type="checkbox" wire:model="bookingRequireEmail"><span>Email obligatorio</span></label>
@@ -200,12 +207,10 @@
                 </div>
                 <p>{{ $bookingSubtitle ?: 'Elige tratamiento y horario disponible.' }}</p>
 
-                @if ($bookingShowBranchCards)
-                    <div class="rm-booking-preview-branch-card">
-                        <small>Sucursal</small>
-                        <strong>{{ $company->branches->first()?->name ?? 'Sucursal principal' }}</strong>
-                    </div>
-                @endif
+                <div class="rm-booking-preview-branch-card">
+                    <small>Sucursal</small>
+                    <strong>{{ $company->branches->first()?->name ?? 'Sucursal principal' }}</strong>
+                </div>
 
                 <div class="rm-booking-preview-services">
                     <small>Tratamientos visibles</small>
