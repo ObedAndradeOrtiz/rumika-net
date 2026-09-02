@@ -480,6 +480,7 @@ class CrmManager extends Component
             'scheduled_at' => $scheduledAt,
             'duration_minutes' => max(30, (int) $services->sum('duration_minutes')),
             'status' => 'scheduled',
+            'booking_source' => 'whatsapp',
             'attended' => false,
             'locked_by_payment' => false,
             'clinical_notes' => trim('Creada desde CRM WhatsApp. ' . ($validated['notes'] ?? '')),

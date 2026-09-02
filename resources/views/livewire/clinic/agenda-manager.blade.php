@@ -65,6 +65,17 @@
                 <span>Asistidos</span>
                 <strong>{{ $agendaStats['attended'] }}</strong>
             </div>
+            <div class="is-web">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2.3">
+                    <circle cx="12" cy="12" r="9" />
+                    <path d="M3 12h18" />
+                    <path d="M12 3a13 13 0 0 1 0 18" />
+                    <path d="M12 3a13 13 0 0 0 0 18" />
+                </svg>
+                <span>Por web</span>
+                <strong>{{ $agendaStats['web'] }}</strong>
+            </div>
             <div class="is-rescheduled">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     stroke-width="2.3">
@@ -136,6 +147,9 @@
                         </div>
                         <div class="rm-commerce-meta">
                             <span>{{ $this->appointmentStatusLabel($appointment->status) }}</span>
+                            <span class="rm-appointment-source is-{{ $appointment->booking_source ?? 'manual' }}">
+                                {{ $this->appointmentSourceLabel($appointment->booking_source ?? 'manual') }}
+                            </span>
                             @if ($appointment->attended)
                                 <span class="rm-attendance-chip is-attended">
                                     ✓ Asistió

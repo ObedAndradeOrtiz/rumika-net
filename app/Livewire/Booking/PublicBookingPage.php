@@ -195,6 +195,7 @@ class PublicBookingPage extends Component
                 'scheduled_at' => Carbon::parse($validated['selectedDate'].' '.$validated['selectedTime']),
                 'duration_minutes' => $duration,
                 'status' => 'scheduled',
+                'booking_source' => 'web',
                 'clinical_notes' => 'Cita creada desde enlace de reserva online.',
             ]);
 

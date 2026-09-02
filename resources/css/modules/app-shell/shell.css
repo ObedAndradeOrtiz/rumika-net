@@ -1071,7 +1071,7 @@
     align-items: center;
     display: grid;
     gap: 10px;
-    grid-template-columns: minmax(170px, 1.4fr) repeat(5, minmax(110px, 1fr));
+    grid-template-columns: minmax(170px, 1.4fr) repeat(6, minmax(100px, 1fr));
 }
 
 .rm-stat-table-head {
@@ -2348,7 +2348,7 @@
 
     .rm-stat-table-head,
     .rm-stat-table-row {
-        min-width: 820px;
+        min-width: 900px;
     }
 
     .rm-stat-annual-table .rm-stat-table-head,

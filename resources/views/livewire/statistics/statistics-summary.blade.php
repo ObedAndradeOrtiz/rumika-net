@@ -47,9 +47,11 @@
             </div>
             <div class="rm-stat-mini-grid">
                 <span><strong>{{ $attendance['scheduled'] }}</strong>Agendados</span>
+                <span><strong>{{ $attendance['web'] }}</strong>Por web</span>
                 <span><strong>{{ $attendance['attended'] }}</strong>Asistieron</span>
                 <span><strong>{{ $attendance['no_show'] }}</strong>No asistieron</span>
                 <span><strong>{{ $attendance['pending'] }}</strong>Pendientes</span>
+                <span><strong>{{ $attendance['whatsapp'] + $attendance['manual'] }}</strong>Internos</span>
             </div>
         </article>
 
@@ -100,6 +102,7 @@
             <div class="rm-stat-table-head">
                 <span>Sucursal</span>
                 <span>Agendados</span>
+                <span>Web</span>
                 <span>Asistidos</span>
                 <span>Ingresos</span>
                 <span>Egresos</span>
@@ -109,6 +112,7 @@
                 <article class="rm-stat-table-row">
                     <span><strong>{{ $row['name'] }}</strong><small>{{ $row['type'] }}</small></span>
                     <span>{{ $row['scheduled'] }}</span>
+                    <span>{{ $row['web'] }}</span>
                     <span>{{ $row['attended'] }} <small>{{ $row['rate'] }}%</small></span>
                     <span>{{ \App\Support\Money::symbol() }} {{ number_format((float) $row['income'], 2) }}</span>
                     <span>{{ \App\Support\Money::symbol() }} {{ number_format((float) $row['expenses'], 2) }}</span>
@@ -240,7 +244,7 @@
                     <article>
                         <span>{{ $row['date'] }}</span>
                         <div><i style="width: {{ min(100, ($row['scheduled'] / $maxValue) * 100) }}%"></i></div>
-                        <strong>{{ $row['attended'] }}/{{ $row['scheduled'] }}</strong>
+                        <strong>{{ $row['attended'] }}/{{ $row['scheduled'] }} · Web {{ $row['web'] }}</strong>
                     </article>
                 @endforeach
             </div>

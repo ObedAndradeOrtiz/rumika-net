@@ -293,6 +293,7 @@ class AgendaManager extends Component
                 'scheduled_at' => Carbon::parse($validated['scheduledDate'] . ' ' . $validated['scheduledTime']),
                 'duration_minutes' => $validated['durationMinutes'],
                 'status' => 'scheduled',
+                'booking_source' => 'manual',
                 'clinical_notes' => $validated['appointmentNotes'] ?: null,
             ]);
 
@@ -578,6 +579,7 @@ class AgendaManager extends Component
 
                     'duration_minutes' => $appointment->duration_minutes,
                     'status' => 'scheduled',
+                    'booking_source' => $appointment->booking_source ?? 'manual',
 
                     'clinical_notes' => 'Reagendada después de inasistencia. Motivo: '
                         . trim($validated['noShowReason']),
@@ -1409,6 +1411,7 @@ class AgendaManager extends Component
                 'scheduled_at' => Carbon::parse($validated['rescheduleDate'] . ' ' . $validated['rescheduleTime']),
                 'duration_minutes' => $appointment->duration_minutes,
                 'status' => 'scheduled',
+                'booking_source' => $appointment->booking_source ?? 'manual',
                 'clinical_notes' => $appointment->clinical_notes,
                 'reschedule_reason' => $validated['rescheduleReason'] ?: null,
             ]);
@@ -1577,6 +1580,15 @@ class AgendaManager extends Component
         };
     }
 
+    public function appointmentSourceLabel(?string $source): string
+    {
+        return match ($source) {
+            'web' => 'Agendado por web',
+            'whatsapp' => 'Agendado por WhatsApp',
+            default => 'Agendado manual',
+        };
+    }
+
     public function render()
     {
         $company = $this->company();
@@ -1651,6 +1663,7 @@ class AgendaManager extends Component
             'agendaStats' => [
                 'scheduled' => $appointments->count(),
                 'attended' => $appointments->where('attended', true)->count(),
+                'web' => $appointments->where('booking_source', 'web')->count(),
                 'rescheduled' => $appointments
                     ->filter(fn (Appointment $appointment) => $appointment->status === 'rescheduled' || $appointment->rescheduledAppointments?->isNotEmpty())
                     ->count(),

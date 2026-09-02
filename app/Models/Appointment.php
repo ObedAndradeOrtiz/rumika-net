@@ -18,6 +18,7 @@ class Appointment extends Model
         'scheduled_at',
         'duration_minutes',
         'status',
+        'booking_source',
         'attended',
         'locked_by_payment',
         'clinical_notes',

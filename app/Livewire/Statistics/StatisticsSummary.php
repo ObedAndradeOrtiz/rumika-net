@@ -84,6 +84,9 @@ class StatisticsSummary extends Component
         $attended = $appointments->where('attended', true)->count();
         $noShow = $appointments->where('status', 'no_show')->count();
         $pending = max(0, $scheduled - $attended - $noShow);
+        $webScheduled = $appointments->where('booking_source', 'web')->count();
+        $whatsappScheduled = $appointments->where('booking_source', 'whatsapp')->count();
+        $manualScheduled = max(0, $scheduled - $webScheduled - $whatsappScheduled);
         $attendanceRate = $scheduled > 0 ? round(($attended / $scheduled) * 100) : 0;
         $servicesIncome = (float) $payments->flatMap->items->where('type', 'service')->sum('total');
         $productsIncome = (float) $payments->flatMap->items->where('type', 'product')->sum('total');
@@ -97,6 +100,9 @@ class StatisticsSummary extends Component
                 'attended' => $attended,
                 'no_show' => $noShow,
                 'pending' => $pending,
+                'web' => $webScheduled,
+                'whatsapp' => $whatsappScheduled,
+                'manual' => $manualScheduled,
                 'rate' => $attendanceRate,
             ],
             'patients' => [
@@ -152,6 +158,7 @@ class StatisticsSummary extends Component
                     'name' => $branch->name,
                     'type' => $branch->businessType?->name ?? 'Sin tipo',
                     'scheduled' => $scheduled,
+                    'web' => $branchAppointments->where('booking_source', 'web')->count(),
                     'attended' => $attended,
                     'rate' => $scheduled > 0 ? round(($attended / $scheduled) * 100) : 0,
                     'income' => $services + $products,
@@ -234,6 +241,7 @@ class StatisticsSummary extends Component
             $days->push([
                 'date' => $cursor->format('d/m'),
                 'scheduled' => $dayAppointments->count(),
+                'web' => $dayAppointments->where('booking_source', 'web')->count(),
                 'attended' => $dayAppointments->where('attended', true)->count(),
                 'income' => (float) $dayPayments->flatMap->items->sum('total'),
                 'expenses' => (float) $dayExpenses->sum('amount'),
