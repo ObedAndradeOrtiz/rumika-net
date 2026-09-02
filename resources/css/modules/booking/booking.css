@@ -788,16 +788,25 @@
     line-height: 1.4;
 }
 
-.rm-booking-success button {
-    background: var(--booking-primary);
+.rm-booking-reset-button {
+    background:
+        linear-gradient(135deg, var(--booking-primary), color-mix(in srgb, var(--booking-primary), #22c55e 24%));
     border: 0;
-    border-radius: 16px;
+    border-radius: 18px;
+    box-shadow: 0 16px 34px color-mix(in srgb, var(--booking-primary), transparent 72%);
     color: #fff;
     cursor: pointer;
+    font-size: 15px;
     font-weight: 950;
-    margin-top: 10px;
-    min-height: 46px;
-    padding: 0 16px;
+    margin-top: 12px;
+    min-height: 50px;
+    padding: 0 18px;
+    width: 100%;
+}
+
+.rm-booking-reset-button:hover {
+    filter: brightness(1.04);
+    transform: translateY(-1px);
 }
 
 .rm-booking-grid {

@@ -33,7 +33,7 @@
                 <p>{{ $page->success_message ?: 'Tu cita fue agendada correctamente.' }}</p>
                 <p>Te esperamos el {{ \Carbon\Carbon::parse($selectedDate.' '.$selectedTime)->format('d/m/Y H:i') }}. Si necesitas cambiarla, comunicate con la sucursal.</p>
                 <strong>{{ $clientName ?: 'Cliente registrado' }}</strong>
-                <button type="button" wire:click="resetBooking">Agendar otra cita</button>
+                <button class="rm-booking-reset-button" type="button" wire:click="resetBooking">Agendar otra cita</button>
             </div>
         @else
             <form wire:submit="book" class="rm-booking-form">
