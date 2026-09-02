@@ -1007,8 +1007,19 @@ html[data-theme="dark"] .rm-booking-template-list label.is-selected strong {
     }
 
     .rm-booking-grid,
-    .rm-booking-branch-picker,
-    .rm-booking-slots {
+    .rm-booking-branch-picker {
         grid-template-columns: 1fr;
+    }
+
+    .rm-booking-slots {
+        gap: 8px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .rm-booking-slots span {
+        border-radius: 16px;
+        font-size: 13px;
+        min-height: 42px;
+        padding: 0 6px;
     }
 }
