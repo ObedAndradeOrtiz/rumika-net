@@ -4,8 +4,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Rumika SaaS | Agenda, ventas, caja e inventario</title>
-    <meta name="description" content="Rumika SaaS es un sistema modular para clínicas, spas, centros de belleza, barberías, dentistas, farmacias y tiendas. Agenda, caja, inventario, ventas, reportes, CRM y WhatsApp en una sola plataforma.">
+    <title>Rumika SaaS | Agenda online, ventas, caja e inventario</title>
+    <meta name="description" content="Rumika SaaS es un sistema modular con agenda online para clínicas, spas, centros de belleza, barberías, dentistas, farmacias y tiendas. Crea enlaces de reserva, QR, caja, inventario, ventas, reportes, CRM y WhatsApp en una sola plataforma.">
 
     <link rel="icon" type="image/svg+xml" href="{{ asset('rumika-favicon.svg') }}">
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -249,6 +249,24 @@
             line-height: 1.35;
         }
 
+        .hero-rubros {
+            margin-top: 24px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .hero-rubros span {
+            padding: 9px 12px;
+            border: 1px solid rgba(0, 139, 127, .16);
+            border-radius: 999px;
+            background: rgba(255, 255, 255, .72);
+            color: var(--primary-dark);
+            font-size: 12px;
+            font-weight: 900;
+            box-shadow: 0 10px 22px rgba(15, 23, 42, .04);
+        }
+
         .product-stage {
             position: relative;
             min-height: 560px;
@@ -334,7 +352,13 @@
             font-weight: 900;
         }
 
+        .phone-hello strong {
+            display: block;
+            line-height: 1.15;
+        }
+
         .phone-hello span {
+            display: block;
             color: var(--muted);
             font-size: 12px;
             font-weight: 700;
@@ -430,6 +454,11 @@
             font-weight: 900;
         }
 
+        .status.web {
+            background: var(--amber);
+            color: #9a5a00;
+        }
+
         .rumi-card {
             position: absolute;
             right: 18px;
@@ -505,6 +534,228 @@
             font-size: 17px;
             font-weight: 700;
             line-height: 1.6;
+        }
+
+        .booking-section {
+            padding-top: 22px;
+        }
+
+        .booking-showcase {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            gap: 18px;
+            align-items: stretch;
+        }
+
+        .booking-copy {
+            padding: clamp(22px, 5vw, 36px);
+            border-radius: 30px;
+            background:
+                linear-gradient(135deg, rgba(229, 247, 243, .88), rgba(255, 255, 255, .94)),
+                var(--white);
+            border: 1px solid rgba(0, 139, 127, .14);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .booking-copy h2 {
+            max-width: 760px;
+        }
+
+        .booking-benefits {
+            margin-top: 24px;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            gap: 10px;
+        }
+
+        .booking-benefit {
+            display: grid;
+            grid-template-columns: 42px 1fr;
+            gap: 12px;
+            align-items: start;
+            padding: 14px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, .78);
+            border: 1px solid rgba(215, 225, 238, .82);
+        }
+
+        .booking-benefit strong {
+            display: block;
+            color: var(--ink);
+            font-size: 15px;
+            font-weight: 900;
+        }
+
+        .booking-benefit span {
+            display: block;
+            margin-top: 3px;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 750;
+            line-height: 1.35;
+        }
+
+        .booking-preview {
+            display: grid;
+            gap: 14px;
+        }
+
+        .booking-card {
+            padding: 18px;
+            border-radius: 28px;
+            background: var(--white);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .booking-card header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .booking-card header strong {
+            color: var(--ink);
+            font-size: 18px;
+            font-weight: 900;
+        }
+
+        .booking-card header span {
+            color: var(--primary-dark);
+            font-size: 12px;
+            font-weight: 900;
+            text-align: right;
+        }
+
+        .booking-steps {
+            display: grid;
+            gap: 10px;
+        }
+
+        .booking-step {
+            display: grid;
+            grid-template-columns: 34px minmax(0, 1fr) auto;
+            gap: 10px;
+            align-items: center;
+            padding: 12px;
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            background: #fbfdff;
+        }
+
+        .booking-step b {
+            width: 34px;
+            height: 34px;
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            background: var(--primary-soft);
+            color: var(--primary-dark);
+            font-size: 13px;
+            font-weight: 900;
+        }
+
+        .booking-step strong {
+            display: block;
+            color: var(--ink);
+            font-size: 14px;
+            font-weight: 900;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .booking-step small {
+            display: block;
+            margin-top: 2px;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 750;
+        }
+
+        .qr-card {
+            display: grid;
+            grid-template-columns: 92px 1fr;
+            gap: 14px;
+            align-items: center;
+            padding: 16px;
+            border-radius: 26px;
+            background: #07152f;
+            color: var(--white);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .qr-mark {
+            position: relative;
+            width: 92px;
+            height: 92px;
+            border-radius: 22px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            padding: 12px;
+            background: var(--white);
+        }
+
+        .qr-mark i {
+            border-radius: 5px;
+            background: var(--ink);
+        }
+
+        .qr-mark img {
+            position: absolute;
+            inset: 31px;
+            width: 30px;
+            height: 30px;
+            border-radius: 10px;
+            background: var(--white);
+            padding: 4px;
+        }
+
+        .qr-card strong {
+            display: block;
+            font-size: 18px;
+            font-weight: 900;
+        }
+
+        .qr-card span {
+            display: block;
+            margin-top: 5px;
+            color: rgba(255, 255, 255, .72);
+            font-size: 13px;
+            font-weight: 750;
+            line-height: 1.4;
+        }
+
+        .audience-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .audience-card {
+            padding: 18px;
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            background: rgba(255, 255, 255, .9);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .audience-card strong {
+            color: var(--ink);
+            font-size: 18px;
+            font-weight: 900;
+        }
+
+        .audience-card p {
+            margin-top: 8px;
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 750;
+            line-height: 1.45;
         }
 
         .module-grid {
@@ -869,8 +1120,14 @@
             .proof-row,
             .module-grid,
             .feature-grid,
+            .booking-benefits,
+            .audience-grid,
             .plans {
                 grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+
+            .booking-showcase {
+                grid-template-columns: minmax(0, 1.05fr) minmax(320px, .95fr);
             }
 
             .split {
@@ -944,8 +1201,22 @@
             }
 
             .proof-row,
-            .module-grid {
+            .module-grid,
+            .audience-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .hero-rubros {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .hero-rubros span {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 40px;
+                text-align: center;
             }
 
             .product-stage {
@@ -971,6 +1242,37 @@
 
             .section {
                 padding: 34px 0;
+            }
+
+            .booking-section {
+                padding-top: 18px;
+            }
+
+            .booking-step {
+                grid-template-columns: 34px minmax(0, 1fr);
+            }
+
+            .booking-step .status {
+                grid-column: 2;
+                justify-self: start;
+            }
+
+            .qr-card {
+                grid-template-columns: 74px 1fr;
+            }
+
+            .qr-mark {
+                width: 74px;
+                height: 74px;
+                border-radius: 18px;
+                gap: 5px;
+                padding: 10px;
+            }
+
+            .qr-mark img {
+                inset: 25px;
+                width: 24px;
+                height: 24px;
             }
 
             .module,
@@ -1020,6 +1322,7 @@
             </a>
 
             <nav class="nav-links" aria-label="Principal">
+                <a href="#agenda-online">Agenda online</a>
                 <a href="#modulos">Módulos</a>
                 <a href="#whatsapp">WhatsApp</a>
                 <a href="#planes">Planes</a>
@@ -1044,14 +1347,14 @@
         <section class="hero">
             <div class="page hero-grid">
                 <div>
-                    <h1>Rumika SaaS para negocios de atención.</h1>
+                    <h1>Agenda online y control completo para tu negocio.</h1>
                     <p class="hero-lead">
-                        Agenda, caja, inventario, ventas, reportes, CRM con WhatsApp y permisos por rol en una sola plataforma preparada para clínicas, spas, barberías, dentistas, farmacias y tiendas.
+                        Rumika permite crear enlaces de reserva con QR, recibir citas desde la web y administrar caja, clientes, inventario, ventas, reportes, WhatsApp y permisos por rol desde una sola plataforma.
                     </p>
 
                     <div class="hero-actions">
-                        <a href="#planes" class="btn btn-primary">
-                            Ver planes
+                        <a href="#agenda-online" class="btn btn-primary">
+                            Ver agenda online
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                 <path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
                             </svg>
@@ -1061,8 +1364,17 @@
                         </a>
                     </div>
 
+                    <div class="hero-rubros" aria-label="Rubros que pueden usar Rumika">
+                        <span>Clínicas</span>
+                        <span>Spas</span>
+                        <span>Dentistas</span>
+                        <span>Barberías</span>
+                        <span>Consultorios</span>
+                        <span>Tiendas</span>
+                    </div>
+
                     <div class="proof-row" aria-label="Beneficios principales">
-                        <div class="proof"><strong>Multi-sucursal</strong><span>Stock, caja, ventas y reportes separados por sede.</span></div>
+                        <div class="proof"><strong>Reservas web</strong><span>Clientes se agendan desde un enlace o QR personalizado.</span></div>
                         <div class="proof"><strong>Por roles</strong><span>Cada usuario ve solo lo que tiene permitido.</span></div>
                         <div class="proof"><strong>Mobile-first</strong><span>Hecho para trabajar desde teléfono o computadora.</span></div>
                         <div class="proof"><strong>Con Rumi</strong><span>Asistente para ubicar pantallas y consultar datos permitidos.</span></div>
@@ -1085,32 +1397,32 @@
                             <div class="phone-body">
                                 <div class="phone-hello">
                                     <div class="avatar">R</div>
-                                    <div><strong>Resumen de hoy</strong><span>Sucursal Centro</span></div>
+                                    <div><strong>Agenda online</strong><span>Enlace público activo</span></div>
                                 </div>
 
                                 <div class="phone-kpis">
-                                    <div class="phone-kpi"><b>18</b><span>Citas</span></div>
-                                    <div class="phone-kpi"><b>Bs 4,250</b><span>Caja</span></div>
-                                    <div class="phone-kpi"><b>142</b><span>Productos</span></div>
-                                    <div class="phone-kpi"><b>7</b><span>Bajo stock</span></div>
+                                    <div class="phone-kpi"><b>32</b><span>Reservas web</span></div>
+                                    <div class="phone-kpi"><b>4</b><span>Sucursales</span></div>
+                                    <div class="phone-kpi"><b>18</b><span>Servicios visibles</span></div>
+                                    <div class="phone-kpi"><b>QR</b><span>Con logo</span></div>
                                 </div>
 
                                 <div class="phone-list">
-                                    <div class="phone-list-head"><span>Agenda de hoy</span><span>Ver</span></div>
+                                    <div class="phone-list-head"><span>Reservas de hoy</span><span>Web</span></div>
                                     <div class="phone-row">
                                         <time>09:00</time>
                                         <div><strong>Maria Lopez</strong><span>Limpieza facial</span></div>
-                                        <span class="status">Asistió</span>
+                                        <span class="status web">Web</span>
                                     </div>
                                     <div class="phone-row">
                                         <time>10:30</time>
-                                        <div><strong>Juan Perez</strong><span>Consulta dermatológica</span></div>
-                                        <span class="status">Pendiente</span>
+                                        <div><strong>Juan Perez</strong><span>Consulta odontológica</span></div>
+                                        <span class="status web">Web</span>
                                     </div>
                                     <div class="phone-row">
                                         <time>12:00</time>
-                                        <div><strong>Ana Torres</strong><span>Producto + servicio</span></div>
-                                        <span class="status">Pagado</span>
+                                        <div><strong>Ana Torres</strong><span>Evaluación inicial</span></div>
+                                        <span class="status">Manual</span>
                                     </div>
                                 </div>
                             </div>
@@ -1133,16 +1445,74 @@
             </div>
         </section>
 
+        <section class="section booking-section" id="agenda-online">
+            <div class="page booking-showcase">
+                <div class="booking-copy">
+                    <span class="section-label">Agenda online para cada rubro</span>
+                    <h2 class="section-title">Tus clientes pueden reservar sin escribir todo por WhatsApp.</h2>
+                    <p class="section-text">
+                        Cada negocio crea su propia página de reservas, elige colores, logo, sucursales, tratamientos visibles, horarios disponibles y un QR descargable para mostrador, redes o historias.
+                    </p>
+
+                    <div class="booking-benefits">
+                        <div class="booking-benefit">
+                            <div class="icon-box"><svg class="icon" viewBox="0 0 24 24"><path d="M8 2v4M16 2v4M4 9h16M5 5h14a1 1 0 0 1 1 1v14H4V6a1 1 0 0 1 1-1Z" /></svg></div>
+                            <div><strong>Horarios disponibles</strong><span>Intervalos por 30 minutos o 1 hora, con máximo de citas por horario.</span></div>
+                        </div>
+                        <div class="booking-benefit">
+                            <div class="icon-box"><svg class="icon" viewBox="0 0 24 24"><path d="M4 7h16v10H4z" /><path d="M8 11h8M8 15h5" /></svg></div>
+                            <div><strong>Servicios seleccionables</strong><span>Publica todos los tratamientos o solo los que quieras promocionar.</span></div>
+                        </div>
+                        <div class="booking-benefit">
+                            <div class="icon-box"><svg class="icon" viewBox="0 0 24 24"><path d="M5 12h14M12 5v14" /><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z" /></svg></div>
+                            <div><strong>QR con marca</strong><span>Genera el QR del enlace general o de una sucursal con logo al centro.</span></div>
+                        </div>
+                        <div class="booking-benefit">
+                            <div class="icon-box"><svg class="icon" viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 5 3 8 7 10 4-2 7-5 7-10V6l-7-3Z" /><path d="m9 12 2 2 4-5" /></svg></div>
+                            <div><strong>Cliente reconocido</strong><span>Si el teléfono ya existe, Rumika recupera sus datos y agiliza la reserva.</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="booking-preview">
+                    <div class="booking-card">
+                        <header>
+                            <strong>Reserva en 3 pasos</strong>
+                            <span>Ideal para móvil</span>
+                        </header>
+                        <div class="booking-steps">
+                            <div class="booking-step"><b>1</b><div><strong>Ingresa teléfono</strong><small>Cliente nuevo o recurrente.</small></div><span class="status web">Web</span></div>
+                            <div class="booking-step"><b>2</b><div><strong>Elige sucursal y servicio</strong><small>Clínica, spa, dental, belleza o consultorio.</small></div><span class="status">Filtro</span></div>
+                            <div class="booking-step"><b>3</b><div><strong>Selecciona horario</strong><small>Rumika evita cupos duplicados.</small></div><span class="status">Listo</span></div>
+                        </div>
+                    </div>
+
+                    <div class="qr-card">
+                        <div class="qr-mark" aria-hidden="true">
+                            @for ($i = 0; $i < 16; $i++)
+                                <i></i>
+                            @endfor
+                            <img src="{{ asset('rumika-favicon.svg') }}" alt="">
+                        </div>
+                        <div>
+                            <strong>QR para recepción, redes y tarjetas</strong>
+                            <span>Un enlace general para la empresa o enlaces separados por sucursal.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <section class="section" id="modulos">
             <div class="page">
                 <div class="section-head center">
                     <span class="section-label">Módulos incluidos</span>
-                    <h2 class="section-title">Todo lo operativo, listo para ordenar tu negocio.</h2>
-                    <p class="section-text">Activa módulos según el tipo de sucursal: clínica, spa, barbería, centro de belleza, farmacia, tienda o consultorio.</p>
+                    <h2 class="section-title">Agenda online, operación y ventas conectadas.</h2>
+                    <p class="section-text">Activa módulos según el tipo de sucursal: clínica, spa, barbería, centro de belleza, farmacia, tienda, perfumería o consultorio.</p>
                 </div>
 
                 <div class="module-grid">
-                    <article class="module"><div class="icon-box"><svg class="icon" viewBox="0 0 24 24"><path d="M8 2v4M16 2v4M4 9h16M5 5h14a1 1 0 0 1 1 1v14H4V6a1 1 0 0 1 1-1Z" /></svg></div><h3>Agenda e historial</h3><p>Citas, asistencia, reagendado, servicios agregados, pagos parciales e historial.</p></article>
+                    <article class="module"><div class="icon-box"><svg class="icon" viewBox="0 0 24 24"><path d="M8 2v4M16 2v4M4 9h16M5 5h14a1 1 0 0 1 1 1v14H4V6a1 1 0 0 1 1-1Z" /></svg></div><h3>Agenda y reservas web</h3><p>Citas manuales, reservas por enlace, asistencia, reagendado, servicios agregados y pagos parciales.</p></article>
                     <article class="module"><div class="icon-box"><svg class="icon" viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7V3Z" /><path d="M14 3v5h5M9 13h6M9 17h6" /></svg></div><h3>Historia clínica</h3><p>Fichas, archivos, recetas, plantillas y accesos por doctor o profesional.</p></article>
                     <article class="module"><div class="icon-box"><svg class="icon" viewBox="0 0 24 24"><path d="M4 7h16v12H4z" /><path d="M16 11h4M7 7V5h10v2" /></svg></div><h3>Caja y tickets</h3><p>Apertura y cierre por turno, QR/efectivo, gastos e impresión con QZ Tray.</p></article>
                     <article class="module"><div class="icon-box"><svg class="icon" viewBox="0 0 24 24"><path d="m12 3 8 4-8 4-8-4 8-4Z" /><path d="M4 7v10l8 4 8-4V7M12 11v10" /></svg></div><h3>Inventario</h3><p>Productos, lotes, proveedores, marcas, zonas, activos y movimientos.</p></article>
@@ -1203,7 +1573,14 @@
             <div class="page">
                 <div class="section-head center">
                     <span class="section-label">Rubros compatibles</span>
-                    <h2 class="section-title">Un sistema base para distintos tipos de negocio.</h2>
+                    <h2 class="section-title">Un sistema base con agenda online para distintos negocios.</h2>
+                    <p class="section-text">Cada rubro puede activar solo lo que usa: agenda para atención por cita, venta directa para tiendas, inventario para productos y reportes para administración.</p>
+                </div>
+                <div class="audience-grid" aria-label="Usos por rubro">
+                    <article class="audience-card"><strong>Clínicas y consultorios</strong><p>Reservas por tratamiento, historial clínico, profesionales, caja y seguimiento de pacientes.</p></article>
+                    <article class="audience-card"><strong>Spas y belleza</strong><p>Servicios promocionales, agenda móvil, paquetes, comisiones y control de productos.</p></article>
+                    <article class="audience-card"><strong>Dentistas y centros médicos</strong><p>Citas por sucursal, fichas, pagos parciales, deudas y reportes por profesional.</p></article>
+                    <article class="audience-card"><strong>Tiendas y perfumerías</strong><p>Ventas directas, inventario por presentación, clientes con NIT y control de stock.</p></article>
                 </div>
                 <div class="business-strip" aria-label="Tipos de negocio">
                     <span class="business-pill">Clínicas</span>
