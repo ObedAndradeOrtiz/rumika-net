@@ -104,6 +104,10 @@
                         @error('selectedBranchId') <small>{{ $message }}</small> @enderror
                     </label>
                     <label>
+                        <span>Buscar tratamiento</span>
+                        <input type="search" wire:model.live.debounce.300ms="serviceSearch" placeholder="Ej. limpieza, consulta, control">
+                    </label>
+                    <label>
                         <span>Tratamiento</span>
                         <select wire:model.live="selectedServiceId">
                             <option value="">Seleccionar</option>
@@ -113,6 +117,9 @@
                                 </option>
                             @endforeach
                         </select>
+                        @if ($serviceSearch !== '' && $services->isEmpty())
+                            <small>No hay tratamientos con ese nombre.</small>
+                        @endif
                         @error('selectedServiceId') <small>{{ $message }}</small> @enderror
                     </label>
                     <label>

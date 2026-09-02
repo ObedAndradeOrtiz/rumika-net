@@ -37,6 +37,8 @@ class PublicBookingPage extends Component
 
     public string $selectedServiceId = '';
 
+    public string $serviceSearch = '';
+
     public string $selectedDate = '';
 
     public string $selectedTime = '';
@@ -76,6 +78,12 @@ class PublicBookingPage extends Component
 
     public function updatedSelectedServiceId(): void
     {
+        $this->selectedTime = '';
+    }
+
+    public function updatedServiceSearch(): void
+    {
+        $this->selectedServiceId = '';
         $this->selectedTime = '';
     }
 
@@ -243,6 +251,14 @@ class PublicBookingPage extends Component
         $branches = $company->branches()->where('status', 'active')->orderBy('name')->get();
         $services = $company->services()
             ->where('status', 'active')
+            ->when(trim($this->serviceSearch) !== '', function ($query) {
+                $search = trim($this->serviceSearch);
+
+                $query->where(function ($services) use ($search) {
+                    $services->where('name', 'like', '%'.$search.'%')
+                        ->orWhere('description', 'like', '%'.$search.'%');
+                });
+            })
             ->orderBy('name')
             ->get();
 
