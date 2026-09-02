@@ -212,6 +212,30 @@ class PublicBookingPage extends Component
         $this->booked = true;
     }
 
+    public function resetBooking(): void
+    {
+        $company = $this->page->company;
+
+        $this->reset([
+            'phone',
+            'clientId',
+            'clientChecked',
+            'clientName',
+            'clientAge',
+            'clientIdentity',
+            'clientEmail',
+            'selectedServiceId',
+            'serviceSearch',
+            'selectedTime',
+            'booked',
+            'createdAppointmentId',
+        ]);
+
+        $this->selectedBranchId = (string) ($company->branches()->where('status', 'active')->orderBy('name')->value('id') ?? '');
+        $this->selectedDate = now()->addDays(max(0, (int) $this->page->min_days_ahead))->toDateString();
+        $this->phoneCountry = $company->branches()->whereKey($this->selectedBranchId)->value('country_code') ?? 'BO';
+    }
+
     public function availableSlots(): array
     {
         if (! $this->selectedBranchId || ! $this->selectedDate) {
