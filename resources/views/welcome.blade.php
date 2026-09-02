@@ -498,6 +498,7 @@
 
         .section {
             padding: 46px 0;
+            scroll-margin-top: 96px;
         }
 
         .section-head {
@@ -558,7 +559,9 @@
         }
 
         .booking-copy h2 {
-            max-width: 760px;
+            max-width: 680px;
+            font-size: clamp(28px, 5vw, 44px);
+            line-height: 1.08;
         }
 
         .booking-benefits {
@@ -1120,14 +1123,13 @@
             .proof-row,
             .module-grid,
             .feature-grid,
-            .booking-benefits,
             .audience-grid,
             .plans {
                 grid-template-columns: repeat(4, minmax(0, 1fr));
             }
 
-            .booking-showcase {
-                grid-template-columns: minmax(0, 1.05fr) minmax(320px, .95fr);
+            .booking-benefits {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
             }
 
             .split {
@@ -1152,6 +1154,10 @@
             .hero-grid {
                 grid-template-columns: minmax(0, .98fr) minmax(420px, .82fr);
                 gap: 38px;
+            }
+
+            .booking-showcase {
+                grid-template-columns: minmax(0, 1.05fr) minmax(320px, .95fr);
             }
 
             .cta-inner {
@@ -1246,6 +1252,10 @@
 
             .booking-section {
                 padding-top: 18px;
+            }
+
+            .booking-benefits {
+                grid-template-columns: 1fr;
             }
 
             .booking-step {
