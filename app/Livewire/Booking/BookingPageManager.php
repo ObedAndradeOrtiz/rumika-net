@@ -42,10 +42,16 @@ class BookingPageManager extends Component
     public bool $bookingShowCompanyLogo = true;
     public bool $bookingRequireIdentity = false;
     public bool $bookingRequireEmail = false;
+    public bool $bookingPublishAllServices = true;
     public bool $bookingIsActive = true;
     public string $currentBookingBackgroundPath = '';
+    public string $currentBookingPromotionalImagePath = '';
     public ?bool $bookingSlugAvailable = null;
     public $bookingBackgroundImage = null;
+    public string $bookingPromotionalImageCropped = '';
+    public array $selectedServiceIds = [];
+    public array $promotedServiceIds = [];
+    public array $promotionalPrices = [];
 
     public function mount(): void
     {
@@ -108,8 +114,16 @@ class BookingPageManager extends Component
             'bookingShowCompanyLogo' => ['boolean'],
             'bookingRequireIdentity' => ['boolean'],
             'bookingRequireEmail' => ['boolean'],
+            'bookingPublishAllServices' => ['boolean'],
             'bookingIsActive' => ['boolean'],
             'bookingBackgroundImage' => ['nullable', 'image', 'max:4096'],
+            'bookingPromotionalImageCropped' => ['nullable', 'string'],
+            'selectedServiceIds' => ['array'],
+            'selectedServiceIds.*' => ['integer', Rule::exists('services', 'id')->where('company_id', $company->id)],
+            'promotedServiceIds' => ['array'],
+            'promotedServiceIds.*' => ['integer', Rule::exists('services', 'id')->where('company_id', $company->id)],
+            'promotionalPrices' => ['array'],
+            'promotionalPrices.*' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
         ]);
 
         if ((int) $validated['bookingMaxDaysAhead'] < (int) $validated['bookingMinDaysAhead']) {
@@ -145,6 +159,7 @@ class BookingPageManager extends Component
             'show_company_logo' => (bool) $validated['bookingShowCompanyLogo'],
             'require_identity' => (bool) $validated['bookingRequireIdentity'],
             'require_email' => (bool) $validated['bookingRequireEmail'],
+            'publish_all_services' => (bool) $validated['bookingPublishAllServices'],
             'is_active' => (bool) $validated['bookingIsActive'],
         ]);
 
@@ -157,8 +172,10 @@ class BookingPageManager extends Component
         }
 
         $page->save();
+        $this->storePromotionalImage($page);
+        $this->syncPublishedServices($page, $company);
 
-        $this->reset('bookingBackgroundImage');
+        $this->reset('bookingBackgroundImage', 'bookingPromotionalImageCropped');
         $this->loadBookingForm();
         $this->bookingSlugAvailable = true;
         $this->dispatch('booking-page-saved');
@@ -174,7 +191,8 @@ class BookingPageManager extends Component
             'bookingTemplates' => $this->bookingTemplates(),
             'bookingGeneralUrl' => $this->bookingSlug ? route('booking.public', $this->bookingSlug) : null,
             'bookingBranchLinks' => $this->bookingBranchLinks($company),
-            'previewServices' => $company->services()->where('status', 'active')->orderBy('name')->limit(5)->get(),
+            'servicesForEditor' => $this->servicesForEditor($company),
+            'previewServices' => $this->previewServices($company),
         ]);
     }
 
@@ -209,9 +227,88 @@ class BookingPageManager extends Component
         $this->bookingShowCompanyLogo = (bool) ($page?->show_company_logo ?? true);
         $this->bookingRequireIdentity = (bool) ($page?->require_identity ?? false);
         $this->bookingRequireEmail = (bool) ($page?->require_email ?? false);
+        $this->bookingPublishAllServices = (bool) ($page?->publish_all_services ?? true);
         $this->bookingIsActive = (bool) ($page?->is_active ?? true);
         $this->currentBookingBackgroundPath = $page?->background_image_path ?? '';
+        $this->currentBookingPromotionalImagePath = $page?->promotional_image_path ?? '';
+        $this->selectedServiceIds = $page && ! $this->bookingPublishAllServices
+            ? $page->services()->pluck('services.id')->map(fn ($id) => (string) $id)->all()
+            : [];
+        $this->promotedServiceIds = $page
+            ? $page->services()->wherePivot('is_promoted', true)->pluck('services.id')->map(fn ($id) => (string) $id)->all()
+            : [];
+        $this->promotionalPrices = $page
+            ? $page->services()->get()->mapWithKeys(fn ($service) => [(string) $service->id => $service->pivot->promotional_price !== null ? (string) $service->pivot->promotional_price : ''])->all()
+            : [];
         $this->bookingSlugAvailable = $this->isBookingSlugAvailable();
+    }
+
+    private function storePromotionalImage(BookingPage $page): void
+    {
+        if ($this->bookingPromotionalImageCropped === '' || ! str_contains($this->bookingPromotionalImageCropped, ',')) {
+            return;
+        }
+
+        [$meta, $payload] = explode(',', $this->bookingPromotionalImageCropped, 2);
+
+        if (! str_contains($meta, 'image/')) {
+            return;
+        }
+
+        $binary = base64_decode($payload, true);
+
+        if ($binary === false) {
+            return;
+        }
+
+        if ($page->promotional_image_path) {
+            Storage::disk('public')->delete($page->promotional_image_path);
+        }
+
+        $path = 'booking-promotions/'.Str::uuid().'.jpg';
+        Storage::disk('public')->put($path, $binary);
+        $page->forceFill(['promotional_image_path' => $path])->save();
+    }
+
+    private function syncPublishedServices(BookingPage $page, Company $company): void
+    {
+        $availableIds = $this->servicesForEditor($company)->pluck('id')->map(fn ($id) => (string) $id)->all();
+        $selectedIds = $this->bookingPublishAllServices ? $availableIds : array_values(array_intersect($availableIds, array_map('strval', $this->selectedServiceIds)));
+        $promotedIds = array_map('strval', $this->promotedServiceIds);
+
+        $sync = [];
+        foreach ($selectedIds as $serviceId) {
+            $price = $this->promotionalPrices[$serviceId] ?? null;
+            $sync[(int) $serviceId] = [
+                'is_promoted' => in_array($serviceId, $promotedIds, true),
+                'promotional_price' => $price === '' || $price === null ? null : (float) $price,
+            ];
+        }
+
+        $page->services()->sync($sync);
+    }
+
+    private function servicesForEditor(Company $company)
+    {
+        return $company->services()
+            ->whereIn('status', ['active', 'available'])
+            ->orderBy('name')
+            ->get();
+    }
+
+    private function previewServices(Company $company)
+    {
+        $page = $company->bookingPage;
+
+        if (! $page || $this->bookingPublishAllServices) {
+            return $this->servicesForEditor($company)->take(5);
+        }
+
+        $ids = array_map('intval', $this->selectedServiceIds);
+
+        return $this->servicesForEditor($company)
+            ->whereIn('id', $ids)
+            ->take(5);
     }
 
     private function isBookingSlugAvailable(): bool

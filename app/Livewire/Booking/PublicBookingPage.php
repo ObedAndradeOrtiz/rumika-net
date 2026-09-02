@@ -130,7 +130,7 @@ class PublicBookingPage extends Component
 
         $company = $this->page->company;
         $branchIds = $company->branches()->where('status', 'active')->pluck('id')->all();
-        $serviceIds = $company->services()->where('status', 'active')->pluck('id')->all();
+        $serviceIds = $this->publishedServices()->pluck('id')->all();
 
         $minDate = now()->addDays(max(0, (int) $this->page->min_days_ahead))->toDateString();
         $maxDate = now()->addDays(max(1, (int) $this->page->max_days_ahead))->toDateString();
@@ -159,10 +159,11 @@ class PublicBookingPage extends Component
             return;
         }
 
-        $service = $company->services()->whereKey($validated['selectedServiceId'])->firstOrFail();
+        $service = $this->publishedServices()->where('services.id', (int) $validated['selectedServiceId'])->firstOrFail();
         $duration = $service->duration_minutes ?: $this->page->default_duration_minutes;
+        $servicePrice = $this->promotionalPriceFor((int) $service->id) ?? $service->price;
 
-        $appointment = DB::transaction(function () use ($company, $validated, $service, $duration) {
+        $appointment = DB::transaction(function () use ($company, $validated, $service, $duration, $servicePrice) {
             $client = $this->clientId
                 ? $company->clients()->whereKey($this->clientId)->firstOrFail()
                 : $company->clients()->create([
@@ -195,7 +196,7 @@ class PublicBookingPage extends Component
             $appointment->services()->create([
                 'service_id' => $service->id,
                 'name' => $service->name,
-                'price' => $service->price,
+                'price' => $servicePrice,
                 'duration_minutes' => $service->duration_minutes,
             ]);
 
@@ -213,7 +214,7 @@ class PublicBookingPage extends Component
         }
 
         $service = $this->selectedServiceId
-            ? $this->page->company->services()->whereKey($this->selectedServiceId)->first()
+            ? $this->publishedServices()->where('services.id', (int) $this->selectedServiceId)->first()
             : null;
         $duration = (int) ($service?->duration_minutes ?: $this->page->default_duration_minutes);
         $interval = max(10, (int) $this->page->slot_interval_minutes);
@@ -249,8 +250,7 @@ class PublicBookingPage extends Component
     {
         $company = $this->page->company;
         $branches = $company->branches()->where('status', 'active')->orderBy('name')->get();
-        $services = $company->services()
-            ->where('status', 'active')
+        $services = $this->publishedServices()
             ->when(trim($this->serviceSearch) !== '', function ($query) {
                 $search = trim($this->serviceSearch);
 
@@ -266,9 +266,45 @@ class PublicBookingPage extends Component
             'company' => $company,
             'branches' => $branches,
             'services' => $services,
+            'promotedServices' => $this->promotedServices(),
+            'publicPromotionalPrices' => $this->publicPromotionalPrices(),
             'slots' => $this->availableSlots(),
             'minDate' => now()->addDays(max(0, (int) $this->page->min_days_ahead))->toDateString(),
             'maxDate' => now()->addDays(max(1, (int) $this->page->max_days_ahead))->toDateString(),
         ])->layout('layouts.public-booking');
+    }
+
+    private function publishedServices()
+    {
+        $query = $this->page->publish_all_services
+            ? $this->page->company->services()
+            : $this->page->services();
+
+        return $query->whereIn('services.status', ['active', 'available']);
+    }
+
+    private function promotedServices()
+    {
+        return $this->page->services()
+            ->wherePivot('is_promoted', true)
+            ->whereIn('services.status', ['active', 'available'])
+            ->orderBy('name')
+            ->get();
+    }
+
+    private function publicPromotionalPrices()
+    {
+        return $this->page->services()
+            ->whereNotNull('booking_page_services.promotional_price')
+            ->pluck('booking_page_services.promotional_price', 'services.id');
+    }
+
+    private function promotionalPriceFor(int $serviceId): ?float
+    {
+        $price = $this->page->services()
+            ->where('services.id', $serviceId)
+            ->value('booking_page_services.promotional_price');
+
+        return $price === null ? null : (float) $price;
     }
 }

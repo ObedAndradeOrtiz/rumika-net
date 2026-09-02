@@ -1,4 +1,4 @@
-const CROP_SIZE = 420;
+const DEFAULT_CROP_SIZE = 420;
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
@@ -19,6 +19,7 @@ const initCropper = (root) => {
     const image = scope.querySelector('[data-avatar-crop-image]');
     const zoomInput = scope.querySelector('[data-avatar-crop-zoom]');
     const output = scope.querySelector('[data-avatar-crop-output]');
+    const cropSize = Number.parseInt(root.dataset.avatarCropSize || DEFAULT_CROP_SIZE, 10) || DEFAULT_CROP_SIZE;
 
     if (!input || !tool || !stage || !image || !zoomInput || !output) {
         return;
@@ -49,8 +50,8 @@ const initCropper = (root) => {
         const height = state.image.naturalHeight * scale;
 
         return {
-            maxX: Math.max(0, (width - CROP_SIZE) / 2),
-            maxY: Math.max(0, (height - CROP_SIZE) / 2),
+            maxX: Math.max(0, (width - cropSize) / 2),
+            maxY: Math.max(0, (height - cropSize) / 2),
         };
     };
 
@@ -70,18 +71,18 @@ const initCropper = (root) => {
         paint();
 
         const canvas = document.createElement('canvas');
-        canvas.width = CROP_SIZE;
-        canvas.height = CROP_SIZE;
+        canvas.width = cropSize;
+        canvas.height = cropSize;
 
         const context = canvas.getContext('2d');
         context.fillStyle = '#ffffff';
-        context.fillRect(0, 0, CROP_SIZE, CROP_SIZE);
+        context.fillRect(0, 0, cropSize, cropSize);
 
         const scale = state.baseScale * state.zoom;
         const width = state.image.naturalWidth * scale;
         const height = state.image.naturalHeight * scale;
-        const left = (CROP_SIZE - width) / 2 + state.x;
-        const top = (CROP_SIZE - height) / 2 + state.y;
+        const left = (cropSize - width) / 2 + state.x;
+        const top = (cropSize - height) / 2 + state.y;
 
         context.drawImage(state.image, left, top, width, height);
         output.value = canvas.toDataURL('image/jpeg', 0.86);
@@ -105,7 +106,7 @@ const initCropper = (root) => {
 
             nextImage.onload = () => {
                 state.image = nextImage;
-                state.baseScale = Math.max(CROP_SIZE / nextImage.naturalWidth, CROP_SIZE / nextImage.naturalHeight);
+                state.baseScale = Math.max(cropSize / nextImage.naturalWidth, cropSize / nextImage.naturalHeight);
                 state.zoom = 1;
                 state.x = 0;
                 state.y = 0;

@@ -1,6 +1,7 @@
 @php
     $logo = $company->logo_path ? asset('storage/'.$company->logo_path) : asset('rumika-favicon.svg');
     $backgroundImage = $page->background_image_path ? asset('storage/'.$page->background_image_path) : null;
+    $promotionalImage = $page->promotional_image_path ? asset('storage/'.$page->promotional_image_path) : null;
 @endphp
 
 <main class="rm-public-booking rm-booking-template-{{ $page->template }} rm-booking-shape-{{ $page->icon_shape }}"
@@ -18,6 +19,12 @@
                 <p>{{ $page->subtitle ?: 'Elige tratamiento y horario disponible.' }}</p>
             </div>
         </header>
+
+        @if ($promotionalImage)
+            <figure class="rm-booking-public-promo">
+                <img src="{{ $promotionalImage }}" alt="Promocion {{ $company->name }}">
+            </figure>
+        @endif
 
         @if ($booked)
             <div class="rm-booking-success">
@@ -103,6 +110,17 @@
                         </select>
                         @error('selectedBranchId') <small>{{ $message }}</small> @enderror
                     </label>
+                    @if ($promotedServices->isNotEmpty())
+                        <div class="rm-booking-public-promos">
+                            <small>Promociones</small>
+                            @foreach ($promotedServices as $service)
+                                <button type="button" wire:click="$set('selectedServiceId', '{{ $service->id }}')" class="{{ (string) $selectedServiceId === (string) $service->id ? 'is-selected' : '' }}">
+                                    <span>{{ $service->name }}</span>
+                                    <strong>Bs {{ number_format((float) ($service->pivot->promotional_price ?? $service->price), 2) }}</strong>
+                                </button>
+                            @endforeach
+                        </div>
+                    @endif
                     <label>
                         <span>Buscar tratamiento</span>
                         <input type="search" wire:model.live.debounce.300ms="serviceSearch" placeholder="Ej. limpieza, consulta, control">
@@ -113,7 +131,7 @@
                             <option value="">Seleccionar</option>
                             @foreach ($services as $service)
                                 <option value="{{ $service->id }}">
-                                    {{ $service->name }}{{ $page->show_service_duration && $service->duration_minutes ? ' - '.$service->duration_minutes.' min' : '' }}{{ $page->show_prices ? ' - Bs '.number_format((float) $service->price, 2) : '' }}
+                                    {{ $service->name }}{{ $page->show_service_duration && $service->duration_minutes ? ' - '.$service->duration_minutes.' min' : '' }}{{ $page->show_prices ? ' - Bs '.number_format((float) ($publicPromotionalPrices[$service->id] ?? $service->price), 2) : '' }}
                                 </option>
                             @endforeach
                         </select>

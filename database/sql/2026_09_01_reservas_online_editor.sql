@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS booking_pages (
     accent_color VARCHAR(20) NOT NULL DEFAULT '#dff7f2',
     background_color VARCHAR(20) NOT NULL DEFAULT '#f6f8fb',
     background_image_path VARCHAR(255) NULL,
+    promotional_image_path VARCHAR(255) NULL,
     font_family VARCHAR(80) NOT NULL DEFAULT 'Figtree',
     icon_shape VARCHAR(20) NOT NULL DEFAULT 'rounded',
     available_from TIME NOT NULL DEFAULT '09:00:00',
@@ -28,6 +29,7 @@ CREATE TABLE IF NOT EXISTS booking_pages (
     show_company_logo TINYINT(1) NOT NULL DEFAULT 1,
     require_identity TINYINT(1) NOT NULL DEFAULT 0,
     require_email TINYINT(1) NOT NULL DEFAULT 0,
+    publish_all_services TINYINT(1) NOT NULL DEFAULT 1,
     is_active TINYINT(1) NOT NULL DEFAULT 1,
     created_at TIMESTAMP NULL,
     updated_at TIMESTAMP NULL,
@@ -61,6 +63,7 @@ DELIMITER ;
 CALL rumika_add_booking_column('hero_label', 'hero_label VARCHAR(80) NULL AFTER subtitle');
 CALL rumika_add_booking_column('button_label', 'button_label VARCHAR(60) NULL AFTER hero_label');
 CALL rumika_add_booking_column('success_message', 'success_message VARCHAR(240) NULL AFTER button_label');
+CALL rumika_add_booking_column('promotional_image_path', 'promotional_image_path VARCHAR(255) NULL AFTER background_image_path');
 CALL rumika_add_booking_column('max_appointments_per_slot', 'max_appointments_per_slot SMALLINT UNSIGNED NOT NULL DEFAULT 1 AFTER slot_interval_minutes');
 CALL rumika_add_booking_column('min_days_ahead', 'min_days_ahead SMALLINT UNSIGNED NOT NULL DEFAULT 0 AFTER default_duration_minutes');
 CALL rumika_add_booking_column('max_days_ahead', 'max_days_ahead SMALLINT UNSIGNED NOT NULL DEFAULT 30 AFTER min_days_ahead');
@@ -69,5 +72,19 @@ CALL rumika_add_booking_column('show_service_duration', 'show_service_duration T
 CALL rumika_add_booking_column('show_company_logo', 'show_company_logo TINYINT(1) NOT NULL DEFAULT 1 AFTER show_service_duration');
 CALL rumika_add_booking_column('require_identity', 'require_identity TINYINT(1) NOT NULL DEFAULT 0 AFTER show_company_logo');
 CALL rumika_add_booking_column('require_email', 'require_email TINYINT(1) NOT NULL DEFAULT 0 AFTER require_identity');
+CALL rumika_add_booking_column('publish_all_services', 'publish_all_services TINYINT(1) NOT NULL DEFAULT 1 AFTER require_email');
 
 DROP PROCEDURE IF EXISTS rumika_add_booking_column;
+
+CREATE TABLE IF NOT EXISTS booking_page_services (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    booking_page_id BIGINT UNSIGNED NOT NULL,
+    service_id BIGINT UNSIGNED NOT NULL,
+    promotional_price DECIMAL(10, 2) NULL,
+    is_promoted TINYINT(1) NOT NULL DEFAULT 0,
+    created_at TIMESTAMP NULL,
+    updated_at TIMESTAMP NULL,
+    UNIQUE KEY booking_page_services_page_service_unique (booking_page_id, service_id),
+    CONSTRAINT booking_page_services_booking_page_id_foreign FOREIGN KEY (booking_page_id) REFERENCES booking_pages(id) ON DELETE CASCADE,
+    CONSTRAINT booking_page_services_service_id_foreign FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE CASCADE
+);

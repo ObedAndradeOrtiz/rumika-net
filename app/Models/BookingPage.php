@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class BookingPage extends Model
 {
@@ -21,6 +22,7 @@ class BookingPage extends Model
         'accent_color',
         'background_color',
         'background_image_path',
+        'promotional_image_path',
         'font_family',
         'icon_shape',
         'available_from',
@@ -36,6 +38,7 @@ class BookingPage extends Model
         'show_company_logo',
         'require_identity',
         'require_email',
+        'publish_all_services',
         'is_active',
     ];
 
@@ -53,6 +56,7 @@ class BookingPage extends Model
             'show_company_logo' => 'boolean',
             'require_identity' => 'boolean',
             'require_email' => 'boolean',
+            'publish_all_services' => 'boolean',
             'is_active' => 'boolean',
         ];
     }
@@ -60,5 +64,12 @@ class BookingPage extends Model
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
+    }
+
+    public function services(): BelongsToMany
+    {
+        return $this->belongsToMany(Service::class, 'booking_page_services')
+            ->withPivot(['promotional_price', 'is_promoted'])
+            ->withTimestamps();
     }
 }
