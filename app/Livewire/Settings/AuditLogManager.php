@@ -9,8 +9,10 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Eloquent\Model;
 use Livewire\Component;
+use Throwable;
 
 class AuditLogManager extends Component
 {
@@ -118,14 +120,23 @@ class AuditLogManager extends Component
 
         $result = DB::transaction(function () use ($logs) {
             return $logs->reduce(function (array $carry, AuditLog $log) {
-                $status = $this->rollbackLog($log);
-                $carry[$status]++;
+                $result = $this->rollbackLog($log);
+                $carry[$result['status']]++;
+
+                if ($result['status'] === 'skipped') {
+                    $carry['reasons'][$result['reason']] = ($carry['reasons'][$result['reason']] ?? 0) + 1;
+                }
 
                 return $carry;
-            }, ['reversed' => 0, 'skipped' => 0]);
+            }, ['reversed' => 0, 'skipped' => 0, 'reasons' => []]);
         });
 
         $this->rollbackMessage = 'Rollback aplicado: '.$result['reversed'].' revertidos, '.$result['skipped'].' omitidos.';
+
+        if ($result['skipped'] > 0 && $result['reasons'] !== []) {
+            $this->rollbackMessage .= ' Motivos: '.$this->rollbackReasonsText($result['reasons']).'.';
+        }
+
         $this->closeRollbackPreview();
     }
 
@@ -177,74 +188,133 @@ class AuditLogManager extends Component
             ->orderByDesc('id');
     }
 
-    private function rollbackLog(AuditLog $log): string
+    private function rollbackLog(AuditLog $log): array
     {
         $class = $log->auditable_type;
 
         if (! is_string($class) || ! class_exists($class) || ! is_subclass_of($class, Model::class)) {
-            return 'skipped';
+            return $this->rollbackResult('skipped', 'modelo no disponible');
         }
 
         if ($class === AuditLog::class || $class === Company::class) {
-            return 'skipped';
+            return $this->rollbackResult('skipped', 'modelo protegido');
+        }
+
+        $model = new $class();
+        $table = $model->getTable();
+        $primaryKey = $model->getKeyName();
+
+        if (! Schema::hasTable($table) || ! Schema::hasColumn($table, $primaryKey)) {
+            return $this->rollbackResult('skipped', 'tabla no disponible');
         }
 
         if ($log->event === 'created') {
-            $record = $class::query()->whereKey($log->auditable_id)->first();
+            $query = DB::table($table)->where($primaryKey, $log->auditable_id);
 
-            if (! $record || ! $this->recordBelongsToCompany($record, $log)) {
-                return 'skipped';
+            if (! $query->exists()) {
+                return $this->rollbackResult('skipped', 'registro ya no existe');
             }
 
-            $record->delete();
+            if (! $this->rawRecordBelongsToCompany($table, $primaryKey, $log)) {
+                return $this->rollbackResult('skipped', 'registro de otra empresa');
+            }
 
-            return 'reversed';
+            try {
+                $deleted = DB::table($table)->where($primaryKey, $log->auditable_id)->delete();
+            } catch (Throwable) {
+                return $this->rollbackResult('skipped', 'restriccion de base de datos');
+            }
+
+            return $deleted > 0
+                ? $this->rollbackResult('reversed')
+                : $this->rollbackResult('skipped', 'no se pudo eliminar');
         }
 
         if ($log->event === 'updated') {
-            $record = $class::query()->whereKey($log->auditable_id)->first();
-            $oldValues = $this->safeAttributes($log->old_values ?? []);
+            $oldValues = $this->safeAttributes($table, $log->old_values ?? []);
 
-            if (! $record || $oldValues === [] || ! $this->recordBelongsToCompany($record, $log)) {
-                return 'skipped';
+            if ($oldValues === []) {
+                return $this->rollbackResult('skipped', 'sin valores anteriores');
             }
 
-            $record->forceFill($oldValues)->save();
+            if (! DB::table($table)->where($primaryKey, $log->auditable_id)->exists()) {
+                return $this->rollbackResult('skipped', 'registro ya no existe');
+            }
 
-            return 'reversed';
+            if (! $this->rawRecordBelongsToCompany($table, $primaryKey, $log)) {
+                return $this->rollbackResult('skipped', 'registro de otra empresa');
+            }
+
+            try {
+                DB::table($table)->where($primaryKey, $log->auditable_id)->update($oldValues);
+            } catch (Throwable) {
+                return $this->rollbackResult('skipped', 'restriccion de base de datos');
+            }
+
+            return $this->rollbackResult('reversed');
         }
 
         if ($log->event === 'deleted') {
-            $oldValues = $this->safeAttributes($log->old_values ?? []);
+            $oldValues = $this->safeAttributes($table, $log->old_values ?? []);
 
-            if ($oldValues === [] || $class::query()->whereKey($log->auditable_id)->exists()) {
-                return 'skipped';
+            if ($oldValues === []) {
+                return $this->rollbackResult('skipped', 'sin datos para restaurar');
             }
 
-            $record = new $class();
-            $record->forceFill($oldValues);
-            $record->save();
+            if (DB::table($table)->where($primaryKey, $log->auditable_id)->exists()) {
+                return $this->rollbackResult('skipped', 'registro ya existe');
+            }
 
-            return 'reversed';
+            try {
+                DB::table($table)->insert($oldValues);
+            } catch (Throwable) {
+                return $this->rollbackResult('skipped', 'restriccion de base de datos');
+            }
+
+            return $this->rollbackResult('reversed');
         }
 
-        return 'skipped';
+        return $this->rollbackResult('skipped', 'accion no reversible');
     }
 
-    private function safeAttributes(array $attributes): array
+    private function safeAttributes(string $table, array $attributes): array
     {
+        $columns = Schema::getColumnListing($table);
+
         return collect($attributes)
-            ->except(['created_at', 'updated_at'])
+            ->only($columns)
             ->all();
     }
 
-    private function recordBelongsToCompany(Model $record, AuditLog $log): bool
+    private function rawRecordBelongsToCompany(string $table, string $primaryKey, AuditLog $log): bool
     {
-        if (isset($record->company_id)) {
-            return (int) $record->company_id === (int) $log->company_id;
+        if (Schema::hasColumn($table, 'company_id')) {
+            return DB::table($table)
+                ->where($primaryKey, $log->auditable_id)
+                ->where('company_id', $log->company_id)
+                ->exists();
+        }
+
+        if (Schema::hasColumn($table, 'branch_id') && $log->branch_id) {
+            return DB::table($table)
+                ->where($primaryKey, $log->auditable_id)
+                ->where('branch_id', $log->branch_id)
+                ->exists();
         }
 
         return true;
+    }
+
+    private function rollbackResult(string $status, string $reason = ''): array
+    {
+        return ['status' => $status, 'reason' => $reason];
+    }
+
+    private function rollbackReasonsText(array $reasons): string
+    {
+        return collect($reasons)
+            ->map(fn (int $count, string $reason) => $reason.' ('.$count.')')
+            ->implode(', ');
     }
 
     private function buildExcelXml(Collection $logs): string
