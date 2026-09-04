@@ -6,6 +6,7 @@ use App\Models\Branch;
 use App\Models\Company;
 use App\Models\InventoryAsset;
 use App\Models\InventoryAssetRepair;
+use App\Models\AuditLog;
 use App\Models\InventoryBrand;
 use App\Models\InventoryCount;
 use App\Models\InventoryCountItem;
@@ -42,6 +43,7 @@ class InventoryManager extends Component
     public string $search = '';
     public string $brandFilter = '';
     public string $useAreaFilter = '';
+    public string $creatorFilter = '';
     public string $movementType = 'purchase';
 
     public bool $showProductModal = false;
@@ -167,6 +169,11 @@ class InventoryManager extends Component
     }
 
     public function updatedUseAreaFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedCreatorFilter(): void
     {
         $this->resetPage();
     }
@@ -1257,6 +1264,7 @@ class InventoryManager extends Component
         $movementListSearch = trim($this->movementListSearch);
         $brandFilter = $this->brandFilter !== '' ? (int) $this->brandFilter : null;
         $useAreaFilter = $this->useAreaFilter !== '' ? (int) $this->useAreaFilter : null;
+        $creatorFilter = $this->creatorFilter !== '' ? (int) $this->creatorFilter : null;
 
         $selectedCount = $this->selectedCountId
             ? $company->inventoryCounts()
@@ -1312,12 +1320,17 @@ class InventoryManager extends Component
             'suppliers' => $company->inventorySuppliers()->orderBy('name')->get(),
             'brands' => $company->inventoryBrands()->with('supplier')->orderBy('name')->get(),
             'useAreas' => $company->inventoryUseAreas()->orderBy('name')->get(),
+            'productCreators' => $this->productCreators($company),
             'products' => $company->inventoryProducts()
+                ->select('inventory_products.*')
+                ->selectSub($this->productCreatorNameSubquery(), 'created_by_name')
+                ->selectSub($this->productCreatedAtSubquery(), 'creator_recorded_at')
                 ->with(['supplier', 'brand', 'useArea'])
                 ->withSum(['batches as current_stock' => fn ($query) => $query->where('branch_id', $branch->id)], 'current_quantity')
                 ->when($search !== '', fn ($query) => $query->where(fn ($nested) => $nested->where('name', 'like', "%{$search}%")->orWhere('code', 'like', "%{$search}%")))
                 ->when($brandFilter, fn ($query) => $query->where('inventory_brand_id', $brandFilter))
                 ->when($useAreaFilter, fn ($query) => $query->where('inventory_use_area_id', $useAreaFilter))
+                ->when($creatorFilter, fn ($query) => $query->whereExists($this->productCreatorFilterSubquery($creatorFilter)))
                 ->latest()
                 ->paginate(15),
             'movementProducts' => $movementProducts,
@@ -1355,6 +1368,58 @@ class InventoryManager extends Component
             'selectedProductMovements' => $selectedProduct ? $this->productMovementData($company, $branch, $selectedProduct) : collect(),
             'canManageInventoryClosures' => $this->canManageInventoryClosures(),
         ]);
+    }
+
+    private function productCreators(Company $company): Collection
+    {
+        return AuditLog::query()
+            ->join('users', 'audit_logs.user_id', '=', 'users.id')
+            ->where('audit_logs.company_id', $company->id)
+            ->where('audit_logs.auditable_type', InventoryProduct::class)
+            ->where('audit_logs.event', 'created')
+            ->whereNotNull('audit_logs.user_id')
+            ->selectRaw('users.id, users.name, COUNT(*) as products_count')
+            ->groupBy('users.id', 'users.name')
+            ->orderBy('users.name')
+            ->get();
+    }
+
+    private function productCreatorNameSubquery()
+    {
+        return AuditLog::query()
+            ->join('users', 'audit_logs.user_id', '=', 'users.id')
+            ->select('users.name')
+            ->whereColumn('audit_logs.company_id', 'inventory_products.company_id')
+            ->whereColumn('audit_logs.auditable_id', 'inventory_products.id')
+            ->where('audit_logs.auditable_type', InventoryProduct::class)
+            ->where('audit_logs.event', 'created')
+            ->orderBy('audit_logs.occurred_at')
+            ->limit(1);
+    }
+
+    private function productCreatedAtSubquery()
+    {
+        return AuditLog::query()
+            ->select('occurred_at')
+            ->whereColumn('audit_logs.company_id', 'inventory_products.company_id')
+            ->whereColumn('audit_logs.auditable_id', 'inventory_products.id')
+            ->where('audit_logs.auditable_type', InventoryProduct::class)
+            ->where('audit_logs.event', 'created')
+            ->orderBy('audit_logs.occurred_at')
+            ->limit(1);
+    }
+
+    private function productCreatorFilterSubquery(int $creatorId): \Closure
+    {
+        return function ($query) use ($creatorId) {
+            $query->selectRaw('1')
+                ->from('audit_logs')
+                ->whereColumn('audit_logs.company_id', 'inventory_products.company_id')
+                ->whereColumn('audit_logs.auditable_id', 'inventory_products.id')
+                ->where('audit_logs.auditable_type', InventoryProduct::class)
+                ->where('audit_logs.event', 'created')
+                ->where('audit_logs.user_id', $creatorId);
+        };
     }
 
     private function recordMovement(Company $company, Branch $branch, InventoryCount $count, int $productId, ?int $batchId, string $type, float $quantity, float $unitCost, array $data): void

@@ -58,6 +58,15 @@
                         @endforeach
                     </select>
                 </label>
+                <label class="rm-field">
+                    <span>Creado por</span>
+                    <select wire:model.live="creatorFilter">
+                        <option value="">Todos los creadores</option>
+                        @foreach ($productCreators as $creator)
+                            <option value="{{ $creator->id }}">{{ $creator->name }} ({{ $creator->products_count }})</option>
+                        @endforeach
+                    </select>
+                </label>
             </div>
         @endif
 
@@ -93,6 +102,10 @@
                                     <span>{{ $product->brand?->name ?? 'Sin marca' }}</span>
                                     <span>{{ $product->supplier?->name ?? 'Sin proveedor' }}</span>
                                     <span>{{ $product->useArea?->name ?? 'Sin area de uso' }}</span>
+                                    <span>Creado por {{ $product->created_by_name ?: 'sin registro' }}</span>
+                                    @if ($product->creator_recorded_at)
+                                        <span>{{ \Illuminate\Support\Carbon::parse($product->creator_recorded_at)->format('d/m/Y H:i') }}</span>
+                                    @endif
                                     <span>
                                         @if (($product->sale_unit_type ?? 'unit') === 'mixed')
                                             Frasco/ml
