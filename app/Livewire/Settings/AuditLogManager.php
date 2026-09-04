@@ -8,16 +8,25 @@ use App\Support\RumikaAccess;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Model;
 use Livewire\Component;
 
 class AuditLogManager extends Component
 {
+    private const ROLLBACK_EVENTS = ['created', 'updated', 'deleted'];
+
     public string $dateFrom = '';
     public string $dateTo = '';
     public string $userFilter = '';
     public string $moduleFilter = '';
     public string $eventFilter = '';
     public string $search = '';
+    public bool $showRollbackModal = false;
+    public string $rollbackConfirmation = '';
+    public string $rollbackMessage = '';
+    public array $rollbackSummary = [];
+    public array $rollbackPreviewRows = [];
 
     public function mount(): void
     {
@@ -42,6 +51,84 @@ class AuditLogManager extends Component
         ]);
     }
 
+    public function openRollbackPreview(): void
+    {
+        abort_unless($this->isAdmin(), 403);
+
+        $this->rollbackMessage = '';
+        $this->rollbackConfirmation = '';
+
+        if ($this->userFilter === '') {
+            $this->rollbackMessage = 'Selecciona una persona antes de preparar el rollback.';
+
+            return;
+        }
+
+        $logs = $this->rollbackableLogs()->with(['user', 'branch'])->get();
+
+        $this->rollbackSummary = [
+            'total' => $logs->count(),
+            'created' => $logs->where('event', 'created')->count(),
+            'updated' => $logs->where('event', 'updated')->count(),
+            'deleted' => $logs->where('event', 'deleted')->count(),
+            'user' => $logs->first()?->user?->name ?? $this->company()->users()->whereKey($this->userFilter)->value('name') ?? 'Usuario seleccionado',
+            'range' => $this->dateFrom.' - '.$this->dateTo,
+        ];
+
+        $this->rollbackPreviewRows = $logs
+            ->take(35)
+            ->map(fn (AuditLog $log) => [
+                'id' => $log->id,
+                'date' => $log->occurred_at?->format('d/m/Y H:i') ?? 'Sin fecha',
+                'event' => $this->eventLabel($log->event),
+                'module' => ucfirst($log->module),
+                'description' => $log->description ?? 'Sin descripcion',
+                'branch' => $log->branch?->name,
+            ])
+            ->values()
+            ->all();
+
+        $this->showRollbackModal = true;
+    }
+
+    public function closeRollbackPreview(): void
+    {
+        $this->showRollbackModal = false;
+        $this->rollbackConfirmation = '';
+    }
+
+    public function confirmRollback(): void
+    {
+        abort_unless($this->isAdmin(), 403);
+
+        if ($this->rollbackConfirmation !== 'REVERSAR') {
+            $this->rollbackMessage = 'Escribe REVERSAR para confirmar.';
+
+            return;
+        }
+
+        $logs = $this->rollbackableLogs()->get();
+
+        if ($logs->isEmpty()) {
+            $this->rollbackMessage = 'No hay movimientos reversibles con los filtros actuales.';
+            $this->closeRollbackPreview();
+
+            return;
+        }
+
+        $result = DB::transaction(function () use ($logs) {
+            return $logs->reduce(function (array $carry, AuditLog $log) {
+                $status = $this->rollbackLog($log);
+                $carry[$status]++;
+
+                return $carry;
+            }, ['reversed' => 0, 'skipped' => 0]);
+        });
+
+        $this->rollbackMessage = 'Rollback aplicado: '.$result['reversed'].' revertidos, '.$result['skipped'].' omitidos.';
+        $this->closeRollbackPreview();
+    }
+
     public function render()
     {
         abort_unless($this->isAdmin(), 403);
@@ -57,6 +144,7 @@ class AuditLogManager extends Component
             'users' => $company->users()->orderBy('name')->get(),
             'modules' => $company->auditLogs()->select('module')->distinct()->orderBy('module')->pluck('module'),
             'events' => $company->auditLogs()->select('event')->distinct()->orderBy('event')->pluck('event'),
+            'rollbackMessage' => $this->rollbackMessage,
         ]);
     }
 
@@ -77,6 +165,86 @@ class AuditLogManager extends Component
                 ->orWhere('module', 'like', "%{$search}%")
                 ->orWhere('event', 'like', "%{$search}%")
                 ->orWhereHas('user', fn ($userQuery) => $userQuery->where('name', 'like', "%{$search}%"))));
+    }
+
+    private function rollbackableLogs()
+    {
+        return $this->filteredLogs()
+            ->whereIn('event', self::ROLLBACK_EVENTS)
+            ->whereNotNull('auditable_type')
+            ->whereNotNull('auditable_id')
+            ->orderByDesc('occurred_at')
+            ->orderByDesc('id');
+    }
+
+    private function rollbackLog(AuditLog $log): string
+    {
+        $class = $log->auditable_type;
+
+        if (! is_string($class) || ! class_exists($class) || ! is_subclass_of($class, Model::class)) {
+            return 'skipped';
+        }
+
+        if ($class === AuditLog::class || $class === Company::class) {
+            return 'skipped';
+        }
+
+        if ($log->event === 'created') {
+            $record = $class::query()->whereKey($log->auditable_id)->first();
+
+            if (! $record || ! $this->recordBelongsToCompany($record, $log)) {
+                return 'skipped';
+            }
+
+            $record->delete();
+
+            return 'reversed';
+        }
+
+        if ($log->event === 'updated') {
+            $record = $class::query()->whereKey($log->auditable_id)->first();
+            $oldValues = $this->safeAttributes($log->old_values ?? []);
+
+            if (! $record || $oldValues === [] || ! $this->recordBelongsToCompany($record, $log)) {
+                return 'skipped';
+            }
+
+            $record->forceFill($oldValues)->save();
+
+            return 'reversed';
+        }
+
+        if ($log->event === 'deleted') {
+            $oldValues = $this->safeAttributes($log->old_values ?? []);
+
+            if ($oldValues === [] || $class::query()->whereKey($log->auditable_id)->exists()) {
+                return 'skipped';
+            }
+
+            $record = new $class();
+            $record->forceFill($oldValues);
+            $record->save();
+
+            return 'reversed';
+        }
+
+        return 'skipped';
+    }
+
+    private function safeAttributes(array $attributes): array
+    {
+        return collect($attributes)
+            ->except(['created_at', 'updated_at'])
+            ->all();
+    }
+
+    private function recordBelongsToCompany(Model $record, AuditLog $log): bool
+    {
+        if (isset($record->company_id)) {
+            return (int) $record->company_id === (int) $log->company_id;
+        }
+
+        return true;
     }
 
     private function buildExcelXml(Collection $logs): string

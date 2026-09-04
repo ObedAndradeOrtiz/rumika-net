@@ -53,7 +53,14 @@
                 <input type="search" wire:model.live.debounce.300ms="search" placeholder="Buscar descripcion, modulo o personal">
             </label>
             <button class="rm-button rm-button-primary" type="button" wire:click="exportExcel">Exportar Excel</button>
+            <button class="rm-button rm-button-danger" type="button" wire:click="openRollbackPreview" wire:loading.attr="disabled">
+                Preparar rollback
+            </button>
         </div>
+
+        @if ($rollbackMessage)
+            <div class="rm-inline-success">{{ $rollbackMessage }}</div>
+        @endif
 
         <div class="rm-commerce-list">
             @forelse ($logs as $log)
@@ -82,4 +89,63 @@
             @endforelse
         </div>
     </section>
+
+    @if ($showRollbackModal)
+        <div class="rm-modal-backdrop" wire:click="closeRollbackPreview"></div>
+        <section class="rm-modal-panel rm-modal-panel-wide" role="dialog" aria-modal="true">
+            <header class="rm-modal-header">
+                <div>
+                    <span>Rollback de bitacora</span>
+                    <h2>Revertir movimientos de {{ $rollbackSummary['user'] ?? 'usuario' }}</h2>
+                    <p class="rm-modal-subtitle">
+                        Se usaran los filtros actuales. Esta accion modifica datos reales y debe hacerse solo si estas seguro.
+                    </p>
+                </div>
+                <button class="rm-modal-close" type="button" wire:click="closeRollbackPreview" aria-label="Cerrar">×</button>
+            </header>
+
+            <div class="rm-audit-rollback-summary">
+                <span><strong>{{ $rollbackSummary['total'] ?? 0 }}</strong> movimientos reversibles</span>
+                <span><strong>{{ $rollbackSummary['created'] ?? 0 }}</strong> creados: se eliminaran</span>
+                <span><strong>{{ $rollbackSummary['updated'] ?? 0 }}</strong> editados: volveran al valor anterior</span>
+                <span><strong>{{ $rollbackSummary['deleted'] ?? 0 }}</strong> eliminados: se intentaran restaurar</span>
+            </div>
+
+            <div class="rm-audit-rollback-warning">
+                Recomendado: filtra por persona, fecha y modulo antes de aplicar. El rollback no puede adivinar si otro usuario ya corrigio manualmente un registro.
+            </div>
+
+            <div class="rm-commerce-list rm-audit-rollback-list">
+                @forelse ($rollbackPreviewRows as $row)
+                    <article class="rm-commerce-row rm-audit-row">
+                        <div class="rm-commerce-icon">{{ $row['event'] }}</div>
+                        <div class="rm-row-main">
+                            <strong>{{ $row['description'] }}</strong>
+                            <span>{{ $row['date'] }} - {{ $row['module'] }}</span>
+                            @if ($row['branch'])
+                                <div class="rm-commerce-meta"><span>{{ $row['branch'] }}</span></div>
+                            @endif
+                        </div>
+                    </article>
+                @empty
+                    <div class="rm-empty-state">
+                        <strong>Sin movimientos reversibles</strong>
+                        <span>Con estos filtros no hay creaciones, ediciones o eliminaciones para revertir.</span>
+                    </div>
+                @endforelse
+            </div>
+
+            <label class="rm-field">
+                <span>Confirmacion</span>
+                <input type="text" wire:model="rollbackConfirmation" placeholder="Escribe REVERSAR para aplicar">
+            </label>
+
+            <div class="rm-modal-actions">
+                <button class="rm-button rm-button-outline" type="button" wire:click="closeRollbackPreview">Cancelar</button>
+                <button class="rm-button rm-button-danger" type="button" wire:click="confirmRollback" wire:loading.attr="disabled">
+                    Revertir movimientos
+                </button>
+            </div>
+        </section>
+    @endif
 </div>
