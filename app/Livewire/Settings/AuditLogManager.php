@@ -4,6 +4,7 @@ namespace App\Livewire\Settings;
 
 use App\Models\AuditLog;
 use App\Models\Company;
+use App\Models\InventoryProduct;
 use App\Support\RumikaAccess;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Carbon;
@@ -200,6 +201,10 @@ class AuditLogManager extends Component
             return $this->rollbackResult('skipped', 'modelo protegido');
         }
 
+        if ($class === InventoryProduct::class && $log->event === 'created') {
+            return $this->rollbackCreatedInventoryProduct($log);
+        }
+
         $model = new $class();
         $table = $model->getTable();
         $primaryKey = $model->getKeyName();
@@ -315,6 +320,191 @@ class AuditLogManager extends Component
         return collect($reasons)
             ->map(fn (int $count, string $reason) => $reason.' ('.$count.')')
             ->implode(', ');
+    }
+
+    private function rollbackCreatedInventoryProduct(AuditLog $log): array
+    {
+        $productId = (int) $log->auditable_id;
+        $productName = trim((string) data_get($log->new_values, 'name', ''));
+        $changes = 0;
+
+        if (! Schema::hasTable('inventory_products')) {
+            return $this->rollbackResult('skipped', 'tabla de productos no disponible');
+        }
+
+        if (Schema::hasTable('product_sale_items') && Schema::hasTable('product_sales')) {
+            $saleIds = DB::table('product_sale_items')
+                ->where('inventory_product_id', $productId)
+                ->pluck('product_sale_id')
+                ->unique()
+                ->values();
+
+            if ($saleIds->isNotEmpty()) {
+                $changes += DB::table('product_sales')
+                    ->where('company_id', $log->company_id)
+                    ->whereIn('id', $saleIds)
+                    ->delete();
+            }
+        }
+
+        $changes += $this->deleteProductClientCharges($log, $productId, $productName);
+        $changes += $this->deleteProductTreatmentPaymentItems($log, $productId, $productName);
+
+        foreach (['inventory_movements', 'inventory_count_items', 'inventory_product_batches'] as $table) {
+            if (Schema::hasTable($table) && Schema::hasColumn($table, 'inventory_product_id')) {
+                $changes += DB::table($table)
+                    ->where('inventory_product_id', $productId)
+                    ->when(Schema::hasColumn($table, 'company_id'), fn ($query) => $query->where('company_id', $log->company_id))
+                    ->delete();
+            }
+        }
+
+        try {
+            $productDeleted = DB::table('inventory_products')
+                ->where('id', $productId)
+                ->where('company_id', $log->company_id)
+                ->delete();
+        } catch (Throwable) {
+            return $changes > 0
+                ? $this->rollbackResult('reversed')
+                : $this->rollbackResult('skipped', 'restriccion de base de datos');
+        }
+
+        $changes += $productDeleted;
+
+        if ($changes > 0) {
+            return $this->rollbackResult('reversed');
+        }
+
+        return $this->rollbackResult('skipped', 'producto ya estaba eliminado sin registros relacionados');
+    }
+
+    private function deleteProductClientCharges(AuditLog $log, int $productId, string $productName): int
+    {
+        if (! Schema::hasTable('client_charges')) {
+            return 0;
+        }
+
+        $chargeIds = DB::table('client_charges')
+            ->where('company_id', $log->company_id)
+            ->where('type', 'product')
+            ->where(function ($query) use ($productId, $productName) {
+                $query->where('inventory_product_id', $productId);
+
+                if ($productName !== '') {
+                    $query->orWhere(function ($query) use ($productName) {
+                        $query->whereNull('inventory_product_id')
+                            ->where('name', $productName);
+                    });
+                }
+            })
+            ->pluck('id');
+
+        if ($chargeIds->isEmpty()) {
+            return 0;
+        }
+
+        $changes = 0;
+
+        if (Schema::hasTable('client_charge_payments')) {
+            $changes += DB::table('client_charge_payments')
+                ->whereIn('client_charge_id', $chargeIds)
+                ->delete();
+        }
+
+        $changes += DB::table('client_charges')
+            ->whereIn('id', $chargeIds)
+            ->delete();
+
+        return $changes;
+    }
+
+    private function deleteProductTreatmentPaymentItems(AuditLog $log, int $productId, string $productName): int
+    {
+        if (! Schema::hasTable('treatment_payment_items') || ! Schema::hasTable('treatment_payments')) {
+            return 0;
+        }
+
+        $items = DB::table('treatment_payment_items')
+            ->join('treatment_payments', 'treatment_payment_items.treatment_payment_id', '=', 'treatment_payments.id')
+            ->where('treatment_payments.company_id', $log->company_id)
+            ->where('treatment_payment_items.type', 'product')
+            ->where(function ($query) use ($productId, $productName) {
+                $query->where('treatment_payment_items.inventory_product_id', $productId);
+
+                if ($productName !== '') {
+                    $query->orWhere(function ($query) use ($productName) {
+                        $query->whereNull('treatment_payment_items.inventory_product_id')
+                            ->where('treatment_payment_items.name', $productName);
+                    });
+                }
+            })
+            ->get([
+                'treatment_payment_items.id',
+                'treatment_payment_items.treatment_payment_id',
+                'treatment_payment_items.total',
+            ]);
+
+        if ($items->isEmpty()) {
+            return 0;
+        }
+
+        $changes = DB::table('treatment_payment_items')
+            ->whereIn('id', $items->pluck('id'))
+            ->delete();
+
+        $items
+            ->groupBy('treatment_payment_id')
+            ->each(function (Collection $paymentItems, int $paymentId) use (&$changes) {
+                $remainingItemsTotal = (float) DB::table('treatment_payment_items')
+                    ->where('treatment_payment_id', $paymentId)
+                    ->sum('total');
+
+                if ($remainingItemsTotal <= 0) {
+                    $changes += DB::table('treatment_payments')->where('id', $paymentId)->delete();
+
+                    return;
+                }
+
+                $oldAmount = (float) DB::table('treatment_payments')->where('id', $paymentId)->value('amount');
+                DB::table('treatment_payments')->where('id', $paymentId)->update(['amount' => $remainingItemsTotal]);
+                $this->rebalancePaymentSplits($paymentId, $oldAmount, $remainingItemsTotal);
+                $changes++;
+            });
+
+        return $changes;
+    }
+
+    private function rebalancePaymentSplits(int $paymentId, float $oldAmount, float $newAmount): void
+    {
+        if (! Schema::hasTable('treatment_payment_splits') || $oldAmount <= 0) {
+            return;
+        }
+
+        $splits = DB::table('treatment_payment_splits')
+            ->where('treatment_payment_id', $paymentId)
+            ->orderBy('id')
+            ->get();
+
+        if ($splits->isEmpty()) {
+            return;
+        }
+
+        $ratio = $newAmount / $oldAmount;
+        $runningTotal = 0.0;
+        $lastSplitId = $splits->last()->id;
+
+        foreach ($splits as $split) {
+            $amount = $split->id === $lastSplitId
+                ? round($newAmount - $runningTotal, 2)
+                : round((float) $split->amount * $ratio, 2);
+
+            $runningTotal += $amount;
+
+            DB::table('treatment_payment_splits')
+                ->where('id', $split->id)
+                ->update(['amount' => max(0, $amount)]);
+        }
     }
 
     private function buildExcelXml(Collection $logs): string

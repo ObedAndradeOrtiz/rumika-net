@@ -112,7 +112,7 @@
             </div>
 
             <div class="rm-audit-rollback-warning">
-                Recomendado: filtra por persona, fecha y modulo antes de aplicar. El rollback no puede adivinar si otro usuario ya corrigio manualmente un registro.
+                Recomendado: filtra por persona, fecha y modulo antes de aplicar. Si incluye productos creados, Rumika tambien intentara limpiar ventas directas, cobros, deudas, movimientos, lotes y conteos relacionados con esos productos.
             </div>
 
             <div class="rm-commerce-list rm-audit-rollback-list">
