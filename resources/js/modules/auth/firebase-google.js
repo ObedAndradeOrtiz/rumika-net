@@ -2,7 +2,7 @@ import { initializeApp } from 'firebase/app';
 import { getAnalytics, isSupported } from 'firebase/analytics';
 import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 
-const googleButtons = document.querySelectorAll('[data-firebase-google]');
+let firebaseContext = null;
 
 const firebaseAuthMessage = (error) => {
     const messages = {
@@ -23,7 +23,11 @@ const firebaseAuthMessage = (error) => {
         || 'No se pudo iniciar sesion con Google. Intenta de nuevo.';
 };
 
-if (googleButtons.length) {
+const firebaseReady = () => {
+    if (firebaseContext) {
+        return firebaseContext;
+    }
+
     const firebaseConfig = {
         apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
         authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -33,6 +37,10 @@ if (googleButtons.length) {
         appId: import.meta.env.VITE_FIREBASE_APP_ID,
         measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
     };
+
+    if (! firebaseConfig.apiKey || ! firebaseConfig.authDomain || ! firebaseConfig.projectId) {
+        return null;
+    }
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
@@ -48,11 +56,40 @@ if (googleButtons.length) {
         }
     });
 
+    firebaseContext = { auth, provider };
+
+    return firebaseContext;
+};
+
+const bindGoogleAuthButtons = () => {
+    const googleButtons = document.querySelectorAll('[data-firebase-google]');
+
+    if (! googleButtons.length) {
+        return;
+    }
+
+    const context = firebaseReady();
+
     googleButtons.forEach((button) => {
+        if (button.dataset.firebaseBound === 'true') {
+            return;
+        }
+
+        button.dataset.firebaseBound = 'true';
+
         button.addEventListener('click', async () => {
             const errorTarget = document.querySelector(button.dataset.errorTarget || '[data-google-error]');
             const originalText = button.querySelector('[data-google-label]')?.textContent;
             const termsCheckbox = document.querySelector('[data-terms-checkbox]');
+
+            if (! context) {
+                if (errorTarget) {
+                    errorTarget.hidden = false;
+                    errorTarget.textContent = 'Falta configurar Firebase para crear cuentas con Google.';
+                }
+
+                return;
+            }
 
             if (termsCheckbox && !termsCheckbox.checked) {
                 if (errorTarget) {
@@ -76,7 +113,7 @@ if (googleButtons.length) {
             }
 
             try {
-                const credential = await signInWithPopup(auth, provider);
+                const credential = await signInWithPopup(context.auth, context.provider);
                 const idToken = await credential.user.getIdToken();
                 const payload = {
                     id_token: idToken,
@@ -106,4 +143,7 @@ if (googleButtons.length) {
             }
         });
     });
-}
+};
+
+document.addEventListener('DOMContentLoaded', bindGoogleAuthButtons);
+document.addEventListener('livewire:navigated', bindGoogleAuthButtons);

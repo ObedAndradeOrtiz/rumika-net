@@ -20,6 +20,7 @@ use App\Models\InventoryUseArea;
 use App\Support\CompanyPlanLimits;
 use App\Support\RumikaAccess;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
