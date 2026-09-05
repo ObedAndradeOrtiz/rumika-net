@@ -145,7 +145,7 @@ class StatisticsSummary extends Component
                 : collect(),
             'topServicePatientSummary' => $this->showTopServiceModal
                 ? $this->topServicePatientSummary($appointments, $this->selectedTopServiceName)
-                : ['scheduled' => 0, 'attended' => 0, 'income' => 0],
+                : ['scheduled' => 0, 'attended' => 0, 'income' => 0, 'pending' => 0],
             'topSellers' => $this->topSellers($payments),
             'topProducts' => $this->topProducts($payments),
             'annualRows' => $this->annualRows($annualAppointments, $annualPayments, $annualExpenses, $year),
@@ -328,18 +328,27 @@ class StatisticsSummary extends Component
             ->flatMap(function ($appointment) use ($normalizedService) {
                 return $appointment->services
                     ->filter(fn ($service) => $this->normalizeServiceName((string) $service->name) === $normalizedService)
-                    ->map(fn ($service) => [
-                        'patient' => $appointment->client?->full_name ?? 'Sin paciente',
-                        'phone' => $appointment->client?->displayContact(),
-                        'branch' => $appointment->branch?->name ?? 'Sin sucursal',
-                        'date' => $appointment->scheduled_at?->format('d/m/Y H:i') ?? 'Sin fecha',
-                        'sort_key' => $appointment->scheduled_at?->timestamp ?? 0,
-                        'service' => $service->name ?? 'Sin tratamiento',
-                        'status' => $this->appointmentStatusLabel((string) $appointment->status),
-                        'source' => $this->bookingSourceLabel((string) ($appointment->booking_source ?? '')),
-                        'attended' => (bool) $appointment->attended,
-                        'income' => $this->serviceIncomeForAppointment($appointment, (int) $service->id, (string) $service->name),
-                    ]);
+                    ->map(function ($service) use ($appointment) {
+                        $paidAmount = $this->serviceIncomeForAppointment($appointment, (int) $service->id, (string) $service->name);
+                        $expectedAmount = round((float) ($service->price ?? 0), 2);
+                        $pendingAmount = max(0, $expectedAmount - $paidAmount);
+
+                        return [
+                            'patient' => $appointment->client?->full_name ?? 'Sin paciente',
+                            'phone' => $appointment->client?->displayContact(),
+                            'branch' => $appointment->branch?->name ?? 'Sin sucursal',
+                            'date' => $appointment->scheduled_at?->format('d/m/Y H:i') ?? 'Sin fecha',
+                            'sort_key' => $appointment->scheduled_at?->timestamp ?? 0,
+                            'service' => $service->name ?? 'Sin tratamiento',
+                            'status' => $this->appointmentStatusLabel((string) $appointment->status),
+                            'source' => $this->bookingSourceLabel((string) ($appointment->booking_source ?? '')),
+                            'attended' => (bool) $appointment->attended,
+                            'expected' => $expectedAmount,
+                            'income' => $paidAmount,
+                            'pending' => $pendingAmount,
+                            'payment_status' => $pendingAmount > 0 ? 'Pendiente' : 'Pagado',
+                        ];
+                    });
             })
             ->sortBy('sort_key')
             ->values();
@@ -353,6 +362,7 @@ class StatisticsSummary extends Component
             'scheduled' => (int) $rows->count(),
             'attended' => (int) $rows->where('attended', true)->count(),
             'income' => (float) $rows->sum('income'),
+            'pending' => (float) $rows->sum('pending'),
         ];
     }
 

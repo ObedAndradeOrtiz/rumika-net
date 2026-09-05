@@ -310,8 +310,12 @@
                     <strong>{{ $topServicePatientSummary['attended'] }}</strong>
                 </div>
                 <div class="rm-stat-modal-count is-income">
-                    <span>Ingreso total</span>
+                    <span>Ingresado</span>
                     <strong>{{ \App\Support\Money::symbol() }} {{ number_format((float) $topServicePatientSummary['income'], 2) }}</strong>
+                </div>
+                <div class="rm-stat-modal-count is-pending">
+                    <span>Pendiente</span>
+                    <strong>{{ \App\Support\Money::symbol() }} {{ number_format((float) $topServicePatientSummary['pending'], 2) }}</strong>
                 </div>
             </div>
 
@@ -330,7 +334,7 @@
                             <span>{{ $row['branch'] }}</span>
                             <span>{{ $row['status'] }}</span>
                             <span>{{ $row['source'] }}</span>
-                            <span>{{ \App\Support\Money::symbol() }} {{ number_format((float) $row['income'], 2) }}</span>
+                            <span>{{ $row['payment_status'] }} {{ \App\Support\Money::symbol() }} {{ number_format((float) ($row['pending'] > 0 ? $row['pending'] : $row['income']), 2) }}</span>
                         </div>
                     </article>
                 @empty

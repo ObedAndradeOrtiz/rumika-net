@@ -1249,8 +1249,21 @@
     border-color: #99f6e4;
 }
 
+.rm-stat-modal-count.is-pending {
+    background: #fff7ed;
+    border-color: #fed7aa;
+}
+
+.rm-stat-modal-count.is-pending span {
+    color: #9a3412;
+}
+
+.rm-stat-modal-count.is-pending strong {
+    color: #c2410c;
+}
+
 .rm-stat-service-detail-summary {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .rm-stat-professional-card .rm-stat-patient-treatments div {
