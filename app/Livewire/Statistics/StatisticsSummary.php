@@ -7,6 +7,7 @@ use App\Support\SimpleReportPdf;
 use App\Support\RumikaAccess;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Livewire\Component;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -20,6 +21,7 @@ class StatisticsSummary extends Component
     public bool $showProfessionalModal = false;
     public string $selectedProfessionalKey = '';
     public string $professionalServiceFilter = '';
+    public string $topServiceSearch = '';
 
     public function mount(): void
     {
@@ -39,6 +41,7 @@ class StatisticsSummary extends Component
             'dateTo' => ['required', 'date', 'after_or_equal:dateFrom'],
             'branchFilter' => ['nullable', 'integer'],
             'year' => ['required', 'integer', 'min:2020', 'max:2100'],
+            'topServiceSearch' => ['nullable', 'string', 'max:120'],
         ]);
 
         $company = $this->company();
@@ -122,7 +125,8 @@ class StatisticsSummary extends Component
             ],
             'branchRows' => $this->branchRows($branches, $appointments, $payments, $expenses),
             'dailyRows' => $this->dailyRows($appointments, $payments, $expenses, $from, $to),
-            'topServices' => $this->topServices($appointments),
+            'topServices' => $this->topServices($appointments, $payments, $this->topServiceSearch),
+            'topServiceSearchSummary' => $this->topServiceSearchSummary($appointments, $payments, $this->topServiceSearch),
             'topProfessionals' => $this->topProfessionals($appointments),
             'professionalRows' => $this->showProfessionalModal
                 ? $this->professionalRows($appointments, $this->selectedProfessionalKey, $this->professionalServiceFilter)
@@ -253,18 +257,55 @@ class StatisticsSummary extends Component
         return $days;
     }
 
-    private function topServices($appointments)
+    private function topServices($appointments, $payments, string $search = '')
     {
+        $search = trim($search);
+        $serviceIncome = $payments
+            ->flatMap->items
+            ->where('type', 'service')
+            ->groupBy(fn ($item) => $this->normalizeServiceName((string) $item->name))
+            ->map(fn ($items) => (float) $items->sum('total'));
+
         return $appointments
-            ->flatMap->services
+            ->flatMap(function ($appointment) {
+                return $appointment->services->map(fn ($service) => [
+                    'name' => $service->name,
+                    'attended' => (bool) $appointment->attended,
+                ]);
+            })
+            ->filter(fn (array $service) => filled($service['name']))
+            ->when($search !== '', fn ($services) => $services->filter(
+                fn (array $service) => str_contains(
+                    Str::of($service['name'])->lower()->ascii()->toString(),
+                    Str::of($search)->lower()->ascii()->toString()
+                )
+            ))
             ->groupBy('name')
             ->map(fn ($services, $name) => [
                 'name' => $name,
                 'count' => $services->count(),
+                'attended' => $services->where('attended', true)->count(),
+                'income' => (float) ($serviceIncome->get($this->normalizeServiceName((string) $name), 0) ?? 0),
             ])
             ->sortByDesc('count')
-            ->take(8)
+            ->take($search !== '' ? 20 : 8)
             ->values();
+    }
+
+    private function topServiceSearchSummary($appointments, $payments, string $search): array
+    {
+        $rows = $this->topServices($appointments, $payments, $search);
+
+        return [
+            'scheduled' => (int) $rows->sum('count'),
+            'attended' => (int) $rows->sum('attended'),
+            'income' => (float) $rows->sum('income'),
+        ];
+    }
+
+    private function normalizeServiceName(string $name): string
+    {
+        return Str::of($name)->trim()->lower()->ascii()->toString();
     }
 
     private function topProfessionals($appointments)

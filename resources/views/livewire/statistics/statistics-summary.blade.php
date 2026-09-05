@@ -257,14 +257,33 @@
                     <h2>Tratamientos mas agendados</h2>
                 </div>
             </div>
+            <div class="rm-treatment-search-box">
+                <label class="rm-search-field">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+                    <input wire:model.live.debounce.300ms="topServiceSearch" type="search" placeholder="Buscar tratamiento especifico">
+                </label>
+                @if ($topServiceSearch !== '')
+                    <div class="rm-treatment-search-summary">
+                        <span><strong>{{ $topServiceSearchSummary['scheduled'] }}</strong> agendada(s)</span>
+                        <span><strong>{{ $topServiceSearchSummary['attended'] }}</strong> atendida(s)</span>
+                        <span><strong>{{ \App\Support\Money::symbol() }} {{ number_format((float) $topServiceSearchSummary['income'], 2) }}</strong> ingresado</span>
+                    </div>
+                @endif
+            </div>
             <div class="rm-alert-list">
                 @forelse ($topServices as $service)
                     <article>
                         <span class="rm-alert-dot is-stock"></span>
-                        <div><strong>{{ $service['name'] }}</strong><small>{{ $service['count'] }} cita(s)</small></div>
+                        <div>
+                            <strong>{{ $service['name'] }}</strong>
+                            <small>
+                                {{ $service['count'] }} agendada(s) · {{ $service['attended'] }} atendida(s) ·
+                                {{ \App\Support\Money::symbol() }} {{ number_format((float) $service['income'], 2) }}
+                            </small>
+                        </div>
                     </article>
                 @empty
-                    <div class="rm-dashboard-empty">Sin tratamientos en este rango.</div>
+                    <div class="rm-dashboard-empty">Sin tratamientos para esta busqueda en el rango seleccionado.</div>
                 @endforelse
             </div>
         </section>

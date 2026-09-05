@@ -1350,6 +1350,39 @@
     gap: 10px;
 }
 
+.rm-treatment-search-box {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.rm-treatment-search-box .rm-search-field {
+    margin: 0;
+}
+
+.rm-treatment-search-summary {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.rm-treatment-search-summary span {
+    background: #f8fafc;
+    border: 1px solid var(--rumika-border);
+    border-radius: 12px;
+    color: var(--rumika-muted);
+    font-size: 11px;
+    font-weight: 850;
+    padding: 9px 10px;
+}
+
+.rm-treatment-search-summary strong {
+    color: var(--rumika-teal-dark);
+    display: block;
+    font-size: 14px;
+    font-weight: 950;
+}
+
 .rm-cash-summary-list div {
     align-items: center;
     background: #f8fafc;
@@ -2329,6 +2362,10 @@
 
     .rm-stat-modal-filter-row {
         align-items: stretch;
+        grid-template-columns: 1fr;
+    }
+
+    .rm-treatment-search-summary {
         grid-template-columns: 1fr;
     }
 
