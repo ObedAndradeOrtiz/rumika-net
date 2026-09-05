@@ -1249,6 +1249,10 @@
     border-color: #99f6e4;
 }
 
+.rm-stat-service-detail-summary {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .rm-stat-professional-card .rm-stat-patient-treatments div {
     background: #f0fdfa;
     border-color: #ccfbf1;
@@ -2362,6 +2366,10 @@
 
     .rm-stat-modal-filter-row {
         align-items: stretch;
+        grid-template-columns: 1fr;
+    }
+
+    .rm-stat-service-detail-summary {
         grid-template-columns: 1fr;
     }
 

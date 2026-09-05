@@ -272,13 +272,13 @@
             </div>
             <div class="rm-alert-list">
                 @forelse ($topServices as $service)
-                    <article>
+                    <article class="rm-stat-click-card" role="button" tabindex="0" wire:click="openTopServiceModal(@js($service['name']))">
                         <span class="rm-alert-dot is-stock"></span>
                         <div>
                             <strong>{{ $service['name'] }}</strong>
                             <small>
                                 {{ $service['count'] }} agendada(s) · {{ $service['attended'] }} atendida(s) ·
-                                {{ \App\Support\Money::symbol() }} {{ number_format((float) $service['income'], 2) }}
+                                {{ \App\Support\Money::symbol() }} {{ number_format((float) $service['income'], 2) }} · click para detalle
                             </small>
                         </div>
                     </article>
@@ -288,6 +288,60 @@
             </div>
         </section>
     </div>
+
+    @if ($showTopServiceModal)
+        <div class="rm-modal-backdrop" wire:click="closeTopServiceModal"></div>
+        <section class="rm-modal-panel rm-stat-patient-modal" role="dialog" aria-modal="true">
+            <div class="rm-modal-title">
+                <div>
+                    <span>Pacientes agendados</span>
+                    <h2>{{ $selectedTopServiceName }}</h2>
+                </div>
+                <button type="button" wire:click="closeTopServiceModal">x</button>
+            </div>
+
+            <div class="rm-stat-modal-filter-row rm-stat-service-detail-summary">
+                <div class="rm-stat-modal-count">
+                    <span>Agendadas</span>
+                    <strong>{{ $topServicePatientSummary['scheduled'] }}</strong>
+                </div>
+                <div class="rm-stat-modal-count">
+                    <span>Atendidas</span>
+                    <strong>{{ $topServicePatientSummary['attended'] }}</strong>
+                </div>
+                <div class="rm-stat-modal-count is-income">
+                    <span>Ingreso total</span>
+                    <strong>{{ \App\Support\Money::symbol() }} {{ number_format((float) $topServicePatientSummary['income'], 2) }}</strong>
+                </div>
+            </div>
+
+            <div class="rm-stat-patient-list">
+                @forelse ($topServicePatientRows as $row)
+                    <article class="rm-stat-patient-card rm-stat-professional-card">
+                        <header>
+                            <div>
+                                <strong>{{ $row['patient'] }}</strong>
+                                <span>{{ $row['phone'] ?: 'Sin telefono' }}</span>
+                            </div>
+                            <small>{{ $row['date'] }}</small>
+                        </header>
+
+                        <div class="rm-stat-patient-meta">
+                            <span>{{ $row['branch'] }}</span>
+                            <span>{{ $row['status'] }}</span>
+                            <span>{{ $row['source'] }}</span>
+                            <span>{{ \App\Support\Money::symbol() }} {{ number_format((float) $row['income'], 2) }}</span>
+                        </div>
+                    </article>
+                @empty
+                    <div class="rm-empty-state">
+                        <strong>Sin pacientes</strong>
+                        <span>No hay pacientes agendados para este tratamiento en el rango seleccionado.</span>
+                    </div>
+                @endforelse
+            </div>
+        </section>
+    @endif
 
     @if ($showProfessionalModal)
         <div class="rm-modal-backdrop" wire:click="closeProfessionalModal"></div>

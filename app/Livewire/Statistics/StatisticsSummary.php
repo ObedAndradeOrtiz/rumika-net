@@ -19,9 +19,11 @@ class StatisticsSummary extends Component
     public string $year = '';
     public bool $showNewPatientsModal = false;
     public bool $showProfessionalModal = false;
+    public bool $showTopServiceModal = false;
     public string $selectedProfessionalKey = '';
     public string $professionalServiceFilter = '';
     public string $topServiceSearch = '';
+    public string $selectedTopServiceName = '';
 
     public function mount(): void
     {
@@ -138,6 +140,12 @@ class StatisticsSummary extends Component
                 ? $this->professionalTreatmentOptions($appointments, $this->selectedProfessionalKey)
                 : collect(),
             'selectedProfessionalName' => $this->selectedProfessionalName($appointments, $this->selectedProfessionalKey),
+            'topServicePatientRows' => $this->showTopServiceModal
+                ? $this->topServicePatientRows($appointments, $this->selectedTopServiceName)
+                : collect(),
+            'topServicePatientSummary' => $this->showTopServiceModal
+                ? $this->topServicePatientSummary($appointments, $this->selectedTopServiceName)
+                : ['scheduled' => 0, 'attended' => 0, 'income' => 0],
             'topSellers' => $this->topSellers($payments),
             'topProducts' => $this->topProducts($payments),
             'annualRows' => $this->annualRows($annualAppointments, $annualPayments, $annualExpenses, $year),
@@ -306,6 +314,74 @@ class StatisticsSummary extends Component
     private function normalizeServiceName(string $name): string
     {
         return Str::of($name)->trim()->lower()->ascii()->toString();
+    }
+
+    private function topServicePatientRows($appointments, string $serviceName)
+    {
+        $normalizedService = $this->normalizeServiceName($serviceName);
+
+        if ($normalizedService === '') {
+            return collect();
+        }
+
+        return $appointments
+            ->flatMap(function ($appointment) use ($normalizedService) {
+                return $appointment->services
+                    ->filter(fn ($service) => $this->normalizeServiceName((string) $service->name) === $normalizedService)
+                    ->map(fn ($service) => [
+                        'patient' => $appointment->client?->full_name ?? 'Sin paciente',
+                        'phone' => $appointment->client?->displayContact(),
+                        'branch' => $appointment->branch?->name ?? 'Sin sucursal',
+                        'date' => $appointment->scheduled_at?->format('d/m/Y H:i') ?? 'Sin fecha',
+                        'sort_key' => $appointment->scheduled_at?->timestamp ?? 0,
+                        'service' => $service->name ?? 'Sin tratamiento',
+                        'status' => $this->appointmentStatusLabel((string) $appointment->status),
+                        'source' => $this->bookingSourceLabel((string) ($appointment->booking_source ?? '')),
+                        'attended' => (bool) $appointment->attended,
+                        'income' => $this->serviceIncomeForAppointment($appointment, (int) $service->id, (string) $service->name),
+                    ]);
+            })
+            ->sortBy('sort_key')
+            ->values();
+    }
+
+    private function topServicePatientSummary($appointments, string $serviceName): array
+    {
+        $rows = $this->topServicePatientRows($appointments, $serviceName);
+
+        return [
+            'scheduled' => (int) $rows->count(),
+            'attended' => (int) $rows->where('attended', true)->count(),
+            'income' => (float) $rows->sum('income'),
+        ];
+    }
+
+    private function serviceIncomeForAppointment($appointment, int $appointmentServiceId, string $serviceName): float
+    {
+        $items = $appointment->payments
+            ->flatMap->items
+            ->where('type', 'service');
+
+        $income = (float) $items
+            ->where('appointment_service_id', $appointmentServiceId)
+            ->sum('total');
+
+        if ($income > 0) {
+            return round($income, 2);
+        }
+
+        return round((float) $items
+            ->filter(fn ($item) => $this->normalizeServiceName((string) $item->name) === $this->normalizeServiceName($serviceName))
+            ->sum('total'), 2);
+    }
+
+    private function bookingSourceLabel(string $source): string
+    {
+        return match ($source) {
+            'web' => 'Agendado por web',
+            'whatsapp' => 'Agendado por WhatsApp',
+            default => 'Agendado interno',
+        };
     }
 
     private function topProfessionals($appointments)
@@ -615,6 +691,18 @@ class StatisticsSummary extends Component
         $this->showProfessionalModal = false;
         $this->selectedProfessionalKey = '';
         $this->professionalServiceFilter = '';
+    }
+
+    public function openTopServiceModal(string $serviceName): void
+    {
+        $this->selectedTopServiceName = $serviceName;
+        $this->showTopServiceModal = true;
+    }
+
+    public function closeTopServiceModal(): void
+    {
+        $this->showTopServiceModal = false;
+        $this->selectedTopServiceName = '';
     }
 
     private function appointmentStatusLabel(string $status): string
