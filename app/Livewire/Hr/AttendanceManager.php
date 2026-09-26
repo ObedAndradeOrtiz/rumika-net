@@ -195,9 +195,19 @@ class AttendanceManager extends Component
         $from = Carbon::parse($this->fromDate)->startOfDay();
         $to = Carbon::parse($this->toDate)->endOfDay();
 
+        $recordUserIds = StaffAttendanceRecord::query()
+            ->where('company_id', $company->id)
+            ->whereBetween('work_date', [$from->toDateString(), $to->toDateString()])
+            ->pluck('user_id')
+            ->unique()
+            ->values();
+
         $users = $company->users()
             ->with('branches')
-            ->where('tracks_attendance', true)
+            ->where(function ($query) use ($recordUserIds) {
+                $query->where('tracks_attendance', true)
+                    ->when($recordUserIds->isNotEmpty(), fn ($inner) => $inner->orWhereIn('users.id', $recordUserIds));
+            })
             ->orderBy('name')
             ->get();
 
@@ -307,13 +317,15 @@ class AttendanceManager extends Component
         return $users->map(function (User $user) use ($records, $schedules, $exemptions, $from, $to, $today) {
             $userRecords = $records->where('user_id', $user->id);
             $userSchedules = $schedules->get($user->id, collect())->keyBy('weekday');
-            $expectedDates = collect(CarbonPeriod::create($from, $to->copy()->min($today)))
-                ->filter(function (Carbon $date) use ($user, $userSchedules, $exemptions) {
-                    $schedule = $userSchedules->get((int) $date->isoWeekday());
+            $expectedDates = $user->tracks_attendance
+                ? collect(CarbonPeriod::create($from, $to->copy()->min($today)))
+                    ->filter(function (Carbon $date) use ($user, $userSchedules, $exemptions) {
+                        $schedule = $userSchedules->get((int) $date->isoWeekday());
 
-                    return $this->isExpectedWorkday($date, $userSchedules)
-                        && ! $this->hasExemption($date, $user, $schedule, $exemptions);
-                });
+                        return $this->isExpectedWorkday($date, $userSchedules)
+                            && ! $this->hasExemption($date, $user, $schedule, $exemptions);
+                    })
+                : collect();
             $recordedDates = $userRecords->pluck('work_date')->map(fn ($date) => $date->format('Y-m-d'))->unique();
             $missingDates = $expectedDates
                 ->map(fn (Carbon $date) => $date->format('Y-m-d'))

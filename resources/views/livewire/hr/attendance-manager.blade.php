@@ -80,7 +80,7 @@
             <div class="rm-panel-title">
                 <div>
                     <h2>Usuarios con asistencia</h2>
-                    <p>Solo aparecen usuarios que tienen activo el control de asistencia.</p>
+                    <p>Aparecen usuarios con control activo y usuarios que ya registraron alguna marcacion en el rango.</p>
                 </div>
             </div>
 

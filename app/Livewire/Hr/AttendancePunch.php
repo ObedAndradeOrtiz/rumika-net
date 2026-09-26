@@ -28,10 +28,6 @@ class AttendancePunch extends Component
 
     public function openPunch(): void
     {
-        if (! $this->shouldTrackAttendance()) {
-            return;
-        }
-
         $this->resetErrorBag();
         $this->successMessage = null;
         $this->showModal = true;
@@ -54,12 +50,6 @@ class AttendancePunch extends Component
 
         $user = Auth::user();
         $company = $this->company();
-
-        if (! $this->shouldTrackAttendance()) {
-            throw ValidationException::withMessages([
-                'attendance' => 'Este usuario no tiene activado el control de asistencia.',
-            ]);
-        }
 
         if (! $user?->face_descriptor) {
             throw ValidationException::withMessages([
@@ -84,7 +74,7 @@ class AttendancePunch extends Component
             ->latest('check_in_at')
             ->first();
 
-        $branchMatch = $this->matchingBranch($company, $latitude, $longitude, $openRecord === null);
+        $branchMatch = $this->matchingBranch($company, $latitude, $longitude);
         $imagePath = $this->storeFaceCapture($captureImage);
 
         if ($openRecord) {
@@ -152,7 +142,7 @@ class AttendancePunch extends Component
             ->first();
 
         return view('livewire.hr.attendance-punch', [
-            'enabled' => $this->shouldTrackAttendance(),
+            'enabled' => StaffAttendanceGate::hasConfiguredGeofence($company),
             'todayRecord' => $todayRecord,
             'openRecord' => $openRecord,
             'hasFace' => filled(Auth::user()?->face_descriptor),
@@ -160,34 +150,17 @@ class AttendancePunch extends Component
         ]);
     }
 
-    private function shouldTrackAttendance(): bool
-    {
-        return (bool) Auth::user()?->tracks_attendance;
-    }
-
     private function company(): Company
     {
         return Auth::user()->companies()->firstOrFail();
     }
 
-    private function matchingBranch(Company $company, float $latitude, float $longitude, bool $checkIn): array
+    private function matchingBranch(Company $company, float $latitude, float $longitude): array
     {
         $query = $company->branches()
             ->where('status', 'active')
             ->whereNotNull('attendance_latitude')
             ->whereNotNull('attendance_longitude');
-
-        if ($checkIn) {
-            $assignedBranchIds = Auth::user()
-                ->branches()
-                ->where('branches.company_id', $company->id)
-                ->pluck('branches.id')
-                ->all();
-
-            if ($assignedBranchIds !== []) {
-                $query->whereIn('id', $assignedBranchIds);
-            }
-        }
 
         $matches = $query->get()
             ->map(function (Branch $branch) use ($latitude, $longitude) {
