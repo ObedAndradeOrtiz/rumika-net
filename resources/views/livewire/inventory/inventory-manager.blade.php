@@ -246,6 +246,7 @@
                         <span>Hasta</span>
                         <input type="date" wire:model="movementExportTo">
                     </label>
+                    <button class="rm-button rm-button-outline rm-export-excel-button" type="button" wire:click="exportProductMovementSummary">Resumen por producto</button>
                     <button class="rm-button rm-button-success rm-export-excel-button" type="button" wire:click="exportMovements">Descargar Excel</button>
                 </div>
             </div>

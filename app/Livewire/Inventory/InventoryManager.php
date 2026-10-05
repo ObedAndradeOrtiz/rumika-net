@@ -1065,6 +1065,125 @@ class InventoryManager extends Component
         }, $filename, ['Content-Type' => 'application/vnd.ms-excel; charset=UTF-8']);
     }
 
+    public function exportProductMovementSummary(): StreamedResponse
+    {
+        $company = $this->company();
+        $branch = $this->activeBranch();
+        $from = $this->movementExportFrom
+            ? Carbon::parse($this->movementExportFrom)->startOfDay()
+            : now()->startOfMonth();
+        $to = $this->movementExportTo
+            ? Carbon::parse($this->movementExportTo)->endOfDay()
+            : now()->endOfDay();
+        $movementListSearch = trim($this->movementListSearch);
+        $filename = 'inventario-resumen-'.$branch->slug.'-'.$from->format('Ymd').'-'.$to->format('Ymd').'.xls';
+
+        return response()->streamDownload(function () use ($company, $branch, $from, $to, $movementListSearch) {
+            $products = $company->inventoryProducts()
+                ->with(['brand', 'useArea'])
+                ->when($movementListSearch !== '', fn ($query) => $query->where(function ($nested) use ($movementListSearch) {
+                    $nested
+                        ->where('name', 'like', "%{$movementListSearch}%")
+                        ->orWhere('code', 'like', "%{$movementListSearch}%");
+                }))
+                ->orderBy('name')
+                ->get();
+
+            $productIds = $products->pluck('id')->all();
+
+            $currentStock = $company->inventoryBatches()
+                ->where('branch_id', $branch->id)
+                ->when($productIds !== [], fn ($query) => $query->whereIn('inventory_product_id', $productIds))
+                ->selectRaw('inventory_product_id, COALESCE(SUM(current_quantity), 0) as total')
+                ->groupBy('inventory_product_id')
+                ->pluck('total', 'inventory_product_id');
+
+            $averageCosts = $company->inventoryBatches()
+                ->where('branch_id', $branch->id)
+                ->when($productIds !== [], fn ($query) => $query->whereIn('inventory_product_id', $productIds))
+                ->selectRaw('inventory_product_id, COALESCE(SUM(current_quantity * unit_cost), 0) as total_value, COALESCE(SUM(current_quantity), 0) as total_quantity')
+                ->groupBy('inventory_product_id')
+                ->get()
+                ->mapWithKeys(fn ($row) => [
+                    (int) $row->inventory_product_id => (float) $row->total_quantity > 0
+                        ? round((float) $row->total_value / (float) $row->total_quantity, 2)
+                        : 0,
+                ]);
+
+            $movements = $company->inventoryMovements()
+                ->with(['product.brand', 'product.useArea'])
+                ->where('branch_id', $branch->id)
+                ->where('moved_at', '>=', $from)
+                ->when($productIds !== [], fn ($query) => $query->whereIn('inventory_product_id', $productIds))
+                ->get()
+                ->groupBy('inventory_product_id');
+
+            $headers = [
+                'Sucursal',
+                'Producto',
+                'Codigo',
+                'Marca',
+                'Area',
+                'Stock inicial',
+                'Entradas',
+                'Traspasos recibidos',
+                'Ajustes entrada',
+                'Salidas / ventas',
+                'Bajas / ajustes',
+                'Desechos',
+                'Traspasos enviados',
+                'Stock final calculado',
+                'Stock actual sistema',
+                'Diferencia actual',
+                'Costo promedio',
+                'Valor final calculado',
+            ];
+
+            $rows = $products->map(function (InventoryProduct $product) use ($branch, $from, $to, $currentStock, $averageCosts, $movements) {
+                $productMovements = $movements->get($product->id, collect());
+                $rangeMovements = $productMovements->filter(fn (InventoryMovement $movement) => $movement->moved_at && $movement->moved_at->betweenIncluded($from, $to));
+                $netFromStart = $productMovements->sum(fn (InventoryMovement $movement) => $this->movementSignedQuantity($movement));
+                $netAfterClose = $productMovements
+                    ->filter(fn (InventoryMovement $movement) => $movement->moved_at && $movement->moved_at->greaterThan($to))
+                    ->sum(fn (InventoryMovement $movement) => $this->movementSignedQuantity($movement));
+                $stockNow = round((float) ($currentStock[$product->id] ?? 0), 2);
+                $openingStock = round($stockNow - $netFromStart, 2);
+                $closingStock = round($stockNow - $netAfterClose, 2);
+                $openingAdjustments = $rangeMovements
+                    ->where('type', 'opening_adjustment')
+                    ->sum(fn (InventoryMovement $movement) => max($this->movementSignedQuantity($movement), 0));
+                $downAdjustments = $rangeMovements
+                    ->filter(fn (InventoryMovement $movement) => in_array($movement->type, ['adjustment', 'stock_shortage'], true)
+                        || ($movement->type === 'opening_adjustment' && $this->movementSignedQuantity($movement) < 0))
+                    ->sum(fn (InventoryMovement $movement) => abs($this->movementSignedQuantity($movement)));
+                $averageCost = (float) ($averageCosts[$product->id] ?: $product->purchase_cost);
+
+                return [
+                    $branch->name,
+                    $product->name,
+                    $product->code,
+                    $product->brand?->name ?? 'GENERAL',
+                    $product->useArea?->name ?? 'General',
+                    $openingStock,
+                    round((float) $rangeMovements->where('type', 'purchase')->sum('quantity'), 2),
+                    round((float) $rangeMovements->where('type', 'transfer_in')->sum('quantity'), 2),
+                    round((float) $openingAdjustments, 2),
+                    round((float) $rangeMovements->whereIn('type', ['sale', 'stock_out', 'cabinet'])->sum('quantity'), 2),
+                    round((float) $downAdjustments, 2),
+                    round((float) $rangeMovements->where('type', 'waste')->sum('quantity'), 2),
+                    round((float) $rangeMovements->where('type', 'transfer_out')->sum('quantity'), 2),
+                    $closingStock,
+                    $stockNow,
+                    round($stockNow - $closingStock, 2),
+                    round($averageCost, 2),
+                    round($closingStock * $averageCost, 2),
+                ];
+            });
+
+            echo $this->excelWorkbookXml(['Resumen' => $rows], $headers, fn (array $row) => $row);
+        }, $filename, ['Content-Type' => 'application/vnd.ms-excel; charset=UTF-8']);
+    }
+
     public function exportCountDetails(string $format): StreamedResponse
     {
         $count = $this->company()->inventoryCounts()
@@ -1167,6 +1286,32 @@ class InventoryManager extends Component
             $movement->reference,
             $movement->reason,
         ];
+    }
+
+    private function movementSignedQuantity(InventoryMovement $movement): float
+    {
+        $quantity = (float) $movement->quantity;
+
+        if (in_array($movement->type, ['purchase', 'transfer_in'], true)) {
+            return $quantity;
+        }
+
+        if ($movement->type === 'opening_adjustment') {
+            if (preg_match('/:\s*([\d,.-]+)\s*->\s*([\d,.-]+)/', (string) $movement->reason, $matches)) {
+                $oldOpening = (float) str_replace(',', '', $matches[1]);
+                $newOpening = (float) str_replace(',', '', $matches[2]);
+
+                return $newOpening >= $oldOpening ? $quantity : -$quantity;
+            }
+
+            return $quantity;
+        }
+
+        if (in_array($movement->type, ['sale', 'stock_out', 'cabinet', 'waste', 'transfer_out', 'adjustment', 'stock_shortage'], true)) {
+            return -$quantity;
+        }
+
+        return 0;
     }
 
     private function paymentForMovement(InventoryMovement $movement, array $paymentLookup): ?TreatmentPayment
