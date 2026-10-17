@@ -8,7 +8,7 @@ new #[Layout('layouts.guest')] class extends Component
     //
 }; ?>
 
-<div class="rm-login-shell">
+<div class="rm-login-shell" data-google-registration>
     <div class="rm-login-header">
         <a href="{{ url('/') }}" class="rm-login-brand" wire:navigate>
             <span class="rm-brand-mark">
@@ -32,10 +32,10 @@ new #[Layout('layouts.guest')] class extends Component
         </p>
     </div>
 
-    <div class="rm-google-error" data-google-error hidden></div>
+    <div class="rm-google-error" data-google-error role="alert" aria-live="polite" hidden></div>
 
     <label class="rm-legal-check">
-        <input type="checkbox" data-terms-checkbox>
+        <input type="checkbox" id="registration-terms" name="terms_accepted" required data-terms-checkbox>
         <span>
             Acepto los
             <a href="{{ route('legal.terms') }}" target="_blank" rel="noopener">términos y condiciones</a>

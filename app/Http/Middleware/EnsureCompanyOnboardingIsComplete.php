@@ -15,7 +15,7 @@ class EnsureCompanyOnboardingIsComplete
 
         $hasCompleteBranch = $company?->branches->contains(fn ($branch) => filled($branch->name) && filled($branch->business_type_id));
 
-        if ($company && ! $company->onboarding_completed_at && ! $hasCompleteBranch && ! $request->routeIs('onboarding.company')) {
+        if ($company && ! $hasCompleteBranch && ! $request->routeIs('onboarding.company')) {
             return redirect()->route('onboarding.company');
         }
 

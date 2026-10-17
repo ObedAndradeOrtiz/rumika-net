@@ -17,8 +17,10 @@ const firebaseAuthMessage = (error) => {
     };
 
     return messages[error.code]
-        || error.response?.data?.message
         || Object.values(error.response?.data?.errors || {})?.flat()?.[0]
+        || (error.response?.status === 419 ? 'Tu sesion expiro. Recarga la pagina y vuelve a continuar con Google.' : null)
+        || (error.response?.status >= 500 ? 'No pudimos completar el registro. Intenta nuevamente en unos momentos.' : null)
+        || error.response?.data?.message
         || error.message
         || 'No se pudo iniciar sesion con Google. Intenta de nuevo.';
 };
@@ -54,7 +56,7 @@ const firebaseReady = () => {
         if (supported && firebaseConfig.measurementId) {
             getAnalytics(app);
         }
-    });
+    }).catch(() => {});
 
     firebaseContext = { auth, provider };
 
@@ -62,88 +64,93 @@ const firebaseReady = () => {
 };
 
 const bindGoogleAuthButtons = () => {
-    const googleButtons = document.querySelectorAll('[data-firebase-google]');
+    document.addEventListener('click', async (event) => {
+        const button = event.target.closest('[data-firebase-google]');
+        if (!button) return;
+        if (button.disabled) return;
 
-    if (! googleButtons.length) {
-        return;
-    }
+        const form = button.closest('[data-google-registration]');
+        const errorTarget = document.querySelector(button.dataset.errorTarget || '[data-google-error]');
+        const originalText = button.querySelector('[data-google-label]')?.textContent;
+        const termsCheckbox = (form || document).querySelector('[data-terms-checkbox]');
 
-    const context = firebaseReady();
+        if (termsCheckbox && !termsCheckbox.checked) {
+            if (errorTarget) {
+                errorTarget.hidden = false;
+                errorTarget.textContent = 'Debes aceptar los terminos y la politica de privacidad para crear tu cuenta.';
+            }
 
-    googleButtons.forEach((button) => {
-        if (button.dataset.firebaseBound === 'true') {
+            termsCheckbox.focus();
             return;
         }
 
-        button.dataset.firebaseBound = 'true';
+        button.disabled = true;
+        button.classList.add('is-loading');
 
-        button.addEventListener('click', async () => {
-            const errorTarget = document.querySelector(button.dataset.errorTarget || '[data-google-error]');
-            const originalText = button.querySelector('[data-google-label]')?.textContent;
-            const termsCheckbox = document.querySelector('[data-terms-checkbox]');
+        if (button.querySelector('[data-google-label]')) {
+            button.querySelector('[data-google-label]').textContent = 'Conectando con Google...';
+        }
 
-            if (! context) {
-                if (errorTarget) {
-                    errorTarget.hidden = false;
-                    errorTarget.textContent = 'Falta configurar Firebase para crear cuentas con Google.';
-                }
+        if (errorTarget) {
+            errorTarget.hidden = true;
+            errorTarget.textContent = '';
+        }
 
-                return;
+        try {
+            const context = firebaseReady();
+            if (!context) {
+                throw new Error('Falta configurar Firebase para crear cuentas con Google.');
             }
 
-            if (termsCheckbox && !termsCheckbox.checked) {
-                if (errorTarget) {
-                    errorTarget.hidden = false;
-                    errorTarget.textContent = 'Debes aceptar los terminos y la politica de privacidad para crear tu cuenta.';
-                }
+            // Open Google synchronously from the click so mobile browsers allow it.
+            const credential = await signInWithPopup(context.auth, context.provider);
+            const idToken = await credential.user.getIdToken();
+            const payload = {
+                id_token: idToken,
+            };
 
-                return;
+            if (termsCheckbox) {
+                payload.terms_accepted = termsCheckbox.checked;
             }
 
-            button.disabled = true;
-            button.classList.add('is-loading');
+            button.querySelector('[data-google-label]').textContent = 'Preparando tu cuenta...';
+            const response = await window.axios.post(button.dataset.authUrl, payload, {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                },
+                timeout: 30000,
+            });
 
-            if (button.querySelector('[data-google-label]')) {
-                button.querySelector('[data-google-label]').textContent = 'Conectando con Google...';
-            }
+            window.location.href = response.data.redirect || '/dashboard';
+        } catch (error) {
+            const message = firebaseAuthMessage(error);
 
             if (errorTarget) {
-                errorTarget.hidden = true;
-                errorTarget.textContent = '';
+                errorTarget.hidden = false;
+                errorTarget.textContent = message;
+                errorTarget.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
             }
 
-            try {
-                const credential = await signInWithPopup(context.auth, context.provider);
-                const idToken = await credential.user.getIdToken();
-                const payload = {
-                    id_token: idToken,
-                };
+            button.disabled = false;
+            button.classList.remove('is-loading');
 
-                if (termsCheckbox) {
-                    payload.terms_accepted = termsCheckbox.checked;
-                }
-
-                const response = await window.axios.post(button.dataset.authUrl, payload);
-
-                window.location.href = response.data.redirect || '/dashboard';
-            } catch (error) {
-                const message = firebaseAuthMessage(error);
-
-                if (errorTarget) {
-                    errorTarget.hidden = false;
-                    errorTarget.textContent = message;
-                }
-
-                button.disabled = false;
-                button.classList.remove('is-loading');
-
-                if (button.querySelector('[data-google-label]') && originalText) {
-                    button.querySelector('[data-google-label]').textContent = originalText;
-                }
+            if (button.querySelector('[data-google-label]') && originalText) {
+                button.querySelector('[data-google-label]').textContent = originalText;
             }
-        });
+        }
     });
 };
 
-document.addEventListener('DOMContentLoaded', bindGoogleAuthButtons);
-document.addEventListener('livewire:navigated', bindGoogleAuthButtons);
+// Delegation also handles pages restored from Livewire's navigation cache.
+bindGoogleAuthButtons();
+
+document.addEventListener('change', (event) => {
+    if (!event.target.matches('[data-terms-checkbox]') || !event.target.checked) return;
+
+    const errorTarget = event.target.closest('[data-google-registration]')?.querySelector('[data-google-error]');
+    if (errorTarget) {
+        errorTarget.hidden = true;
+        errorTarget.textContent = '';
+    }
+});

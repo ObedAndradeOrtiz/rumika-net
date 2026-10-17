@@ -539,6 +539,32 @@
             grid-template-columns: repeat(2, minmax(0, 1fr));
         }
 
+        .rm-setup-fields {
+            display: grid;
+            gap: 17px;
+            min-width: 0;
+            margin: 0;
+            padding: 0;
+            border: 0;
+        }
+
+        .rm-auth-form-panel,
+        .rm-auth-form-inner,
+        .rm-login-shell,
+        .rm-field,
+        .rm-input-box {
+            min-width: 0;
+        }
+
+        .rm-input {
+            font-size: 16px;
+        }
+
+        .rm-error,
+        .rm-google-error {
+            overflow-wrap: anywhere;
+        }
+
         .rm-select {
             appearance: none;
             cursor: pointer;
