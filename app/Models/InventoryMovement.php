@@ -11,6 +11,7 @@ class InventoryMovement extends Model
         'company_id',
         'branch_id',
         'related_branch_id',
+        'transfer_key',
         'inventory_count_id',
         'inventory_product_id',
         'inventory_product_batch_id',

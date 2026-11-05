@@ -18,6 +18,7 @@ use App\Models\TreatmentPaymentItem;
 use App\Models\TreatmentPayment;
 use App\Models\InventoryUseArea;
 use App\Support\CompanyPlanLimits;
+use App\Support\InventoryTransferDeletion;
 use App\Support\RumikaAccess;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -66,6 +67,7 @@ class InventoryManager extends Component
     public bool $countOnlyDifferences = false;
     public array $countOpeningQuantities = [];
     public ?int $confirmingCountDeleteId = null;
+    public string $transferDeleteMessage = '';
 
     public ?int $editingProductId = null;
     public ?int $confirmingProductDeleteId = null;
@@ -566,6 +568,9 @@ class InventoryManager extends Component
         $validated = $this->validate($rules);
 
         DB::transaction(function () use ($company, $branch, $validated) {
+            if ($this->movementType === 'transfer') {
+                $validated['transferKey'] = (string) Str::uuid();
+            }
             $quantity = (float) $validated['movementQuantity'];
             $unitCost = (float) ($validated['movementUnitCost'] ?: 0);
 
@@ -619,6 +624,7 @@ class InventoryManager extends Component
                 ->where('inventory_product_id', $validated['movementProductId'])
                 ->where('status', 'available')
                 ->whereKey($validated['movementBatchId'])
+                ->lockForUpdate()
                 ->firstOrFail();
 
             if ((float) $batch->current_quantity < $quantity) {
@@ -685,7 +691,7 @@ class InventoryManager extends Component
                     'transfer_in',
                     $quantity,
                     $unitCost,
-                    $validated + ['relatedBranchId' => $branch->id]
+                    array_replace($validated, ['relatedBranchId' => $branch->id])
                 );
             }
         });
@@ -696,6 +702,17 @@ class InventoryManager extends Component
 
         $this->showMovementModal = false;
         $this->resetMovementForm();
+    }
+
+    public function deleteTransfer(int $movementId): void
+    {
+        abort_unless($this->canManageInventoryClosures(), 403);
+        $this->resetErrorBag('transferDelete');
+        $this->transferDeleteMessage = '';
+
+        InventoryTransferDeletion::delete($this->company()->id, $this->activeBranch()->id, $movementId);
+
+        $this->transferDeleteMessage = 'Traspaso eliminado. Se devolvieron las existencias a la sucursal de origen.';
     }
 
     public function createAsset(): void
@@ -1574,6 +1591,7 @@ class InventoryManager extends Component
             'company_id' => $company->id,
             'branch_id' => $branch->id,
             'related_branch_id' => $data['relatedBranchId'] ?? null,
+            'transfer_key' => $data['transferKey'] ?? null,
             'inventory_count_id' => $count->id,
             'inventory_product_id' => $productId,
             'inventory_product_batch_id' => $batchId,

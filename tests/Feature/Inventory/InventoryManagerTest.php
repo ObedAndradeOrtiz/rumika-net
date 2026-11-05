@@ -565,6 +565,142 @@ class InventoryManagerTest extends TestCase
             ->assertFileDownloaded('inventario-movimientos-sucursal-centro-20260801-20260831.xls');
     }
 
+    public function test_transfer_can_be_deleted_from_either_branch_and_stock_is_restored(): void
+    {
+        [$admin, $company, $source, $target, $batch] = $this->transferContext();
+        $this->actingAs($admin);
+        session(['active_branch_id' => $source->id]);
+
+        Livewire::test(InventoryManager::class, ['screen' => 'operations'])
+            ->set('movementType', 'transfer')
+            ->set('movementProductId', (string) $batch->inventory_product_id)
+            ->set('movementBatchId', (string) $batch->id)
+            ->set('movementQuantity', '4.5')
+            ->set('relatedBranchId', (string) $target->id)
+            ->call('saveMovement')->assertHasNoErrors();
+
+        $out = InventoryMovement::where('type', 'transfer_out')->firstOrFail();
+        $in = InventoryMovement::where('type', 'transfer_in')->firstOrFail();
+        $this->assertNotNull($out->transfer_key);
+        $this->assertSame($out->transfer_key, $in->transfer_key);
+        $this->assertSame($source->id, $in->related_branch_id);
+        $this->assertSame('5.50', $batch->fresh()->current_quantity);
+
+        session(['active_branch_id' => $target->id]);
+        Livewire::test(InventoryManager::class, ['screen' => 'operations'])
+            ->call('deleteTransfer', $in->id)->assertHasNoErrors()
+            ->assertSet('transferDeleteMessage', 'Traspaso eliminado. Se devolvieron las existencias a la sucursal de origen.');
+
+        $this->assertSame('10.00', $batch->fresh()->current_quantity);
+        $this->assertDatabaseHas('inventory_product_batches', ['id' => $in->inventory_product_batch_id, 'current_quantity' => 0, 'initial_quantity' => 0]);
+        $this->assertDatabaseMissing('inventory_movements', ['id' => $out->id]);
+        $this->assertDatabaseMissing('inventory_movements', ['id' => $in->id]);
+        $this->assertDatabaseHas('audit_logs', ['auditable_type' => InventoryMovement::class, 'auditable_id' => $out->id, 'event' => 'deleted']);
+    }
+
+    public function test_legacy_transfer_with_old_destination_reference_can_be_deleted(): void
+    {
+        [$admin, $company, $source, $target, $batch, $out, $in] = $this->recordedTransferContext();
+        InventoryMovement::whereIn('id', [$out->id, $in->id])->update(['transfer_key' => null]);
+        $in->update(['related_branch_id' => $target->id]);
+
+        Livewire::test(InventoryManager::class, ['screen' => 'operations'])
+            ->call('deleteTransfer', $out->id)->assertHasNoErrors();
+
+        $this->assertSame('10.00', $batch->fresh()->current_quantity);
+        $this->assertDatabaseMissing('inventory_movements', ['id' => $in->id]);
+    }
+
+    public function test_transfer_with_insufficient_destination_stock_is_not_deleted(): void
+    {
+        [$admin, $company, $source, $target, $batch, $out, $in] = $this->recordedTransferContext();
+        $in->batch->update(['current_quantity' => 1]);
+
+        Livewire::test(InventoryManager::class, ['screen' => 'operations'])
+            ->call('deleteTransfer', $out->id)->assertHasErrors('transferDelete');
+
+        $this->assertSame('6.00', $batch->fresh()->current_quantity);
+        $this->assertSame('1.00', $in->batch->fresh()->current_quantity);
+        $this->assertDatabaseHas('inventory_movements', ['id' => $out->id]);
+        $this->assertDatabaseHas('inventory_movements', ['id' => $in->id]);
+    }
+
+    public function test_transfer_deletion_rejects_foreign_company_and_non_admin(): void
+    {
+        [$admin, $company, $source, $target, $batch, $out] = $this->recordedTransferContext();
+        [$other, , $otherBranch] = $this->companyContext('foreign-transfer');
+        $this->actingAs($other);
+        session(['active_branch_id' => $otherBranch->id]);
+        Livewire::test(InventoryManager::class)->call('deleteTransfer', $out->id)->assertNotFound();
+
+        $this->actingAs($admin);
+        session(['active_branch_id' => $source->id]);
+        $company->users()->updateExistingPivot($admin->id, ['role' => 'staff']);
+        Livewire::test(InventoryManager::class)->call('deleteTransfer', $out->id)->assertForbidden();
+        $this->assertSame('6.00', $batch->fresh()->current_quantity);
+    }
+
+    public function test_unmatched_legacy_transfer_is_not_deleted(): void
+    {
+        [$admin, $company, $source, $target, $batch, $out, $in] = $this->recordedTransferContext();
+        InventoryMovement::whereIn('id', [$out->id, $in->id])->update(['transfer_key' => null]);
+        $in->update(['reference' => 'different']);
+        Livewire::test(InventoryManager::class)->call('deleteTransfer', $out->id)->assertHasErrors('transferDelete');
+        $this->assertSame('6.00', $batch->fresh()->current_quantity);
+        $this->assertDatabaseHas('inventory_movements', ['id' => $out->id]);
+    }
+
+    public function test_closed_inventory_transfer_cannot_be_deleted(): void
+    {
+        [$admin, $company, $source, $target, $batch, $out, $in] = $this->recordedTransferContext();
+        $out->inventoryCount->update(['status' => 'closed']);
+
+        Livewire::test(InventoryManager::class, ['screen' => 'operations'])
+            ->call('deleteTransfer', $out->id)->assertHasErrors('transferDelete');
+
+        $this->assertSame('6.00', $batch->fresh()->current_quantity);
+        $this->assertSame('4.00', $in->batch->fresh()->current_quantity);
+        $this->assertDatabaseHas('inventory_movements', ['id' => $out->id]);
+    }
+
+    public function test_deleting_a_transfer_twice_does_not_restore_stock_twice(): void
+    {
+        [$admin, $company, $source, $target, $batch, $out] = $this->recordedTransferContext();
+        $component = Livewire::test(InventoryManager::class, ['screen' => 'operations']);
+        $component->call('deleteTransfer', $out->id)->assertHasNoErrors();
+        $component->call('deleteTransfer', $out->id)->assertNotFound();
+
+        $this->assertSame('10.00', $batch->fresh()->current_quantity);
+    }
+
+    private function transferContext(): array
+    {
+        [$admin, $company, $source] = $this->companyContext('transfer-test');
+        $plan = \App\Models\CompanyPlan::create(['name' => 'Transfer test', 'slug' => 'transfer-test', 'features' => ['modules' => ['*']]]);
+        $company->update(['company_plan_id' => $plan->id]);
+        $target = $company->branches()->create(['name' => 'Destino', 'slug' => 'destino', 'business_type_id' => $source->business_type_id]);
+        $target->users()->attach($admin->id, ['assigned_at' => now()]);
+        $product = $company->inventoryProducts()->create(['name' => 'Producto traspaso', 'code' => 'TRANSFER-01', 'unit_name' => 'ml', 'purchase_cost' => 2]);
+        $batch = $company->inventoryBatches()->create(['branch_id' => $source->id, 'inventory_product_id' => $product->id, 'lot_code' => 'TRANSFER-LOTE', 'initial_quantity' => 10, 'current_quantity' => 10, 'unit_cost' => 2, 'status' => 'available']);
+
+        return [$admin, $company, $source, $target, $batch];
+    }
+
+    private function recordedTransferContext(): array
+    {
+        [$admin, $company, $source, $target, $batch] = $this->transferContext();
+        $this->actingAs($admin);
+        session(['active_branch_id' => $source->id]);
+        Livewire::test(InventoryManager::class)
+            ->set('movementType', 'transfer')->set('movementProductId', (string) $batch->inventory_product_id)
+            ->set('movementBatchId', (string) $batch->id)->set('movementQuantity', '4')
+            ->set('relatedBranchId', (string) $target->id)->call('saveMovement')->assertHasNoErrors();
+
+        return [$admin, $company, $source, $target, $batch,
+            InventoryMovement::where('type', 'transfer_out')->firstOrFail(),
+            InventoryMovement::where('type', 'transfer_in')->firstOrFail()];
+    }
+
     private function companyContext(string $slug): array
     {
         $user = User::factory()->create(['email' => "{$slug}@rumika.test"]);

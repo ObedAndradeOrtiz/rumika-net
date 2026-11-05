@@ -261,6 +261,8 @@
                 </div>
             @endif
 
+            @error('transferDelete')<p class="rm-inline-error" role="alert">{{ $message }}</p>@enderror
+            @if ($transferDeleteMessage)<p class="rm-inline-success" role="status">{{ $transferDeleteMessage }}</p>@endif
             <div class="rm-commerce-list">
                 @forelse ($movements as $movement)
                     <article class="rm-commerce-row rm-movement-row">
@@ -273,6 +275,11 @@
                                 <span>{{ $movement->relatedBranch?->name ?? $branch->name }}</span>
                                 @if ($movement->reason)<span>{{ $movement->reason }}</span>@endif
                             </div>
+                            @if ($canManageInventoryClosures && in_array($movement->type, ['transfer_out', 'transfer_in'], true))
+                                <div class="rm-row-actions">
+                                    <button type="button" wire:click="deleteTransfer({{ $movement->id }})" wire:confirm="Eliminar este traspaso y devolver las existencias a la sucursal de origen? Se eliminaran la entrada y la salida." wire:loading.attr="disabled" wire:target="deleteTransfer">Eliminar traspaso</button>
+                                </div>
+                            @endif
                         </div>
                     </article>
                 @empty
