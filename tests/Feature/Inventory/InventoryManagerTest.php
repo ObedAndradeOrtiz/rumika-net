@@ -701,6 +701,83 @@ class InventoryManagerTest extends TestCase
             InventoryMovement::where('type', 'transfer_in')->firstOrFail()];
     }
 
+    public function test_purchase_adds_stock_without_the_optional_transfer_column(): void
+    {
+        \Illuminate\Support\Facades\Schema::table('inventory_movements', function ($table) {
+            $table->dropIndex('inventory_movements_transfer_key_index');
+            $table->dropColumn('transfer_key');
+        });
+        [$admin, $company, $branch] = $this->companyContext('purchase-legacy-schema');
+        $this->actingAs($admin);
+        session(['active_branch_id' => $branch->id]);
+
+        Livewire::test(InventoryManager::class)
+            ->set('productName', 'Producto existente')
+            ->call('saveProduct')->assertHasNoErrors();
+        $product = $company->inventoryProducts()->firstOrFail();
+
+        $component = Livewire::test(InventoryManager::class)
+            ->call('openMovement', 'purchase')
+            ->set('movementProductId', $product->id)
+            ->set('movementQuantity', '10')
+            ->set('movementUnitCost', '2')
+            ->set('movementLotCode', 'ENTRADA-01')
+            ->call('saveMovement')->assertHasNoErrors()
+            ->assertSet('showMovementModal', false);
+
+        $component->call('openMovement', 'purchase')
+            ->set('movementProductId', $product->id)
+            ->set('movementQuantity', '2.5')
+            ->set('movementUnitCost', '2')
+            ->set('movementLotCode', 'ENTRADA-01')
+            ->call('saveMovement')->assertHasNoErrors();
+
+        $this->assertDatabaseHas('inventory_product_batches', [
+            'inventory_product_id' => $product->id, 'lot_code' => 'ENTRADA-01',
+            'current_quantity' => 12.5, 'initial_quantity' => 12.5,
+        ]);
+        $this->assertSame(2, $company->inventoryMovements()->where('type', 'purchase')->count());
+
+        $batch = $company->inventoryBatches()->where('lot_code', 'ENTRADA-01')->firstOrFail();
+        foreach (['stock_out', 'cabinet', 'waste', 'adjustment'] as $type) {
+            Livewire::test(InventoryManager::class, ['screen' => 'operations'])
+                ->call('openMovement', $type)
+                ->set('movementProductId', $product->id)
+                ->set('movementBatchId', $batch->id)
+                ->set('movementQuantity', '0.5')
+                ->set('movementReason', 'Movimiento de prueba')
+                ->call('saveMovement')->assertHasNoErrors()
+                ->assertSet('showMovementModal', false);
+        }
+        $this->assertSame('10.50', $batch->fresh()->current_quantity);
+        $this->assertSame('12.50', $batch->fresh()->initial_quantity);
+        $this->assertSame(6, $company->inventoryMovements()->count());
+
+        Livewire::test(InventoryManager::class, ['screen' => 'operations'])
+            ->call('openMovement', 'stock_out')
+            ->set('movementProductId', $product->id)
+            ->set('movementBatchId', $batch->id)
+            ->set('movementQuantity', '100')
+            ->set('movementReason', 'Salida sin stock suficiente')
+            ->call('saveMovement')->assertHasErrors('movementQuantity');
+        $this->assertSame('10.50', $batch->fresh()->current_quantity);
+        $this->assertSame(6, $company->inventoryMovements()->count());
+    }
+
+    public function test_transfers_still_work_without_the_optional_transfer_column(): void
+    {
+        \Illuminate\Support\Facades\Schema::table('inventory_movements', function ($table) {
+            $table->dropIndex('inventory_movements_transfer_key_index');
+            $table->dropColumn('transfer_key');
+        });
+        [$admin, $company, $source, $target, $batch, $out, $in] = $this->recordedTransferContext();
+
+        Livewire::test(InventoryManager::class)
+            ->call('deleteTransfer', $out->id)->assertHasNoErrors();
+        $this->assertSame('10.00', $batch->fresh()->current_quantity);
+        $this->assertDatabaseMissing('inventory_movements', ['id' => $in->id]);
+    }
+
     private function companyContext(string $slug): array
     {
         $user = User::factory()->create(['email' => "{$slug}@rumika.test"]);

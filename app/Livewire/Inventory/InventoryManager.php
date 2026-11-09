@@ -24,6 +24,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -1587,11 +1588,10 @@ class InventoryManager extends Component
 
     private function recordMovement(Company $company, Branch $branch, InventoryCount $count, int $productId, ?int $batchId, string $type, float $quantity, float $unitCost, array $data): void
     {
-        InventoryMovement::query()->create([
+        $attributes = [
             'company_id' => $company->id,
             'branch_id' => $branch->id,
             'related_branch_id' => $data['relatedBranchId'] ?? null,
-            'transfer_key' => $data['transferKey'] ?? null,
             'inventory_count_id' => $count->id,
             'inventory_product_id' => $productId,
             'inventory_product_batch_id' => $batchId,
@@ -1602,7 +1602,16 @@ class InventoryManager extends Component
             'moved_at' => now(),
             'reference' => $data['movementReference'] ?: null,
             'reason' => $data['movementReason'] ?: null,
-        ]);
+        ];
+
+        // Stock entries must also work before the transfer migration is deployed.
+        if (in_array($type, ['transfer_out', 'transfer_in'], true)
+            && ! empty($data['transferKey'])
+            && Schema::hasColumn('inventory_movements', 'transfer_key')) {
+            $attributes['transfer_key'] = $data['transferKey'];
+        }
+
+        InventoryMovement::query()->create($attributes);
     }
 
     private function applyOpeningStockDelta(InventoryCount $count, InventoryCountItem $item, float $delta, float $oldOpening, float $newOpening): void
